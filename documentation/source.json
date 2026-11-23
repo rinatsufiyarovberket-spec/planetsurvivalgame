@@ -2,13 +2,13 @@
   "schema_version": 2,
   "checkpoint": {
     "status": "in_progress",
-    "focus": "tablet_ui_and_core_gameplay_loop",
+    "focus": "manual_rover_control_and_energy_reconnaissance",
     "next_steps": [
-      "Вставить актуальные исходники в source_code.tablet_html и source_code.computer_cpp",
-      "Проверить отображение символа станка-ассемблера (⌘ / U+2318) и ящиков (▣ / □) на экране планшета",
-      "При необходимости прокомментировать символы из списка 1..20 по номерам",
-      "Проработать расширение логической карты (например, в 3 раза) при сохранении визуального размера области просмотра и кнопок сдвига",
-      "Оценить замену символа '#' в шкалах на более органичные знаки стиля терминала"
+      "Разработать игровые объекты источников энергии: солнечные панели, аккумуляторные блоки, генераторы и RTG",
+      "Определить реалистичные характеристики генерации, накопления и потребления энергии",
+      "Согласовать характеристики робота-уборщика и его аккумулятора",
+      "Добавить в игровой мир обнаруживаемые роботы, станции, модули и компоненты",
+      "Синхронизировать статусы задач с фактическим прогрессом игрового цикла"
     ]
   },
   "platforms": {
@@ -16,9 +16,11 @@
       "environment": "Termux + браузер планшета (редактирование в micro)",
       "format": "Автономный index.html без сервера",
       "layout": {
-        "scaling": "Пропорции через доли (fr) и проценты (%), без перекосов при поворотах экрана; отображение ширины и высоты в PX сверху",
-        "map_area": "Верхняя зона — карта на всю доступную область без лишней внутренней рамки",
-        "bottom_dock": "Нижняя объединённая панель: слева вверху в одну строку параметры HP, TMP и BAT (5 делений по 20%, формат BAT XX% [■■■■□]), ниже — инфо-лог; справа вертикально кнопки MOVE, STOP, ACT"
+        "scaling": "Адаптивная компоновка для планшета и браузера",
+        "map_area": "Карта занимает всё свободное пространство над нижней консолью; видимая область 15x9 клеток, общий мир 45x27",
+        "sector_grid": "Крестики на пересечениях секторов 10x10",
+        "bottom_dock": "Нижняя консоль: список миссий и журнал событий слева; справа телеметрия робота, кнопки направлений, STOP и ACT",
+        "movement": "Ручное перемещение кнопками направлений, без выбора клетки на карте"
       },
       "checked_and_refined": [
         "Маркер игрока ⚫ (U+2B24) и выбор цели ○ (U+25CB) без лишних точек на пустых клетках и без псевдографической рамки из + и -",
@@ -118,11 +120,12 @@
   "world_state": {
     "note": "Отдельной БД пока нет — это текущее состояние мира/объектов для сохранения и восстановления прогресса",
     "map": {
-      "width": 15,
-      "height": 9,
+      "width": 45,
+      "height": 27,
       "step_ms": 1000,
       "charge_ms": 2000,
-      "steps_per_cell_charge": 10
+      "steps_per_cell_charge": 5,
+      "sector_size": 10
     },
     "unit": {
       "x": 2,
@@ -138,24 +141,108 @@
       "steps_since_charge_loss": 0
     },
     "quest": {
-      "required_items": [
-        "panel",
-        "crate",
-        "assembler"
+      "objectives": [
+        {
+          "id": "energy_recon",
+          "title": "Energy reconnaissance",
+          "status": "active",
+          "details": "Survey nearby terrain and locate solar panels, battery banks, generators and RTG units. Minimum control-module infrastructure: one solar panel and one battery bank."
+        },
+        {
+          "id": "unit_module_search",
+          "title": "Locate robots and modules",
+          "status": "standby",
+          "details": "Find other robots, communication stations, processing modules and work equipment."
+        },
+        {
+          "id": "component_recovery",
+          "title": "Recover components",
+          "status": "standby",
+          "details": "Locate spare parts, modules, tools and components for repairs."
+        }
       ],
-      "inventory": [],
-      "delivered": []
+      "required_energy_infrastructure": [
+        "solar_panel",
+        "battery_bank"
+      ],
+      "discovered_sources": [
+        "solar_panel",
+        "battery_bank",
+        "generator",
+        "rtg"
+      ]
     },
     "entities": [
-      { "id": "base", "x": 2, "y": 4, "kind": "base", "label": "BASE (CHARGE & DROP-OFF)" },
-      { "id": "panel_1", "x": 6, "y": 2, "kind": "solar", "label": "SOLAR PANEL", "task_item": "panel", "taken": false },
-      { "id": "crate_1", "x": 9, "y": 6, "kind": "crate", "label": "CRATE [WIRING / PARTS / COMP]", "task_item": "crate", "opened": false },
-      { "id": "asm_1", "x": 11, "y": 2, "kind": "assembler", "label": "ASSEMBLER FABRICATOR UNIT", "task_item": "assembler", "salvaged": false },
-      { "id": "broken_2", "x": 5, "y": 7, "kind": "broken", "label": "BROKEN MODULE [SCRAP]", "salvaged": false },
-      { "id": "quest_1", "x": 12, "y": 4, "kind": "quest", "label": "TASK BEACON: SALVAGE SECTOR" },
-      { "id": "rock_1", "x": 8, "y": 3, "kind": "rock", "label": "IMPASSABLE ROCK TERRAIN" },
-      { "id": "rock_2", "x": 8, "y": 4, "kind": "rock", "label": "IMPASSABLE ROCK TERRAIN" },
-      { "id": "rock_3", "x": 8, "y": 5, "kind": "rock", "label": "IMPASSABLE ROCK TERRAIN" }
+      {
+        "id": "base",
+        "x": 2,
+        "y": 4,
+        "kind": "base",
+        "label": "BASE (CHARGE & DROP-OFF)"
+      },
+      {
+        "id": "panel_1",
+        "x": 6,
+        "y": 2,
+        "kind": "solar",
+        "label": "SOLAR PANEL",
+        "task_item": "panel",
+        "taken": false
+      },
+      {
+        "id": "crate_1",
+        "x": 9,
+        "y": 6,
+        "kind": "crate",
+        "label": "CRATE [WIRING / PARTS / COMP]",
+        "task_item": "crate",
+        "opened": false
+      },
+      {
+        "id": "asm_1",
+        "x": 11,
+        "y": 2,
+        "kind": "assembler",
+        "label": "ASSEMBLER FABRICATOR UNIT",
+        "task_item": "assembler",
+        "salvaged": false
+      },
+      {
+        "id": "broken_2",
+        "x": 5,
+        "y": 7,
+        "kind": "broken",
+        "label": "BROKEN MODULE [SCRAP]",
+        "salvaged": false
+      },
+      {
+        "id": "quest_1",
+        "x": 12,
+        "y": 4,
+        "kind": "quest",
+        "label": "TASK BEACON: SALVAGE SECTOR"
+      },
+      {
+        "id": "rock_1",
+        "x": 8,
+        "y": 3,
+        "kind": "rock",
+        "label": "IMPASSABLE ROCK TERRAIN"
+      },
+      {
+        "id": "rock_2",
+        "x": 8,
+        "y": 4,
+        "kind": "rock",
+        "label": "IMPASSABLE ROCK TERRAIN"
+      },
+      {
+        "id": "rock_3",
+        "x": 8,
+        "y": 5,
+        "kind": "rock",
+        "label": "IMPASSABLE ROCK TERRAIN"
+      }
     ]
   },
   "source_code": {
