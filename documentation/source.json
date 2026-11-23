@@ -1,0 +1,165 @@
+{
+  "schema_version": 2,
+  "checkpoint": {
+    "status": "in_progress",
+    "focus": "tablet_ui_and_core_gameplay_loop",
+    "next_steps": [
+      "Вставить актуальные исходники в source_code.tablet_html и source_code.computer_cpp",
+      "Проверить отображение символа станка-ассемблера (⌘ / U+2318) и ящиков (▣ / □) на экране планшета",
+      "При необходимости прокомментировать символы из списка 1..20 по номерам",
+      "Проработать расширение логической карты (например, в 3 раза) при сохранении визуального размера области просмотра и кнопок сдвига",
+      "Оценить замену символа '#' в шкалах на более органичные знаки стиля терминала"
+    ]
+  },
+  "platforms": {
+    "tablet": {
+      "environment": "Termux + браузер планшета (редактирование в micro)",
+      "format": "Автономный index.html без сервера",
+      "layout": {
+        "scaling": "Пропорции через доли (fr) и проценты (%), без перекосов при поворотах экрана; отображение ширины и высоты в PX сверху",
+        "map_area": "Верхняя зона — карта на всю доступную область без лишней внутренней рамки",
+        "bottom_dock": "Нижняя объединённая панель: слева вверху в одну строку параметры HP, TMP и BAT (5 делений по 20%, формат BAT XX% [■■■■□]), ниже — инфо-лог; справа вертикально кнопки MOVE, STOP, ACT"
+      },
+      "checked_and_refined": [
+        "Маркер игрока ⚫ (U+2B24) и выбор цели ○ (U+25CB) без лишних точек на пустых клетках и без псевдографической рамки из + и -",
+        "Углы сетки отмечены символом +",
+        "Движение раз в 1000 мс с поддержкой диагоналей (N, S, E, W, NE, NW, SE, SW) без лишних резких перестроений под прямым углом",
+        "Кнопка ACT активна при приближении к интерактивному объекту или базе"
+      ]
+    },
+    "computer": {
+      "environment": "Windows + C++ сервер (server.cpp)",
+      "build_and_run": {
+        "compile": "clang++ -std=c++17 server.cpp -o server.exe -lws2_32 -lshell32",
+        "run_example": ".\\server.exe --no-browser"
+      },
+      "network": {
+        "port": 8080,
+        "allowed_ips": [
+          "192.168.0.102",
+          "127.0.0.1"
+        ],
+        "unauthorized_response": "403 Forbidden",
+        "client_ip_placeholder": "__CLIENT_IP__"
+      },
+      "role": "Локальный стенд для эмуляции сервера ESP32, проверки отдачи и дальнейшей серверной синхронизации состояния"
+    },
+    "esp32": {
+      "target": "Микроконтроллер ESP32 со встроенным веб-сервером по локальной сети",
+      "architecture_notes": [
+        "Интерфейс (HTML + CSS + JS) собирается как лёгкий автономный блок без тяжёлых внешних зависимостей для переноса во флеш-память",
+        "Мобильный тач-интерфейс с touch-action: manipulation и стабильной геометрией блоков",
+        "Таймеры и логика состояний (шаг 1000 мс, заряд на базе +20% каждые 2000 мс, расход 1 деления за 10 шагов, прогресс задачи) готовы к переносу на прошивку"
+      ]
+    }
+  },
+  "symbols_and_mechanics": {
+    "player": {
+      "symbol": "⚫",
+      "unicode": "U+2B24"
+    },
+    "target": {
+      "symbol": "○",
+      "unicode": "U+25CB"
+    },
+    "grid_corner": {
+      "symbol": "+",
+      "unicode": "U+002B"
+    },
+    "base": {
+      "symbol": "⬟",
+      "unicode": "U+2B1F",
+      "rules": "Зарядка батареи +1 деление (20%) каждые 2 секунды рядом; приём предметов первой задачи"
+    },
+    "battery": {
+      "format": "BAT XX% [■■■■□]",
+      "cells": 5,
+      "percent_per_cell": 20,
+      "drain": "1 деление (20%) за каждые 10 шагов"
+    },
+    "crate": {
+      "full_symbol": "▣",
+      "full_unicode": "U+25A3",
+      "empty_symbol": "□",
+      "empty_unicode": "U+25A1",
+      "contents": "проводка, детали, компоненты"
+    },
+    "solar_panel": {
+      "symbol": "▤",
+      "unicode": "U+25A4",
+      "role": "Предмет первой задачи"
+    },
+    "assembler": {
+      "symbol": "⌘",
+      "unicode": "U+2318",
+      "role": "Станок-сборщик, предмет первой задачи"
+    },
+    "broken_objects": {
+      "symbol": "⧅",
+      "unicode": "U+29C5",
+      "after_salvage_symbol": "░",
+      "after_salvage_unicode": "U+2591",
+      "role": "Поломанные машины, станки, модули, роботы"
+    },
+    "impassable_terrain": {
+      "symbol": "▲",
+      "unicode": "U+25B2",
+      "role": "Сложная непроходимая местность (скалы)"
+    },
+    "quest_beacon": {
+      "symbol": "◇",
+      "unicode": "U+25C7",
+      "role": "Ориентир задачи"
+    },
+    "first_quest": {
+      "goal": "Привезти на базу солнечную панель, ящик и станок-ассемблер"
+    }
+  },
+  "world_state": {
+    "note": "Отдельной БД пока нет — это текущее состояние мира/объектов для сохранения и восстановления прогресса",
+    "map": {
+      "width": 15,
+      "height": 9,
+      "step_ms": 1000,
+      "charge_ms": 2000,
+      "steps_per_cell_charge": 10
+    },
+    "unit": {
+      "x": 2,
+      "y": 4,
+      "target_x": null,
+      "target_y": null,
+      "hp": 20,
+      "max_hp": 20,
+      "tmp": 24,
+      "max_tmp": 100,
+      "bat_cells": 4,
+      "max_bat_cells": 5,
+      "steps_since_charge_loss": 0
+    },
+    "quest": {
+      "required_items": [
+        "panel",
+        "crate",
+        "assembler"
+      ],
+      "inventory": [],
+      "delivered": []
+    },
+    "entities": [
+      { "id": "base", "x": 2, "y": 4, "kind": "base", "label": "BASE (CHARGE & DROP-OFF)" },
+      { "id": "panel_1", "x": 6, "y": 2, "kind": "solar", "label": "SOLAR PANEL", "task_item": "panel", "taken": false },
+      { "id": "crate_1", "x": 9, "y": 6, "kind": "crate", "label": "CRATE [WIRING / PARTS / COMP]", "task_item": "crate", "opened": false },
+      { "id": "asm_1", "x": 11, "y": 2, "kind": "assembler", "label": "ASSEMBLER FABRICATOR UNIT", "task_item": "assembler", "salvaged": false },
+      { "id": "broken_2", "x": 5, "y": 7, "kind": "broken", "label": "BROKEN MODULE [SCRAP]", "salvaged": false },
+      { "id": "quest_1", "x": 12, "y": 4, "kind": "quest", "label": "TASK BEACON: SALVAGE SECTOR" },
+      { "id": "rock_1", "x": 8, "y": 3, "kind": "rock", "label": "IMPASSABLE ROCK TERRAIN" },
+      { "id": "rock_2", "x": 8, "y": 4, "kind": "rock", "label": "IMPASSABLE ROCK TERRAIN" },
+      { "id": "rock_3", "x": 8, "y": 5, "kind": "rock", "label": "IMPASSABLE ROCK TERRAIN" }
+    ]
+  },
+  "source_code": {
+    "tablet_html": "",
+    "computer_cpp": ""
+  }
+}
