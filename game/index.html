@@ -459,8 +459,10 @@
   .map-cell.structure{color:var(--grn-main);font-weight:bold}
   .map-cell.structure.core{color:var(--grn-bright)}
   .map-cell.sector{color:var(--grn-dim)}
-  .telemetry{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;font-size:clamp(9px,1.25vw,12px);white-space:nowrap;min-height:22px}
-  .telemetry-left{text-align:left}.telemetry-center{text-align:center}.telemetry-right{text-align:right;color:var(--grn-bright)}
+  .telemetry{display:flex;align-items:center;justify-content:space-between;gap:clamp(5px,1vw,12px);font-size:clamp(7px,1vw,11px);white-space:nowrap;min-height:22px;overflow:hidden}
+  .telemetry-left{display:flex;align-items:center;gap:clamp(5px,.9vw,12px);min-width:0;white-space:nowrap}
+  .telemetry-center{flex:0 0 auto;text-align:center;white-space:nowrap}
+  .telemetry-right{flex:0 0 auto;text-align:right;color:var(--grn-bright);white-space:nowrap}
   .dock-panel{grid-template-columns:minmax(0,1fr) minmax(190px,23%)}
   .log-unified{display:block;min-width:0;min-height:0;overflow:hidden}
   .quest-row.active{padding:5px 7px;border-left:2px solid var(--grn-bright);background:var(--grn-bg)}
@@ -746,6 +748,7 @@
             if (!b || !isAdjacentToEntity(posX,posY,b) || batCells >= maxBatCells) {
               clearInterval(chargeTimer);
               chargeTimer = null;
+              renderVitals();
               if (moveTimer === null) setMoveStateLabel('IDLE');
               return;
             }
@@ -756,10 +759,12 @@
             if (batCells === maxBatCells) {
               clearInterval(chargeTimer);
               chargeTimer = null;
+              renderVitals();
               if (moveTimer === null) setMoveStateLabel('IDLE');
               writeLog('BATTERY FULL [100%]');
             }
           }, CHARGE_MS);
+          renderVitals();
         }
         if (moveTimer === null) {
           setMoveStateLabel('CHARGING');
@@ -767,6 +772,7 @@
       } else if (chargeTimer !== null) {
         clearInterval(chargeTimer);
         chargeTimer = null;
+        renderVitals();
         if (moveTimer === null) {
           setMoveStateLabel('IDLE');
         }
