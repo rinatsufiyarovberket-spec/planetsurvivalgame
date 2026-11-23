@@ -49,7 +49,7 @@
     border: 2px solid var(--grn-main);
     padding: 1.6% 2%;
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: minmax(0, 1fr) auto;
     gap: 1.4%;
   }
 
@@ -100,8 +100,8 @@
     height: 100%;
     min-height: 0;
     display: grid;
-    grid-template-rows: 76fr 24fr;
-    gap: 1.8%;
+    grid-template-rows: minmax(0, 1fr) minmax(112px, 19%);
+    gap: 1.4%;
   }
 
   .panel {
@@ -148,8 +148,8 @@
     width: 100%;
     height: 100%;
     display: grid;
-    grid-template-columns: repeat(15, 1fr);
-    grid-template-rows: repeat(9, 1fr);
+    grid-template-columns: repeat(15, minmax(0, 1fr));
+    grid-template-rows: repeat(9, minmax(0, 1fr));
   }
 
   .map-nav {
@@ -380,21 +380,6 @@
 
       <section class="panel dock-panel">
         <div class="log-unified">
-          <div class="vitals-inline">
-            <div class="stat-inline-group">
-              <span class="stat-lbl">HP</span>
-              <span class="stat-val" id="hp-text">20/20</span>
-              <span class="stat-bar hp-bar" id="hp-bar">[##########]</span>
-            </div>
-
-            <div class="stat-inline-group">
-              <span class="stat-lbl">TMP</span>
-              <span class="stat-val" id="tmp-text">24/100</span>
-              <span class="stat-bar tmp-bar" id="tmp-bar">[##........]</span>
-            </div>
-
-          </div>
-
           <div class="log-body">
             <div class="log-line" id="log-main">&gt; TASK: DELIVER SOLAR PANEL + CRATE + ASSEMBLER TO BASE</div>
             <div class="log-line dim" id="log-prev">&gt; TAP CELL FOR INFO, PRESS MOVE TO STEP (1S)</div>
@@ -433,8 +418,9 @@
 
     const MARKER_CHAR = '\u2B24'; // ⚫
     const TARGET_CHAR = '\u25CB'; // ○
-    const CORNER_X = new Set([0, 14, 30, 44]);
-    const CORNER_Y = new Set([0, 13, 26]);
+    // Углы прямоугольных секторов 15x9 по всей карте.
+    const CORNER_X = new Set([0, 14, 15, 29, 30, 44]);
+    const CORNER_Y = new Set([0, 8, 9, 17, 18, 26]);
 
     let posX = 2;
     let posY = 4;
@@ -504,18 +490,6 @@
     }
 
     function renderVitals() {
-      document.getElementById('hp-text').textContent = hp + '/' + maxHp;
-      document.getElementById('hp-bar').textContent = makeAsciiBar(hp, maxHp, 10, '#', '.');
-
-      document.getElementById('tmp-text').textContent = tmp + '/' + maxTmp;
-      const tmpBar = document.getElementById('tmp-bar');
-      tmpBar.textContent = makeAsciiBar(tmp, maxTmp, 10, '=', '.');
-      if (tmp >= maxTmp * 0.75) {
-        tmpBar.classList.add('hot');
-      } else {
-        tmpBar.classList.remove('hot');
-      }
-
       const pct = batCells * 20;
       document.getElementById('bat-pct').textContent = pct + '%';
       const batBar = document.getElementById('bat-bar');
