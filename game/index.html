@@ -49,8 +49,8 @@
     border: 2px solid var(--grn-main);
     padding: 1.6% 2%;
     display: grid;
-    grid-template-rows: minmax(0, 1fr) auto;
-    gap: 1.4%;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0;
   }
 
   .edge-frame::before,
@@ -100,8 +100,8 @@
     height: 100%;
     min-height: 0;
     display: grid;
-    grid-template-rows: minmax(0, 1fr) minmax(112px, 19%);
-    gap: 1.4%;
+    grid-template-rows: minmax(0, 1fr) minmax(190px, 29%);
+    gap: 1.2%;
   }
 
   .panel {
@@ -197,7 +197,7 @@
   }
 
   .map-cell.obj-hazard {
-    color: var(--crim);
+    color: var(--grn-main);
   }
 
   .map-cell.obj-item {
@@ -216,16 +216,60 @@
   .dock-panel {
     padding: 1.2% 1.5%;
     display: grid;
-    grid-template-columns: 78fr 22fr;
-    gap: 1.6%;
+    grid-template-columns: minmax(0, 1fr) minmax(150px, 18%);
+    gap: 1.2%;
   }
 
   .log-unified {
     min-width: 0;
     min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 8px;
+    overflow: hidden;
+  }
+
+  .quest-board {
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 5px;
+    overflow: auto;
+    padding-right: 4px;
+  }
+  .quest-heading {
+    color: var(--grn-bright);
+    font-size: clamp(9px, 1.15vw, 11px);
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--grn-dim);
+    padding-bottom: 4px;
+  }
+  .quest-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: start;
+    font-size: clamp(9px, 1.05vw, 11px);
+    line-height: 1.3;
+  }
+  .quest-name { color: var(--grn-main); }
+  .quest-detail { color: var(--grn-muted); }
+  .quest-state { color: var(--grn-bright); white-space: nowrap; }
+  .quest-row.locked .quest-name,
+  .quest-row.locked .quest-detail,
+  .quest-row.locked .quest-state { color: var(--grn-dim); }
+
+  .log-body {
+    flex: 0 0 auto;
+    min-height: 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    padding-top: 5px;
+    border-top: 1px solid var(--grn-dim);
+    font-size: clamp(9px, 1.05vw, 11px);
+    line-height: 1.2;
     overflow: hidden;
   }
 
@@ -309,11 +353,37 @@
     min-width: 0;
     min-height: 0;
     border-left: 1px solid var(--grn-dim);
-    padding-left: 6%;
+    padding-left: 8px;
     display: grid;
-    grid-template-rows: auto repeat(3, 1fr);
-    gap: 5px;
+    grid-template-rows: auto minmax(72px, 1fr) auto auto;
+    gap: 8px;
   }
+  .direction-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 6px;
+    min-height: 72px;
+  }
+  .dir-btn {
+    min-width: 0;
+    min-height: 30px;
+    border: 1px solid var(--grn-main);
+    background: var(--bg);
+    color: var(--grn-bright);
+    font: bold 15px monospace;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .dir-btn:active, .dir-btn.is-active {
+    background: var(--grn-active);
+    border-color: var(--grn-bright);
+    color: #fff;
+  }
+  .dir-btn.north { grid-column: 2; grid-row: 1; }
+  .dir-btn.west { grid-column: 1; grid-row: 2; }
+  .dir-btn.south { grid-column: 2; grid-row: 2; }
+  .dir-btn.east { grid-column: 3; grid-row: 2; }
   .power-status {
     display: flex;
     flex-direction: column;
@@ -330,8 +400,8 @@
 
   .ctrl-btn {
     width: 100%;
-    height: 100%;
-    min-height: 0;
+    height: auto;
+    min-height: 34px;
     background-color: var(--bg);
     color: var(--grn-bright);
     border: 1px solid var(--grn-main);
@@ -380,28 +450,53 @@
 
       <section class="panel dock-panel">
         <div class="log-unified">
+          <div class="quest-board">
+            <div class="quest-heading">MISSION TASKING // CONTROL MODULE RECOVERY</div>
+            <div class="quest-row">
+              <div>
+                <div class="quest-name">01 — ENERGY RECONNAISSANCE</div>
+                <div class="quest-detail">Survey nearby terrain. Locate solar panels, battery banks, generators and RTG units. Minimum infrastructure: 1 solar panel + battery bank.</div>
+              </div>
+              <span class="quest-state">ACTIVE</span>
+            </div>
+            <div class="quest-row locked">
+              <div>
+                <div class="quest-name">02 — UNIT & MODULE SEARCH</div>
+                <div class="quest-detail">Locate other robots, communication stations, processing units and work modules.</div>
+              </div>
+              <span class="quest-state">STANDBY</span>
+            </div>
+            <div class="quest-row locked">
+              <div>
+                <div class="quest-name">03 — COMPONENT RECOVERY</div>
+                <div class="quest-detail">Identify salvageable parts, spare modules, tools and structural components for repairs.</div>
+              </div>
+              <span class="quest-state">STANDBY</span>
+            </div>
+          </div>
           <div class="log-body">
-            <div class="log-line" id="log-main">&gt; TASK: DELIVER SOLAR PANEL + CRATE + ASSEMBLER TO BASE</div>
-            <div class="log-line dim" id="log-prev">&gt; TAP CELL FOR INFO, PRESS MOVE TO STEP (1S)</div>
+            <div class="log-line" id="log-main">&gt; EMERGENCY LINK ESTABLISHED — CONTROL MODULE CRITICAL</div>
+            <div class="log-line dim" id="log-prev">&gt; CLEANER UNIT ONLINE // MANUAL DIRECTION CONTROL</div>
           </div>
         </div>
 
         <div class="control-column">
           <div class="power-status">
-            <div>BAT <span id="bat-pct">80%</span> <span class="stat-bar bat-bar" id="bat-bar">[■■■■□]</span></div>
+            <div>ROBOT BAT <span id="bat-pct">80%</span> <span class="stat-bar bat-bar" id="bat-bar">[■■■■□]</span></div>
             <div>UNIT <span class="move-badge" id="move-state">IDLE</span></div>
           </div>
-          <button type="button" class="ctrl-btn" id="btn-move">MOVE</button>
+          <div class="direction-pad" aria-label="Robot direction controls">
+            <button type="button" class="dir-btn north" data-direction="N" aria-label="North">↑</button>
+            <button type="button" class="dir-btn west" data-direction="W" aria-label="West">←</button>
+            <button type="button" class="dir-btn south" data-direction="S" aria-label="South">↓</button>
+            <button type="button" class="dir-btn east" data-direction="E" aria-label="East">→</button>
+          </div>
           <button type="button" class="ctrl-btn" id="btn-stop">STOP</button>
           <button type="button" class="ctrl-btn" id="btn-act" disabled>ACT</button>
         </div>
       </section>
     </div>
 
-    <div class="status-line">
-      <span class="status-dim" id="task-status">QUEST: 0/3 DELIVERED</span>
-      <span>86-TERRAIN ---+</span>
-    </div>
   </div>
 
   <script>
@@ -414,18 +509,18 @@
     let viewY = 0;
     const STEP_MS = 1000;
     const CHARGE_MS = 2000;
-    const STEPS_PER_CELL_CHARGE = 10;
+    const STEPS_PER_CELL_CHARGE = 5;
 
     const MARKER_CHAR = '\u2B24'; // ⚫
     const TARGET_CHAR = '\u25CB'; // ○
-    // Углы прямоугольных секторов 15x9 по всей карте.
-    const CORNER_X = new Set([0, 14, 15, 29, 30, 44]);
-    const CORNER_Y = new Set([0, 8, 9, 17, 18, 26]);
+    // Маркеры на пересечениях секторов 10x10.
+    const SECTOR_SIZE = 10;
 
     let posX = 2;
     let posY = 4;
     let targetX = null;
     let targetY = null;
+    let moveDirection = null;
     let moveTimer = null;
     let chargeTimer = null;
 
@@ -480,13 +575,7 @@
     }
 
     function updateTaskStatus() {
-      const el = document.getElementById('task-status');
-      const bagList = [];
-      if (inventory.has('panel')) bagList.push('PANEL');
-      if (inventory.has('crate')) bagList.push('CRATE');
-      if (inventory.has('assembler')) bagList.push('ASSEMBLER');
-      const bagStr = bagList.length ? ' | BAG: ' + bagList.join(',') : '';
-      el.textContent = 'QUEST: ' + delivered.size + '/3 DELIVERED' + bagStr;
+      // Mission progress is displayed in the task board; detailed state updates will be wired to objectives.
     }
 
     function renderVitals() {
@@ -504,7 +593,7 @@
     }
 
     function isBlockCorner(x, y) {
-      return CORNER_X.has(x) && CORNER_Y.has(y);
+      return x % SECTOR_SIZE === 0 && y % SECTOR_SIZE === 0;
     }
 
     function scrollMap(dx, dy) {
@@ -576,13 +665,10 @@
         clearInterval(moveTimer);
         moveTimer = null;
       }
-      document.getElementById('btn-move').classList.remove('is-active');
-      if (!chargeTimer) {
-        setMoveStateLabel('IDLE');
-      }
-      if (reasonText) {
-        writeLog(reasonText);
-      }
+      moveDirection = null;
+      document.querySelectorAll('.dir-btn').forEach((button) => button.classList.remove('is-active'));
+      if (!chargeTimer) setMoveStateLabel('IDLE');
+      if (reasonText) writeLog(reasonText);
     }
 
     function updateBaseCharging() {
@@ -624,11 +710,8 @@
     }
 
     function updateReadout() {
-      const tgtStr = (targetX !== null && targetY !== null)
-        ? ('[' + pad2(targetX) + ',' + pad2(targetY) + ']')
-        : '[--,--]';
       document.getElementById('coord-readout').textContent =
-        'POS [' + pad2(posX) + ',' + pad2(posY) + '] -> TGT ' + tgtStr;
+        'POS [' + pad2(posX) + ',' + pad2(posY) + '] // MANUAL DRIVE';
     }
 
     function renderMap() {
@@ -667,10 +750,6 @@
             cell.classList.add('corner');
             cell.textContent = '+';
           }
-
-          cell.addEventListener('click', () => {
-            onCellClick(x, y);
-          });
 
           frag.appendChild(cell);
         }
@@ -742,105 +821,62 @@
       return { dx, dy, dir };
     }
 
-    function stepTowardTarget() {
-      if (targetX === null || targetY === null) {
-        stopMovement('NO TARGET SELECTED');
-        return;
-      }
+    function keepUnitInView() {
+      if (posX < viewX) viewX = posX;
+      if (posX >= viewX + VIEW_W) viewX = posX - VIEW_W + 1;
+      if (posY < viewY) viewY = posY;
+      if (posY >= viewY + VIEW_H) viewY = posY - VIEW_H + 1;
+      viewX = Math.max(0, Math.min(MAP_W - VIEW_W, viewX));
+      viewY = Math.max(0, Math.min(MAP_H - VIEW_H, viewY));
+    }
 
+    function stepInDirection() {
+      if (!moveDirection) return;
       if (batCells <= 0) {
-        stopMovement('NO BATTERY POWER: GO TO BASE [⬟]');
+        stopMovement('ROBOT BATTERY DEPLETED — RETURN TO A POWER SOURCE');
         return;
       }
-
-      if (posX === targetX && posY === targetY) {
-        targetX = null;
-        targetY = null;
-        stopMovement('ARRIVED [' + pad2(posX) + ',' + pad2(posY) + ']');
-        renderMap();
-        return;
-      }
-
-      const { dx, dy, dir } = getStepVector();
+      const vectors = { N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0] };
+      const [dx, dy] = vectors[moveDirection];
       const nextX = posX + dx;
       const nextY = posY + dy;
-
-      const blockedEnt = getEntityAt(nextX, nextY);
-      if (blockedEnt && blockedEnt.kind === 'rock') {
-        targetX = null;
-        targetY = null;
-        renderMap();
-        stopMovement('BLOCKED BY ROCKS AT [' + pad2(nextX) + ',' + pad2(nextY) + ']');
+      if (nextX < 0 || nextY < 0 || nextX >= MAP_W || nextY >= MAP_H) {
+        stopMovement('MAP LIMIT REACHED');
         return;
       }
-
+      const blocked = getEntityAt(nextX, nextY);
+      if (blocked && blocked.kind === 'rock') {
+        stopMovement('ROUTE BLOCKED BY ROCK TERRAIN');
+        return;
+      }
       posX = nextX;
       posY = nextY;
-
       stepsSinceChargeLoss += 1;
       if (stepsSinceChargeLoss >= STEPS_PER_CELL_CHARGE) {
         stepsSinceChargeLoss = 0;
-        if (batCells > 0) {
-          batCells -= 1;
-        }
+        batCells = Math.max(0, batCells - 1);
       }
+      keepUnitInView();
       renderVitals();
-
-      if (posX === targetX && posY === targetY) {
-        targetX = null;
-        targetY = null;
-        renderMap();
-        stopMovement('STEP ' + dir + ' -> ARRIVED [' + pad2(posX) + ',' + pad2(posY) + ']');
-      } else if (batCells <= 0) {
-        targetX = null;
-        targetY = null;
-        renderMap();
-        stopMovement('BAT DEPLETED AT [' + pad2(posX) + ',' + pad2(posY) + ']');
-      } else {
-        renderMap();
-        writeLog('STEP ' + dir + ' -> [' + pad2(posX) + ',' + pad2(posY) + ']');
-      }
+      renderMap();
+      writeLog('DRIVE ' + moveDirection + ' // POS [' + pad2(posX) + ',' + pad2(posY) + ']');
+      if (batCells <= 0) stopMovement('ROBOT BATTERY DEPLETED — RETURN TO A POWER SOURCE');
     }
 
-    function startMovement() {
-      if (targetX === null || targetY === null) {
-        writeLog('SELECT TARGET CELL FIRST');
-        return;
-      }
-
+    function startDirectionalMovement(direction) {
       if (batCells <= 0) {
-        writeLog('BATTERY 0%: MOVE TO BASE [⬟]');
+        writeLog('ROBOT BATTERY 0% — MOVEMENT LOCKED');
         return;
       }
-
-      if (posX === targetX && posY === targetY) {
-        targetX = null;
-        targetY = null;
-        renderMap();
-        writeLog('ALREADY AT TARGET');
-        return;
-      }
-
-      const peekDx = posX === targetX ? 0 : (posX < targetX ? 1 : -1);
-      const peekDy = posY === targetY ? 0 : (posY < targetY ? 1 : -1);
-      const peekEnt = getEntityAt(posX + peekDx, posY + peekDy);
-      if (peekEnt && peekEnt.kind === 'rock') {
-        writeLog('PATH BLOCKED BY ROCKS');
-        return;
-      }
-
-      if (moveTimer !== null) {
-        const { dir } = getStepVector();
-        writeLog('MOVING ' + dir + ' -> [' + pad2(targetX) + ',' + pad2(targetY) + ']');
-        return;
-      }
-
-      const { dir } = getStepVector();
-      document.getElementById('btn-move').classList.add('is-active');
-      setMoveStateLabel('MOVING');
-      writeLog('START ' + dir + ' TO [' + pad2(targetX) + ',' + pad2(targetY) + ']');
-
-      moveTimer = setInterval(stepTowardTarget, STEP_MS);
+      if (moveTimer !== null) stopMovement();
+      moveDirection = direction;
+      document.querySelectorAll('.dir-btn').forEach((button) => {
+        button.classList.toggle('is-active', button.dataset.direction === direction);
+      });
+      setMoveStateLabel('MOVING ' + direction);
+      writeLog('MANUAL DRIVE ' + direction + ' // 1 CELL PER SECOND');
+      stepInDirection();
+      if (batCells > 0 && moveDirection) moveTimer = setInterval(stepInDirection, STEP_MS);
     }
 
     function performInteract() {
@@ -911,7 +947,9 @@
       }
     }
 
-    document.getElementById('btn-move').addEventListener('click', startMovement);
+    document.querySelectorAll('.dir-btn').forEach((button) => {
+      button.addEventListener('click', () => startDirectionalMovement(button.dataset.direction));
+    });
     document.getElementById('btn-stop').addEventListener('click', () => {
       if (moveTimer !== null) {
         stopMovement('STOPPED AT [' + pad2(posX) + ',' + pad2(posY) + ']');
