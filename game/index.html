@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EDGE FRAME // TERMINAL</title>
+<style>
+  :root {
+    --bg:         #060b07;
+    --grn-main:   #38d968;
+    --grn-bright: #6ef094;
+    --grn-mid:    #28a84f;
+    --grn-dim:    #1b5e30;
+    --grn-muted:  #4c8a5e;
+    --grn-bg:     rgba(56, 217, 104, 0.04);
+    --grn-active: rgba(110, 240, 148, 0.18);
+    --crim:       #d73019;
+    --pad:        2%;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--bg);
+    color: var(--grn-bright);
+    font-family: 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier New', monospace;
+    touch-action: manipulation;
+  }
+
+  body {
+    padding: var(--pad);
+    display: flex;
+  }
+
+  .edge-frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--grn-main);
+    padding: 1.6% 2%;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 1.4%;
+  }
+
+  .edge-frame::before,
+  .edge-frame::after {
+    content: "";
+    position: absolute;
+    width: 3%;
+    height: 3%;
+    min-width: 14px;
+    min-height: 14px;
+    max-width: 24px;
+    max-height: 24px;
+    border-color: var(--grn-bright);
+    border-style: solid;
+    pointer-events: none;
+  }
+
+  .edge-frame::before {
+    top: -2px;
+    left: -2px;
+    border-width: 4px 0 0 4px;
+  }
+
+  .edge-frame::after {
+    bottom: -2px;
+    right: -2px;
+    border-width: 0 4px 4px 0;
+  }
+
+  .status-line {
+    font-size: clamp(10px, 1.45vw, 13px);
+    letter-spacing: 1.5px;
+    color: var(--grn-main);
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-dim {
+    color: var(--grn-muted);
+  }
+
+  .layout-grid {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: 76fr 24fr;
+    gap: 1.8%;
+  }
+
+  .panel {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border: 1px solid var(--grn-main);
+    background-color: var(--grn-bg);
+    padding: 1.4% 1.8%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-title {
+    font-size: clamp(10px, 1.35vw, 12px);
+    letter-spacing: 1.5px;
+    color: var(--grn-bright);
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--grn-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .map-panel {
+    padding: 1.2% 1.5%;
+  }
+
+  .map-viewport {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+  }
+
+  .map-grid {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+  }
+
+  .map-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(10px, 2.2vmin, 18px);
+    line-height: 1;
+    cursor: pointer;
+    color: var(--grn-main);
+  }
+
+  .map-cell:hover {
+    background-color: rgba(56, 217, 104, 0.08);
+  }
+
+  .map-cell.corner {
+    color: var(--grn-muted);
+    font-size: clamp(10px, 1.9vmin, 15px);
+  }
+
+  .map-cell.obj-base {
+    color: var(--grn-bright);
+    font-weight: bold;
+  }
+
+  .map-cell.obj-hazard {
+    color: var(--crim);
+  }
+
+  .map-cell.obj-item {
+    color: var(--grn-bright);
+  }
+
+  .map-cell.target {
+    color: #ffffff;
+  }
+
+  .map-cell.marker {
+    color: var(--grn-bright);
+    font-size: clamp(11px, 2.5vmin, 20px);
+  }
+
+  .dock-panel {
+    padding: 1.2% 1.5%;
+    display: grid;
+    grid-template-columns: 78fr 22fr;
+    gap: 1.6%;
+  }
+
+  .log-unified {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+
+  .vitals-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--grn-dim);
+    font-size: clamp(9px, 1.25vw, 11.5px);
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .stat-inline-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .stat-lbl {
+    color: var(--grn-bright);
+    font-weight: bold;
+  }
+
+  .stat-val {
+    color: var(--grn-main);
+  }
+
+  .stat-bar {
+    color: var(--grn-main);
+  }
+
+  .stat-bar.hp-bar {
+    color: var(--grn-bright);
+  }
+
+  .stat-bar.tmp-bar.hot {
+    color: var(--crim);
+  }
+
+  .stat-bar.bat-bar.low {
+    color: var(--crim);
+  }
+
+  .move-badge {
+    color: var(--grn-muted);
+    font-size: clamp(9px, 1.15vw, 11px);
+    letter-spacing: 0.8px;
+    flex-shrink: 0;
+  }
+
+  .log-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    padding-top: 3px;
+    font-size: clamp(10px, 1.35vw, 12.5px);
+    line-height: 1.2;
+    overflow: hidden;
+  }
+
+  .log-line {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .log-line.dim {
+    color: var(--grn-muted);
+  }
+
+  .control-column {
+    min-width: 0;
+    min-height: 0;
+    border-left: 1px solid var(--grn-dim);
+    padding-left: 6%;
+    display: grid;
+    grid-template-rows: repeat(3, 1fr);
+    gap: 5px;
+  }
+
+  .ctrl-btn {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    background-color: var(--bg);
+    color: var(--grn-bright);
+    border: 1px solid var(--grn-main);
+    font-family: 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier New', monospace;
+    font-size: clamp(10px, 1.4vw, 12.5px);
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+
+  .ctrl-btn:active:not(:disabled),
+  .ctrl-btn.is-active {
+    background-color: var(--grn-active);
+    border-color: var(--grn-bright);
+    color: #ffffff;
+  }
+
+  .ctrl-btn:disabled {
+    color: var(--grn-dim);
+    border-color: var(--grn-dim);
+    background-color: rgba(27, 94, 48, 0.08);
+    cursor: not-allowed;
+  }
+</style>
+</head>
+<body>
+  <div class="edge-frame">
+    <div class="status-line">
+      <span>+--- EDGE FRAME // ACTIVE</span>
+      <span class="status-dim" id="res-info">INIT...</span>
+    </div>
+
+    <div class="layout-grid">
+      <section class="panel map-panel">
+        <div class="panel-title">
+          <span>+-- SECTOR GRID // MAP --+</span>
+          <span id="coord-readout">POS [02,04] -&gt; TGT [--,--]</span>
+        </div>
+        <div class="map-viewport">
+          <div class="map-grid" id="map-grid"></div>
+        </div>
+      </section>
+
+      <section class="panel dock-panel">
+        <div class="log-unified">
+          <div class="vitals-inline">
+            <div class="stat-inline-group">
+              <span class="stat-lbl">HP</span>
+              <span class="stat-val" id="hp-text">20/20</span>
+              <span class="stat-bar hp-bar" id="hp-bar">[##########]</span>
+            </div>
+
+            <div class="stat-inline-group">
+              <span class="stat-lbl">TMP</span>
+              <span class="stat-val" id="tmp-text">24/100</span>
+              <span class="stat-bar tmp-bar" id="tmp-bar">[##........]</span>
+            </div>
+
+            <div class="stat-inline-group">
+              <span class="stat-lbl">BAT</span>
+              <span class="stat-val" id="bat-pct">80%</span>
+              <span class="stat-bar bat-bar" id="bat-bar">[■■■■□]</span>
+            </div>
+
+            <span class="move-badge" id="move-state">IDLE</span>
+          </div>
+
+          <div class="log-body">
+            <div class="log-line" id="log-main">&gt; TASK: DELIVER SOLAR PANEL + CRATE + ASSEMBLER TO BASE</div>
+            <div class="log-line dim" id="log-prev">&gt; TAP CELL FOR INFO, PRESS MOVE TO STEP (1S)</div>
+          </div>
+        </div>
+
+        <div class="control-column">
+          <button type="button" class="ctrl-btn" id="btn-move">MOVE</button>
+          <button type="button" class="ctrl-btn" id="btn-stop">STOP</button>
+          <button type="button" class="ctrl-btn" id="btn-act" disabled>ACT</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="status-line">
+      <span class="status-dim" id="task-status">QUEST: 0/3 DELIVERED</span>
+      <span>86-TERRAIN ---+</span>
+    </div>
+  </div>
+
+  <script>
+    const MAP_W = 15;
+    const MAP_H = 9;
+    const STEP_MS = 1000;
+    const CHARGE_MS = 2000;
+    const STEPS_PER_CELL_CHARGE = 10;
+
+    const MARKER_CHAR = '\u2B24'; // ⚫
+    const TARGET_CHAR = '\u25CB'; // ○
+    const CORNER_X = new Set([0, 7, 14]);
+    const CORNER_Y = new Set([0, 4, 8]);
+
+    let posX = 2;
+    let posY = 4;
+    let targetX = null;
+    let targetY = null;
+    let moveTimer = null;
+    let chargeTimer = null;
+
+    let hp = 20;
+    const maxHp = 20;
+    let tmp = 24;
+    const maxTmp = 100;
+
+    let batCells = 4; // 80% [■■■■□]
+    const maxBatCells = 5;
+    let stepsSinceChargeLoss = 0;
+
+    const inventory = new Set(); // 'panel', 'crate', 'assembler'
+    const delivered = new Set(); // 'panel', 'crate', 'assembler'
+
+    // Объекты на карте:
+    // base: ⬟, rock: ▲, crate: ▣ (полный) / □ (пустой), solar: ▤, assembler: ⌘, broken: ⧅ -> ░, quest: ◇
+    const entities = [
+      { id: 'base',      x: 2,  y: 4, kind: 'base',      label: 'BASE (CHARGE & DROP-OFF)' },
+      { id: 'panel_1',   x: 6,  y: 2, kind: 'solar',     label: 'SOLAR PANEL', taskItem: 'panel', taken: false },
+      { id: 'crate_1',   x: 9,  y: 6, kind: 'crate',     label: 'CRATE [WIRING / PARTS / COMP]', taskItem: 'crate', opened: false },
+      { id: 'asm_1',     x: 11, y: 2, kind: 'assembler', label: 'ASSEMBLER FABRICATOR UNIT', taskItem: 'assembler', salvaged: false },
+      { id: 'broken_2',  x: 5,  y: 7, kind: 'broken',    label: 'BROKEN MODULE [SCRAP]', salvaged: false },
+      { id: 'quest_1',   x: 12, y: 4, kind: 'quest',     label: 'TASK BEACON: SALVAGE SECTOR' },
+      { id: 'rock_1',    x: 8,  y: 3, kind: 'rock',      label: 'IMPASSABLE ROCK TERRAIN' },
+      { id: 'rock_2',    x: 8,  y: 4, kind: 'rock',      label: 'IMPASSABLE ROCK TERRAIN' },
+      { id: 'rock_3',    x: 8,  y: 5, kind: 'rock',      label: 'IMPASSABLE ROCK TERRAIN' }
+    ];
+
+    function pad2(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function writeLog(text) {
+      const mainEl = document.getElementById('log-main');
+      const prevEl = document.getElementById('log-prev');
+      const formatted = '> ' + text;
+      if (mainEl.textContent !== formatted) {
+        prevEl.textContent = mainEl.textContent;
+        mainEl.textContent = formatted;
+      }
+    }
+
+    function setMoveStateLabel(label) {
+      document.getElementById('move-state').textContent = label;
+    }
+
+    function updateRes() {
+      document.getElementById('res-info').textContent =
+        window.innerWidth + ' x ' + window.innerHeight + ' PX';
+    }
+
+    function makeAsciiBar(val, maxVal, width, fillChar, emptyChar) {
+      const clamped = Math.max(0, Math.min(maxVal, val));
+      const filled = maxVal > 0 ? Math.round((clamped / maxVal) * width) : 0;
+      return '[' + fillChar.repeat(filled) + emptyChar.repeat(width - filled) + ']';
+    }
+
+    function updateTaskStatus() {
+      const el = document.getElementById('task-status');
+      const bagList = [];
+      if (inventory.has('panel')) bagList.push('PANEL');
+      if (inventory.has('crate')) bagList.push('CRATE');
+      if (inventory.has('assembler')) bagList.push('ASSEMBLER');
+      const bagStr = bagList.length ? ' | BAG: ' + bagList.join(',') : '';
+      el.textContent = 'QUEST: ' + delivered.size + '/3 DELIVERED' + bagStr;
+    }
+
+    function renderVitals() {
+      document.getElementById('hp-text').textContent = hp + '/' + maxHp;
+      document.getElementById('hp-bar').textContent = makeAsciiBar(hp, maxHp, 10, '#', '.');
+
+      document.getElementById('tmp-text').textContent = tmp + '/' + maxTmp;
+      const tmpBar = document.getElementById('tmp-bar');
+      tmpBar.textContent = makeAsciiBar(tmp, maxTmp, 10, '=', '.');
+      if (tmp >= maxTmp * 0.75) {
+        tmpBar.classList.add('hot');
+      } else {
+        tmpBar.classList.remove('hot');
+      }
+
+      const pct = batCells * 20;
+      document.getElementById('bat-pct').textContent = pct + '%';
+      const batBar = document.getElementById('bat-bar');
+      batBar.textContent = makeAsciiBar(batCells, maxBatCells, 5, '■', '□');
+      if (batCells <= 1) {
+        batBar.classList.add('low');
+      } else {
+        batBar.classList.remove('low');
+      }
+
+      updateTaskStatus();
+    }
+
+    function isBlockCorner(x, y) {
+      return CORNER_X.has(x) && CORNER_Y.has(y);
+    }
+
+    function getEntityAt(x, y) {
+      return entities.find((e) => e.x === x && e.y === y) || null;
+    }
+
+    function getEntitySymbol(ent) {
+      if (!ent) return '';
+      if (ent.kind === 'base') return '\u2B1F';      // ⬟
+      if (ent.kind === 'rock') return '\u25B2';      // ▲
+      if (ent.kind === 'solar') return ent.taken ? '' : '\u25A4'; // ▤
+      if (ent.kind === 'crate') return ent.opened ? '\u25A1' : '\u25A3'; // □ / ▣
+      if (ent.kind === 'assembler') return ent.salvaged ? '\u2591' : '\u2318'; // ⌘ / ░
+      if (ent.kind === 'broken') return ent.salvaged ? '\u2591' : '\u29C5'; // ⧅ / ░
+      if (ent.kind === 'quest') return '\u25C7';     // ◇
+      return '';
+    }
+
+    function isAdjacentOrSame(x1, y1, x2, y2) {
+      return Math.abs(x1 - x2) <= 1 && Math.abs(y1 - y2) <= 1;
+    }
+
+    function findNearbyInteractive() {
+      const baseEnt = entities.find((e) => e.kind === 'base');
+      if (baseEnt && isAdjacentOrSame(posX, posY, baseEnt.x, baseEnt.y)) {
+        if (inventory.size > 0 || batCells < maxBatCells) {
+          return baseEnt;
+        }
+      }
+
+      for (const ent of entities) {
+        if (ent.kind === 'rock' || ent.kind === 'base' || ent.kind === 'quest') continue;
+        if (!isAdjacentOrSame(posX, posY, ent.x, ent.y)) continue;
+
+        if (ent.kind === 'solar' && !ent.taken) return ent;
+        if (ent.kind === 'crate' && !ent.opened) return ent;
+        if (ent.kind === 'assembler' && !ent.salvaged) return ent;
+        if (ent.kind === 'broken' && !ent.salvaged) return ent;
+      }
+
+      if (baseEnt && isAdjacentOrSame(posX, posY, baseEnt.x, baseEnt.y)) {
+        return baseEnt;
+      }
+
+      return null;
+    }
+
+    function updateActButton() {
+      const btnAct = document.getElementById('btn-act');
+      const near = findNearbyInteractive();
+      btnAct.disabled = !near;
+    }
+
+    function stopMovement(reasonText) {
+      if (moveTimer !== null) {
+        clearInterval(moveTimer);
+        moveTimer = null;
+      }
+      document.getElementById('btn-move').classList.remove('is-active');
+      if (!chargeTimer) {
+        setMoveStateLabel('IDLE');
+      }
+      if (reasonText) {
+        writeLog(reasonText);
+      }
+    }
+
+    function updateBaseCharging() {
+      const baseEnt = entities.find((e) => e.kind === 'base');
+      const nearBase = baseEnt && isAdjacentOrSame(posX, posY, baseEnt.x, baseEnt.y);
+
+      if (nearBase && batCells < maxBatCells) {
+        if (chargeTimer === null) {
+          chargeTimer = setInterval(() => {
+            const b = entities.find((e) => e.kind === 'base');
+            if (!b || !isAdjacentOrSame(posX, posY, b.x, b.y) || batCells >= maxBatCells) {
+              clearInterval(chargeTimer);
+              chargeTimer = null;
+              if (moveTimer === null) setMoveStateLabel('IDLE');
+              return;
+            }
+            batCells = Math.min(maxBatCells, batCells + 1);
+            stepsSinceChargeLoss = 0;
+            renderVitals();
+            writeLog('BASE CHARGING: BAT ' + (batCells * 20) + '%');
+            if (batCells === maxBatCells) {
+              clearInterval(chargeTimer);
+              chargeTimer = null;
+              if (moveTimer === null) setMoveStateLabel('IDLE');
+              writeLog('BATTERY FULL [100%]');
+            }
+          }, CHARGE_MS);
+        }
+        if (moveTimer === null) {
+          setMoveStateLabel('CHARGING');
+        }
+      } else if (chargeTimer !== null) {
+        clearInterval(chargeTimer);
+        chargeTimer = null;
+        if (moveTimer === null) {
+          setMoveStateLabel('IDLE');
+        }
+      }
+    }
+
+    function updateReadout() {
+      const tgtStr = (targetX !== null && targetY !== null)
+        ? ('[' + pad2(targetX) + ',' + pad2(targetY) + ']')
+        : '[--,--]';
+      document.getElementById('coord-readout').textContent =
+        'POS [' + pad2(posX) + ',' + pad2(posY) + '] -> TGT ' + tgtStr;
+    }
+
+    function renderMap() {
+      const gridEl = document.getElementById('map-grid');
+      updateReadout();
+      updateActButton();
+      updateBaseCharging();
+
+      const frag = document.createDocumentFragment();
+
+      for (let y = 0; y < MAP_H; y++) {
+        for (let x = 0; x < MAP_W; x++) {
+          const cell = document.createElement('div');
+          cell.className = 'map-cell';
+
+          const ent = getEntityAt(x, y);
+          const sym = getEntitySymbol(ent);
+
+          if (x === posX && y === posY) {
+            cell.classList.add('marker');
+            cell.textContent = MARKER_CHAR;
+          } else if (x === targetX && y === targetY) {
+            cell.classList.add('target');
+            cell.textContent = TARGET_CHAR;
+          } else if (sym) {
+            if (ent.kind === 'base') cell.classList.add('obj-base');
+            else if (ent.kind === 'rock') cell.classList.add('obj-hazard');
+            else if (ent.kind === 'solar' || ent.kind === 'crate' || ent.kind === 'assembler' || ent.kind === 'broken') {
+              cell.classList.add('obj-item');
+            }
+            cell.textContent = sym;
+          } else if (isBlockCorner(x, y)) {
+            cell.classList.add('corner');
+            cell.textContent = '+';
+          }
+
+          cell.addEventListener('click', () => {
+            onCellClick(x, y);
+          });
+
+          frag.appendChild(cell);
+        }
+      }
+
+      gridEl.replaceChildren(frag);
+    }
+
+    function describeCell(x, y) {
+      const ent = getEntityAt(x, y);
+      const coord = '[' + pad2(x) + ',' + pad2(y) + ']';
+      if (x === posX && y === posY) {
+        return coord + ' UNIT @ POS (BAT ' + (batCells * 20) + '%)';
+      }
+      if (!ent) {
+        return coord + ' OPEN GROUND';
+      }
+      if (ent.kind === 'base') {
+        return coord + ' BASE [⬟] CHARGE + QUEST DROP-OFF';
+      }
+      if (ent.kind === 'rock') {
+        return coord + ' ROCKS [▲] IMPASSABLE';
+      }
+      if (ent.kind === 'solar') {
+        return coord + (ent.taken ? ' SOLAR MOUNT [EMPTY]' : ' SOLAR PANEL [▤] QUEST ITEM');
+      }
+      if (ent.kind === 'crate') {
+        return coord + (ent.opened ? ' CRATE [□] EMPTY' : ' CRATE [▣] WIRING/PARTS/COMP');
+      }
+      if (ent.kind === 'assembler') {
+        return coord + (ent.salvaged ? ' ASSEMBLER [░] SALVAGED' : ' ASSEMBLER FABRICATOR [⌘] QUEST ITEM');
+      }
+      if (ent.kind === 'broken') {
+        return coord + (ent.salvaged ? ' WRECK [░] SALVAGED' : ' BROKEN MODULE [⧅] SCRAP');
+      }
+      if (ent.kind === 'quest') {
+        return coord + ' QUEST BEACON [◇] ' + delivered.size + '/3 DONE';
+      }
+      return coord + ' ' + ent.label;
+    }
+
+    function onCellClick(x, y) {
+      const isSameTarget = (targetX === x && targetY === y);
+
+      if (moveTimer !== null && !isSameTarget) {
+        stopMovement('MOVEMENT ABORTED: NEW TARGET');
+      }
+
+      targetX = x;
+      targetY = y;
+      renderMap();
+      writeLog(describeCell(x, y));
+
+      if (isSameTarget) {
+        startMovement();
+      }
+    }
+
+    function getStepVector() {
+      const dx = posX === targetX ? 0 : (posX < targetX ? 1 : -1);
+      const dy = posY === targetY ? 0 : (posY < targetY ? 1 : -1);
+
+      let dir = '';
+      if (dy < 0) dir += 'N';
+      else if (dy > 0) dir += 'S';
+      if (dx > 0) dir += 'E';
+      else if (dx < 0) dir += 'W';
+
+      return { dx, dy, dir };
+    }
+
+    function stepTowardTarget() {
+      if (targetX === null || targetY === null) {
+        stopMovement('NO TARGET SELECTED');
+        return;
+      }
+
+      if (batCells <= 0) {
+        stopMovement('NO BATTERY POWER: GO TO BASE [⬟]');
+        return;
+      }
+
+      if (posX === targetX && posY === targetY) {
+        targetX = null;
+        targetY = null;
+        stopMovement('ARRIVED [' + pad2(posX) + ',' + pad2(posY) + ']');
+        renderMap();
+        return;
+      }
+
+      const { dx, dy, dir } = getStepVector();
+      const nextX = posX + dx;
+      const nextY = posY + dy;
+
+      const blockedEnt = getEntityAt(nextX, nextY);
+      if (blockedEnt && blockedEnt.kind === 'rock') {
+        targetX = null;
+        targetY = null;
+        renderMap();
+        stopMovement('BLOCKED BY ROCKS AT [' + pad2(nextX) + ',' + pad2(nextY) + ']');
+        return;
+      }
+
+      posX = nextX;
+      posY = nextY;
+
+      stepsSinceChargeLoss += 1;
+      if (stepsSinceChargeLoss >= STEPS_PER_CELL_CHARGE) {
+        stepsSinceChargeLoss = 0;
+        if (batCells > 0) {
+          batCells -= 1;
+        }
+      }
+      renderVitals();
+
+      if (posX === targetX && posY === targetY) {
+        targetX = null;
+        targetY = null;
+        renderMap();
+        stopMovement('STEP ' + dir + ' -> ARRIVED [' + pad2(posX) + ',' + pad2(posY) + ']');
+      } else if (batCells <= 0) {
+        targetX = null;
+        targetY = null;
+        renderMap();
+        stopMovement('BAT DEPLETED AT [' + pad2(posX) + ',' + pad2(posY) + ']');
+      } else {
+        renderMap();
+        writeLog('STEP ' + dir + ' -> [' + pad2(posX) + ',' + pad2(posY) + ']');
+      }
+    }
+
+    function startMovement() {
+      if (targetX === null || targetY === null) {
+        writeLog('SELECT TARGET CELL FIRST');
+        return;
+      }
+
+      if (batCells <= 0) {
+        writeLog('BATTERY 0%: MOVE TO BASE [⬟]');
+        return;
+      }
+
+      if (posX === targetX && posY === targetY) {
+        targetX = null;
+        targetY = null;
+        renderMap();
+        writeLog('ALREADY AT TARGET');
+        return;
+      }
+
+      const peekDx = posX === targetX ? 0 : (posX < targetX ? 1 : -1);
+      const peekDy = posY === targetY ? 0 : (posY < targetY ? 1 : -1);
+      const peekEnt = getEntityAt(posX + peekDx, posY + peekDy);
+      if (peekEnt && peekEnt.kind === 'rock') {
+        writeLog('PATH BLOCKED BY ROCKS');
+        return;
+      }
+
+      if (moveTimer !== null) {
+        const { dir } = getStepVector();
+        writeLog('MOVING ' + dir + ' -> [' + pad2(targetX) + ',' + pad2(targetY) + ']');
+        return;
+      }
+
+      const { dir } = getStepVector();
+      document.getElementById('btn-move').classList.add('is-active');
+      setMoveStateLabel('MOVING');
+      writeLog('START ' + dir + ' TO [' + pad2(targetX) + ',' + pad2(targetY) + ']');
+
+      moveTimer = setInterval(stepTowardTarget, STEP_MS);
+    }
+
+    function performInteract() {
+      const ent = findNearbyInteractive();
+      if (!ent) {
+        writeLog('NO INTERACTIVE OBJECT NEARBY');
+        return;
+      }
+
+      if (ent.kind === 'base') {
+        if (inventory.size > 0) {
+          const added = [];
+          for (const item of inventory) {
+            if (!delivered.has(item)) {
+              delivered.add(item);
+              added.push(item.toUpperCase());
+            }
+          }
+          inventory.clear();
+          renderVitals();
+          if (delivered.size >= 3) {
+            writeLog('QUEST COMPLETE! 3/3 DELIVERED TO BASE');
+          } else {
+            writeLog('DELIVERED: ' + added.join(', ') + ' (' + delivered.size + '/3)');
+          }
+        } else if (batCells < maxBatCells) {
+          writeLog('CHARGING AT BASE: +20% EVERY 2S');
+        } else {
+          writeLog('BASE READY: BAT 100%, NO ITEMS TO DROP');
+        }
+        renderMap();
+        return;
+      }
+
+      if (ent.kind === 'solar' && !ent.taken) {
+        ent.taken = true;
+        inventory.add('panel');
+        renderVitals();
+        renderMap();
+        writeLog('PICKED UP SOLAR PANEL [▤] -> BRING TO BASE');
+        return;
+      }
+
+      if (ent.kind === 'crate' && !ent.opened) {
+        ent.opened = true;
+        if (ent.taskItem) inventory.add(ent.taskItem);
+        renderVitals();
+        renderMap();
+        writeLog('OPENED CRATE [▣->□]: LOOTED WIRING/PARTS/COMP');
+        return;
+      }
+
+      if (ent.kind === 'assembler' && !ent.salvaged) {
+        ent.salvaged = true;
+        if (ent.taskItem) inventory.add(ent.taskItem);
+        renderVitals();
+        renderMap();
+        writeLog('SALVAGED ASSEMBLER [⌘] -> BRING TO BASE');
+        return;
+      }
+
+      if (ent.kind === 'broken' && !ent.salvaged) {
+        ent.salvaged = true;
+        tmp = Math.min(maxTmp, tmp + 4);
+        renderVitals();
+        renderMap();
+        writeLog('SALVAGED BROKEN MODULE [⧅->░] [+4 TMP]');
+      }
+    }
+
+    document.getElementById('btn-move').addEventListener('click', startMovement);
+    document.getElementById('btn-stop').addEventListener('click', () => {
+      if (moveTimer !== null) {
+        stopMovement('STOPPED AT [' + pad2(posX) + ',' + pad2(posY) + ']');
+      } else {
+        writeLog('ALREADY IDLE AT [' + pad2(posX) + ',' + pad2(posY) + ']');
+      }
+    });
+    document.getElementById('btn-act').addEventListener('click', performInteract);
+
+    window.addEventListener('resize', updateRes);
+    updateRes();
+    renderVitals();
+    renderMap();
+  </script>
+</body>
+</html>
