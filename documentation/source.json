@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "checkpoint": {
     "status": "in_progress",
     "focus": "manual_rover_control_and_energy_reconnaissance",
@@ -19,9 +19,11 @@
         "scaling": "Адаптивная компоновка для планшета и браузера",
         "map_area": "Мир 50x50 клеток; видимая область 15x9; начальная область центрирована на модуле контроля",
         "sector_grid": "Крестики проходят вдоль границ секторов 10x10 клеток (x или y кратны 10), скрываются под объектами и аппаратом",
-        "top_telemetry": "Верхняя строка показывает энергопотребление модуля контроля и коммуникационного модуля",
-        "bottom_dock": "Без общей рамки и заливки; слева увеличенный список миссий и журнал, справа телеметрия робота и крупные кнопки направлений и ACT",
-        "movement": "Одно нажатие направления перемещает робота на одну клетку через 750 мс; кнопка STOP отсутствует; выбор клетки карты не перемещает робота"
+        "top_telemetry": "Слева TX PEAK / THERMAL / AVG (текущее / максимальное W); по центру напряжение станции; справа ROVER CHARGING 40 W только во время зарядки.",
+        "bottom_dock": "Без нижнего журнала. Слева список задач с акцентом активной задачи; справа напряжение ровера и восьминаправленное управление с ACT в центре.",
+        "movement": "Восемь направлений; один шаг на нажатие через 750 мс; клик по карте не перемещает; STOP отсутствует.",
+        "fog_of_war": "Неисследованная территория чёрная; радиус обнаружения 1 клетка (3x3); открытые клетки остаются видимыми.",
+        "map_structures": "Крупные объекты имеют полный контур и центральный символ; индивидуальные габариты в данных сущностей; ровер — маленькая точка."
       },
       "checked_and_refined": [
         "Мир 50x50, видимая область 15x9, стартовая камера центрирована на центральном модуле контроля",
@@ -30,7 +32,14 @@
         "Одно нажатие кнопки направления перемещает робота ровно на одну клетку с задержкой 750 мс",
         "Кнопка STOP удалена; кнопки направления остаются ручным управлением",
         "Символ ⌘ зарезервирован для будущего мультикоптера/дрона; ассемблер обозначается ⚙",
-        "Потребление модуля контроля пока предварительно принято равным 8 W, коммуникационного модуля 12 W; суммарно 20 W в среднем и до 45 W в режиме передачи"
+        "Потребление модуля контроля пока предварительно принято равным 8 W, коммуникационного модуля 12 W; суммарно 20 W в среднем и до 45 W в режиме передачи",
+        "Fog of War 3x3 с постоянным сохранением исследованных клеток.",
+        "Полные контуры многоклеточных объектов с центральными символами; ровер — точка.",
+        "Восемь направлений движения, ACT в центре, без STOP.",
+        "Клик по карте только показывает описание исследованной клетки.",
+        "Телеметрия ровера в вольтах, без процентов; нижний журнал удалён.",
+        "Лаконичная верхняя телеметрия: TX PEAK, THERMAL, AVG, напряжение станции и условная строка зарядки ровера.",
+        "На карте добавлены разнообразные обломки."
       ]
     },
     "computer": {
@@ -61,8 +70,9 @@
   },
   "symbols_and_mechanics": {
     "player": {
-      "symbol": "⚫",
-      "unicode": "U+2B24"
+      "symbol": "·",
+      "unicode": "U+00B7",
+      "role": "Маленький маркер ровера"
     },
     "target": {
       "symbol": "○",
@@ -124,6 +134,58 @@
       "symbol": "⌘",
       "unicode": "U+2318",
       "role": "Зарезервированный символ для будущего мультикоптера/разведывательного дрона"
+    },
+    "fog_of_war": {
+      "initial_state": "black",
+      "reveal_radius_cells": 1,
+      "shape": "3x3 square",
+      "persistent": true
+    },
+    "structure_rendering": {
+      "description": "Полный контур объекта с центральным символом; индивидуальные размеры в клетках.",
+      "glyphs": {
+        "top_left": "┌",
+        "top_right": "┐",
+        "bottom_left": "└",
+        "bottom_right": "┘",
+        "horizontal": "─",
+        "vertical": "│"
+      }
+    },
+    "movement": {
+      "directions": [
+        "N",
+        "NE",
+        "E",
+        "SE",
+        "S",
+        "SW",
+        "W",
+        "NW"
+      ],
+      "step_ms": 750,
+      "one_cell_per_press": true,
+      "stop_button": false,
+      "map_click_moves_unit": false
+    },
+    "rover_battery": {
+      "display": "ROVER BAT X.X / 14.0 V",
+      "unit": "V",
+      "percent_display": false,
+      "nominal_system_v": 12,
+      "operating_range_v": [
+        9,
+        14
+      ],
+      "estimated_voltage_steps_v": [
+        9,
+        10.2,
+        11.1,
+        11.8,
+        12.8,
+        14
+      ],
+      "calibration_pending": true
     }
   },
   "world_state": {
@@ -135,7 +197,148 @@
       "charge_ms": 2000,
       "steps_per_cell_charge": 5,
       "sector_size": 10,
-      "sector_marker_rule": "x % 10 === 0 || y % 10 === 0"
+      "sector_marker_rule": "x % 10 === 0 || y % 10 === 0",
+      "fog_of_war": {
+        "initially_unexplored": true,
+        "reveal_radius": 1,
+        "persistent": true
+      },
+      "structure_sizes_unit": "cells",
+      "entities": [
+        {
+          "id": "base",
+          "x": 25,
+          "y": 25,
+          "w": 5,
+          "h": 3,
+          "kind": "base",
+          "label": "CONTROL MODULE / BASE"
+        },
+        {
+          "id": "panel_1",
+          "x": 19,
+          "y": 20,
+          "w": 3,
+          "h": 2,
+          "kind": "solar",
+          "label": "SOLAR PANEL",
+          "task_item": "panel",
+          "taken": false
+        },
+        {
+          "id": "crate_1",
+          "x": 32,
+          "y": 30,
+          "w": 2,
+          "h": 2,
+          "kind": "crate",
+          "label": "CRATE [WIRING / PARTS / COMP]",
+          "task_item": "crate",
+          "opened": false
+        },
+        {
+          "id": "asm_1",
+          "x": 35,
+          "y": 19,
+          "w": 3,
+          "h": 2,
+          "kind": "assembler",
+          "label": "ASSEMBLER FABRICATOR UNIT",
+          "task_item": "assembler",
+          "salvaged": false
+        },
+        {
+          "id": "broken_2",
+          "x": 20,
+          "y": 32,
+          "w": 2,
+          "h": 2,
+          "kind": "broken",
+          "label": "BROKEN MODULE [SCRAP]",
+          "salvaged": false
+        },
+        {
+          "id": "quest_1",
+          "x": 31,
+          "y": 24,
+          "w": 1,
+          "h": 1,
+          "kind": "quest",
+          "label": "TASK BEACON: SALVAGE SECTOR"
+        },
+        {
+          "id": "rock_1",
+          "x": 28,
+          "y": 21,
+          "w": 1,
+          "h": 1,
+          "kind": "rock",
+          "label": "IMPASSABLE ROCK TERRAIN"
+        },
+        {
+          "id": "rock_2",
+          "x": 28,
+          "y": 22,
+          "w": 1,
+          "h": 1,
+          "kind": "rock",
+          "label": "IMPASSABLE ROCK TERRAIN"
+        },
+        {
+          "id": "rock_3",
+          "x": 28,
+          "y": 23,
+          "w": 1,
+          "h": 1,
+          "kind": "rock",
+          "label": "IMPASSABLE ROCK TERRAIN"
+        },
+        {
+          "id": "debris_1",
+          "x": 16,
+          "y": 27,
+          "w": 1,
+          "h": 1,
+          "kind": "debris",
+          "label": "SALVAGEABLE DEBRIS"
+        },
+        {
+          "id": "debris_2",
+          "x": 22,
+          "y": 34,
+          "w": 1,
+          "h": 1,
+          "kind": "debris",
+          "label": "SALVAGEABLE DEBRIS"
+        },
+        {
+          "id": "debris_3",
+          "x": 38,
+          "y": 28,
+          "w": 1,
+          "h": 1,
+          "kind": "debris",
+          "label": "SALVAGEABLE DEBRIS"
+        },
+        {
+          "id": "debris_4",
+          "x": 40,
+          "y": 21,
+          "w": 1,
+          "h": 1,
+          "kind": "debris",
+          "label": "SALVAGEABLE DEBRIS"
+        },
+        {
+          "id": "debris_5",
+          "x": 14,
+          "y": 33,
+          "w": 1,
+          "h": 1,
+          "kind": "debris",
+          "label": "SALVAGEABLE DEBRIS"
+        }
+      ]
     },
     "unit": {
       "x": 24,
@@ -148,7 +351,26 @@
       "max_tmp": 100,
       "bat_cells": 4,
       "max_bat_cells": 5,
-      "steps_since_charge_loss": 0
+      "steps_since_charge_loss": 0,
+      "voltage_model": {
+        "display": "current / max voltage",
+        "max_v": 14,
+        "nominal_v": 12,
+        "operating_range_v": [
+          9,
+          14
+        ],
+        "percent_hidden": true,
+        "estimated_step_values_v": [
+          9,
+          10.2,
+          11.1,
+          11.8,
+          12.8,
+          14
+        ],
+        "calibration_pending": true
+      }
     },
     "quest": {
       "objectives": [
@@ -187,6 +409,8 @@
         "id": "base",
         "x": 25,
         "y": 25,
+        "w": 5,
+        "h": 3,
         "kind": "base",
         "label": "CONTROL MODULE / BASE"
       },
@@ -194,6 +418,8 @@
         "id": "panel_1",
         "x": 19,
         "y": 20,
+        "w": 3,
+        "h": 2,
         "kind": "solar",
         "label": "SOLAR PANEL",
         "task_item": "panel",
@@ -201,8 +427,10 @@
       },
       {
         "id": "crate_1",
-        "x": 31,
-        "y": 29,
+        "x": 32,
+        "y": 30,
+        "w": 2,
+        "h": 2,
         "kind": "crate",
         "label": "CRATE [WIRING / PARTS / COMP]",
         "task_item": "crate",
@@ -210,8 +438,10 @@
       },
       {
         "id": "asm_1",
-        "x": 34,
+        "x": 35,
         "y": 19,
+        "w": 3,
+        "h": 2,
         "kind": "assembler",
         "label": "ASSEMBLER FABRICATOR UNIT",
         "task_item": "assembler",
@@ -220,15 +450,19 @@
       {
         "id": "broken_2",
         "x": 20,
-        "y": 31,
+        "y": 32,
+        "w": 2,
+        "h": 2,
         "kind": "broken",
         "label": "BROKEN MODULE [SCRAP]",
         "salvaged": false
       },
       {
         "id": "quest_1",
-        "x": 30,
+        "x": 31,
         "y": 24,
+        "w": 1,
+        "h": 1,
         "kind": "quest",
         "label": "TASK BEACON: SALVAGE SECTOR"
       },
@@ -236,6 +470,8 @@
         "id": "rock_1",
         "x": 28,
         "y": 21,
+        "w": 1,
+        "h": 1,
         "kind": "rock",
         "label": "IMPASSABLE ROCK TERRAIN"
       },
@@ -243,6 +479,8 @@
         "id": "rock_2",
         "x": 28,
         "y": 22,
+        "w": 1,
+        "h": 1,
         "kind": "rock",
         "label": "IMPASSABLE ROCK TERRAIN"
       },
@@ -250,8 +488,55 @@
         "id": "rock_3",
         "x": 28,
         "y": 23,
+        "w": 1,
+        "h": 1,
         "kind": "rock",
         "label": "IMPASSABLE ROCK TERRAIN"
+      },
+      {
+        "id": "debris_1",
+        "x": 16,
+        "y": 27,
+        "w": 1,
+        "h": 1,
+        "kind": "debris",
+        "label": "SALVAGEABLE DEBRIS"
+      },
+      {
+        "id": "debris_2",
+        "x": 22,
+        "y": 34,
+        "w": 1,
+        "h": 1,
+        "kind": "debris",
+        "label": "SALVAGEABLE DEBRIS"
+      },
+      {
+        "id": "debris_3",
+        "x": 38,
+        "y": 28,
+        "w": 1,
+        "h": 1,
+        "kind": "debris",
+        "label": "SALVAGEABLE DEBRIS"
+      },
+      {
+        "id": "debris_4",
+        "x": 40,
+        "y": 21,
+        "w": 1,
+        "h": 1,
+        "kind": "debris",
+        "label": "SALVAGEABLE DEBRIS"
+      },
+      {
+        "id": "debris_5",
+        "x": 14,
+        "y": 33,
+        "w": 1,
+        "h": 1,
+        "kind": "debris",
+        "label": "SALVAGEABLE DEBRIS"
       }
     ],
     "energy_model": {
@@ -260,7 +545,24 @@
       "communications_module_average_w": 12,
       "combined_average_w": 20,
       "communications_transmit_peak_w": 45,
-      "note": "Ориентировочная нагрузка для первого прототипа интерфейса; не считать окончательной спецификацией оборудования."
+      "note": "Ориентировочная нагрузка для первого прототипа интерфейса; не считать окончательной спецификацией оборудования.",
+      "telemetry": {
+        "tx_peak_w": {
+          "current": 15,
+          "max": 15
+        },
+        "thermal_w": {
+          "current": 30,
+          "max": 70
+        },
+        "average_w": {
+          "current": 50,
+          "max": 90
+        },
+        "station_voltage_display": "12.0 / 14 V",
+        "rover_charging_display": "ROVER CHARGING 40 W",
+        "show_rover_charging_only_when_active": true
+      }
     }
   },
   "source_code": {
