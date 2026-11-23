@@ -640,7 +640,8 @@
     function updateTaskStatus() {
       const message=document.getElementById('mission-message');
       if(!message)return;
-      if(batCells<=1)message.textContent='CRITICAL BATTERY: RETURN TO CONTROL MODULE IMMEDIATELY. ROVER POWER IS ALMOST DEPLETED.';
+      if(chargeTimer!==null)message.textContent='ROVER IS CONNECTED TO THE CONTROL MODULE AND CHARGING. WAIT UNTIL BATTERY RECOVERY IS COMPLETE.';
+      else if(batCells<=1)message.textContent='CRITICAL BATTERY: RETURN TO CONTROL MODULE IMMEDIATELY. ROVER POWER IS ALMOST DEPLETED.';
       else if(batCells<=2)message.textContent='LOW BATTERY: RETURN TO CONTROL MODULE FOR RECHARGING BEFORE CONTINUING THE SURVEY.';
       else if(batCells<=3)message.textContent='BATTERY WARNING: PLAN A RETURN TO THE CONTROL MODULE FOR RECHARGING.';
       else if(!message.dataset.manual)message.textContent='PROCEED WITH ROVER TO SURVEY NEARBY TERRAIN. APPROACH EQUIPMENT AND USE ACT TO INTERACT.';
