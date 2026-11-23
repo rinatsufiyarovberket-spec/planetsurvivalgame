@@ -805,7 +805,7 @@
         return coord + (ent.opened ? ' CRATE [□] EMPTY' : ' CRATE [▣] WIRING/PARTS/COMP');
       }
       if (ent.kind === 'assembler') {
-        return coord + (ent.salvaged ? ' ASSEMBLER [░] SALVAGED' : ' ASSEMBLER FABRICATOR [⌘] QUEST ITEM');
+        return coord + (ent.salvaged ? ' ASSEMBLER [░] SALVAGED' : ' ASSEMBLER FABRICATOR [⚙] QUEST ITEM');
       }
       if (ent.kind === 'broken') {
         return coord + (ent.salvaged ? ' WRECK [░] SALVAGED' : ' BROKEN MODULE [⧅] SCRAP');
@@ -856,7 +856,7 @@
       }
       const blocked = getEntityAt(nextX, nextY);
       if (blocked && ['rock','base','solar','crate','assembler','broken'].includes(blocked.kind)) {
-        stopMovement('ROUTE BLOCKED BY ROCK TERRAIN');
+        stopMovement('MOVEMENT BLOCKED BY STRUCTURE OR ROCK');
         return;
       }
       posX = nextX;
@@ -950,7 +950,7 @@
         if (ent.taskItem) inventory.add(ent.taskItem);
         renderVitals();
         renderMap();
-        writeLog('SALVAGED ASSEMBLER [⌘] -> BRING TO BASE');
+        writeLog('SALVAGED ASSEMBLER [⚙] -> BRING TO BASE');
         return;
       }
 
