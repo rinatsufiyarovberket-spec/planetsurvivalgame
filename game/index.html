@@ -7,13 +7,13 @@
 <style>
   :root {
     --bg:         #060b07;
-    --grn-main:   #38d968;
-    --grn-bright: #6ef094;
-    --grn-mid:    #28a84f;
-    --grn-dim:    #1b5e30;
-    --grn-muted:  #4c8a5e;
-    --grn-bg:     rgba(56, 217, 104, 0.04);
-    --grn-active: rgba(110, 240, 148, 0.18);
+    --grn-main:   #b8bec0;
+    --grn-bright: #e3e6e6;
+    --grn-mid:    #9ba3a5;
+    --grn-dim:    #626b6e;
+    --grn-muted:  #858e91;
+    --grn-bg:     rgba(220, 226, 228, 0.035);
+    --grn-active: rgba(220, 226, 228, 0.16);
     --crim:       #d73019;
     --pad:        2%;
   }
@@ -183,7 +183,7 @@
   }
 
   .map-cell:hover {
-    background-color: rgba(56, 217, 104, 0.08);
+    background-color: rgba(220, 226, 228, 0.08);
   }
 
   .map-cell.corner {
@@ -212,7 +212,7 @@
     color: var(--grn-bright);
     font-size: clamp(14px, 3vmin, 23px);
     font-weight: 900;
-    text-shadow: 0 0 4px rgba(56,217,104,.75);
+    text-shadow: 0 0 4px rgba(227,230,230,.55);
   }
   .map-cell.sector {
     color: var(--grn-muted);
@@ -232,9 +232,27 @@
   .telemetry-left {display:flex;align-items:center;gap:clamp(5px,.9vw,12px);min-width:0;white-space:nowrap}
   .telemetry-center {flex:0 0 auto;text-align:center;white-space:nowrap}
   .telemetry-right {flex:0 0 auto;text-align:right;white-space:nowrap;color:var(--grn-bright)}
-  .quest-name,.quest-detail {white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .quest-row>div {min-width:0}
-  .quest-row {grid-template-columns:minmax(0,1fr) auto;align-items:center;line-height:1.25}
+  .quest-board {gap:7px}
+  .important-message {
+    min-height:38px;padding:7px 9px;border:1px solid var(--grn-dim);
+    color:var(--grn-bright);background:rgba(220,226,228,.045);
+    font-size:clamp(10px,1.15vw,13px);line-height:1.35;
+    overflow:hidden;
+  }
+  .task-tabs {display:flex;gap:6px;width:100%;flex-shrink:0}
+  .task-tab {
+    flex:1;min-width:0;padding:8px 4px;border:1px solid var(--grn-dim);
+    background:rgba(220,226,228,.08);color:var(--grn-main);
+    font: bold clamp(9px,1.15vw,12px) 'DejaVu Sans Mono',monospace;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .task-tab.active {background:var(--grn-bright);border-color:var(--grn-bright);color:#101416}
+  .task-detail-panel {min-height:0;flex:1;border-left:2px solid var(--grn-mid);padding:5px 9px;background:var(--grn-bg);overflow:auto}
+  .task-detail-title {color:var(--grn-bright);font-weight:bold;font-size:clamp(11px,1.25vw,13px);margin-bottom:5px}
+  .task-detail-text {color:var(--grn-main);font-size:clamp(10px,1.15vw,13px);line-height:1.4}
+  .map-cell.structure {font-weight:700;text-shadow:0 0 1px currentColor}
+  .map-cell.obj-base,.map-cell.obj-item {color:var(--grn-bright)}
+  .map-cell.sector {color:var(--grn-muted);font-size:clamp(10px,1.8vmin,15px);font-weight:800}
   
 
   .dock-panel {
@@ -461,7 +479,7 @@
   .map-cell.sector{color:var(--grn-dim)}
   .telemetry{display:flex;align-items:center;justify-content:space-between;gap:clamp(5px,1vw,12px);font-size:clamp(7px,1vw,11px);white-space:nowrap;min-height:22px;overflow:hidden}
   .telemetry-left{display:flex;align-items:center;gap:clamp(5px,.9vw,12px);min-width:0;white-space:nowrap}
-  .telemetry-center{flex:0 0 auto;text-align:center;white-space:nowrap}
+  .telemetry-center{flex:0 0 auto;text-align:center;white-space:nowrap;display:flex;gap:clamp(4px,.8vw,10px)}
   .telemetry-right{flex:0 0 auto;text-align:right;color:var(--grn-bright);white-space:nowrap}
   .dock-panel{grid-template-columns:minmax(0,1fr) minmax(190px,23%)}
   .log-unified{display:block;min-width:0;min-height:0;overflow:hidden}
@@ -481,11 +499,10 @@
       <section class="panel map-panel">
         <div class="panel-title telemetry">
           <div class="telemetry-left">
-            <span id="tx-peak">TX PEAK 15 / 15 W</span>
-            <span>THERMAL 30 / 70 W</span>
-            <span id="avg-load">AVG 50 / 90 W</span>
+            <span id="tx-peak">TX PEAK 15/15 W</span>
+            <span>THERMAL 30/70 W</span>
           </div>
-          <div class="telemetry-center">12.0 / 14 V</div>
+          <div class="telemetry-center"><span>12.0/14 V</span><span id="avg-load"> &nbsp; AVG 50/90 W</span></div>
           <div class="telemetry-right" id="rover-charging"></div>
         </div>
         <div class="map-viewport">
@@ -500,35 +517,24 @@
       <section class="panel dock-panel">
         <div class="log-unified">
           <div class="quest-board">
-            <div class="quest-heading">MISSION TASKING // CONTROL MODULE RECOVERY</div>
-            <div class="quest-row active">
-              <div>
-                <div class="quest-name">01 — ENERGY RECONNAISSANCE</div>
-                <div class="quest-detail">Survey nearby terrain. Locate solar panels, battery banks, generators and RTG units. Minimum infrastructure: 1 solar panel + battery bank.</div>
-              </div>
-              <span class="quest-state">ACTIVE</span>
+            <div class="quest-heading">IMPORTANT MESSAGES // CONTROL MODULE</div>
+            <div class="important-message" id="mission-message">ENERGY RECONNAISSANCE REQUIRED. PROCEED WITH ROVER TO SURVEY NEARBY TERRAIN.</div>
+            <div class="task-tabs" role="group" aria-label="Mission tasks">
+              <button class="task-tab active" data-task="0">FIND ENERGY</button>
+              <button class="task-tab" data-task="1">FIND UNITS</button>
+              <button class="task-tab" data-task="2">RECOVER PARTS</button>
             </div>
-            <div class="quest-row locked">
-              <div>
-                <div class="quest-name">02 — UNIT & MODULE SEARCH</div>
-                <div class="quest-detail">Locate other robots, communication stations, processing units and work modules.</div>
-              </div>
-              <span class="quest-state">STANDBY</span>
-            </div>
-            <div class="quest-row locked">
-              <div>
-                <div class="quest-name">03 — COMPONENT RECOVERY</div>
-                <div class="quest-detail">Identify salvageable parts, spare modules, tools and structural components for repairs.</div>
-              </div>
-              <span class="quest-state">STANDBY</span>
+            <div class="task-detail-panel">
+              <div class="task-detail-title" id="task-detail-title">01 // FIND ENERGY</div>
+              <div class="task-detail-text" id="task-detail-text">Survey nearby terrain. Locate solar panels, battery banks, generators and RTG units. Minimum infrastructure: one solar panel and one battery bank. Approach an object and use ACT to interact.</div>
             </div>
           </div>
         </div>
 
         <div class="control-column">
           <div class="power-status">
-            <div id="rover-voltage">ROVER BAT 12.8 / 14.0 V</div>
-            <div>UNIT <span class="move-badge" id="move-state">IDLE</span></div>
+            <div id="rover-voltage">BAT 12.8/14.0 V</div>
+            <div><span class="move-badge" id="move-state">IDLE</span></div>
           </div>
           <div class="direction-pad" aria-label="Eight direction controls">
             <button class="dir-btn northwest" data-direction="NW">↖</button><button class="dir-btn north" data-direction="N">↑</button><button class="dir-btn northeast" data-direction="NE">↗</button>
@@ -553,10 +559,10 @@
     const CHARGE_MS = 2000;
     const STEPS_PER_CELL_CHARGE = 5;
 
-    const MARKER_CHAR = '\u00B7'; // Small rover marker
+    const MARKER_CHAR = '\u25CF'; // Solid rover marker
     const TARGET_CHAR = '\u25CB'; // Selected point
-    // Границы секторов: крестики вдоль каждой линии через 10 клеток.
-    const SECTOR_SIZE = 10;
+    // Fine navigation grid: plus markers at every second cell intersection.
+    const SECTOR_SIZE = 2;
 
     // Базовый модуль находится в центре карты; робот стартует на соседней клетке.
     let posX = 24;
@@ -604,11 +610,8 @@
     }
 
     function writeLog(text) {
-      const mainEl=document.getElementById('log-main');
-      const prevEl=document.getElementById('log-prev');
-      if(!mainEl||!prevEl)return;
-      const formatted='> '+text;
-      if(mainEl.textContent!==formatted){prevEl.textContent=mainEl.textContent;mainEl.textContent=formatted;}
+      const message=document.getElementById('mission-message');
+      if(message){message.dataset.manual='true';message.textContent=text;}
     }
 
     function setMoveStateLabel(label) {
@@ -621,25 +624,43 @@
       return '[' + fillChar.repeat(filled) + emptyChar.repeat(width - filled) + ']';
     }
 
+    const taskData=[
+      {title:'01 // FIND ENERGY',text:'Survey nearby terrain. Locate solar panels, battery banks, generators and RTG units. Minimum infrastructure: one solar panel and one battery bank. Approach an object and use ACT to interact.'},
+      {title:'02 // FIND UNITS',text:'Search the surrounding area for other rovers, autonomous robots, communication stations and processing modules. Approach discovered equipment to inspect it.'},
+      {title:'03 // RECOVER PARTS',text:'Locate salvageable components, wiring, tools and structural fragments. Move close to an object and use ACT to collect or recover it, then return to the control module.'}
+    ];
+    let selectedTask=0;
+    function selectTask(index){
+      selectedTask=Math.max(0,Math.min(taskData.length-1,index));
+      document.querySelectorAll('.task-tab').forEach((button,i)=>button.classList.toggle('active',i===selectedTask));
+      document.getElementById('task-detail-title').textContent=taskData[selectedTask].title;
+      document.getElementById('task-detail-text').textContent=taskData[selectedTask].text;
+      updateTaskStatus();
+    }
     function updateTaskStatus() {
-      // Mission progress is displayed in the task board; detailed state updates will be wired to objectives.
+      const message=document.getElementById('mission-message');
+      if(!message)return;
+      if(batCells<=1)message.textContent='CRITICAL BATTERY: RETURN TO CONTROL MODULE IMMEDIATELY. ROVER POWER IS ALMOST DEPLETED.';
+      else if(batCells<=2)message.textContent='LOW BATTERY: RETURN TO CONTROL MODULE FOR RECHARGING BEFORE CONTINUING THE SURVEY.';
+      else if(batCells<=3)message.textContent='BATTERY WARNING: PLAN A RETURN TO THE CONTROL MODULE FOR RECHARGING.';
+      else if(!message.dataset.manual)message.textContent='PROCEED WITH ROVER TO SURVEY NEARBY TERRAIN. APPROACH EQUIPMENT AND USE ACT TO INTERACT.';
     }
 
     function renderVitals() {
       const volts=[9.0,10.2,11.1,11.8,12.8,14.0][batCells];
       const readout=document.getElementById('rover-voltage');
-      readout.textContent='ROVER BAT '+volts.toFixed(1)+' / 14.0 V';
+      readout.textContent='BAT '+volts.toFixed(1)+'/14.0 V';
       readout.style.color=batCells<=1?'var(--crim)':'var(--grn-main)';
       const charging=chargeTimer!==null;
       document.getElementById('rover-charging').textContent=charging?'ROVER CHARGING 40 W':'';
-      document.getElementById('tx-peak').textContent='TX PEAK '+(charging?55:15)+' / '+(charging?55:15)+' W';
-      document.getElementById('avg-load').textContent='AVG '+(charging?90:50)+' / 90 W';
+      document.getElementById('tx-peak').textContent='TX PEAK 15/15 W';
+      document.getElementById('avg-load').textContent='AVG '+(charging?90:50)+'/90 W';
 
       updateTaskStatus();
     }
 
     function isSectorEdge(x, y) {
-      return x % SECTOR_SIZE === 0 || y % SECTOR_SIZE === 0;
+      return x % SECTOR_SIZE === 0 && y % SECTOR_SIZE === 0;
     }
 
     function scrollMap(dx, dy) {
@@ -659,7 +680,7 @@
       return entities.find(e=>x>=e.x&&x<e.x+(e.w||1)&&y>=e.y&&y<e.y+(e.h||1))||null;
     }
     function revealAroundUnit(){
-      for(let y=posY-1;y<=posY+1;y++)for(let x=posX-1;x<=posX+1;x++)
+      for(let y=posY-2;y<=posY+2;y++)for(let x=posX-2;x<=posX+2;x++)
         if(x>=0&&y>=0&&x<MAP_W&&y<MAP_H)explored.add(x+','+y);
     }
     function structureGlyph(ent,x,y){
@@ -1008,7 +1029,9 @@
     }
 
     document.querySelectorAll('.dir-btn[data-direction]').forEach(button=>button.addEventListener('click',()=>startDirectionalMovement(button.dataset.direction)));
+    document.querySelectorAll('.task-tab').forEach(button=>button.addEventListener('click',()=>{document.getElementById('mission-message').dataset.manual='';selectTask(Number(button.dataset.task));}));
     document.getElementById('btn-act').addEventListener('click', performInteract);
+    selectTask(0);
 
     document.getElementById('map-north').addEventListener('click', () => scrollMap(0, -SCROLL_STEP));
     document.getElementById('map-south').addEventListener('click', () => scrollMap(0, SCROLL_STEP));
