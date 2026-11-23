@@ -655,13 +655,15 @@
       return '';
     }
 
-    function isAdjacentOrSame(x1, y1, x2, y2) {
-      return Math.abs(x1 - x2) <= 1 && Math.abs(y1 - y2) <= 1;
+    function isAdjacentOrSame(x1,y1,x2,y2){return Math.abs(x1-x2)<=1&&Math.abs(y1-y2)<=1;}
+    function isAdjacentToEntity(x,y,ent){
+      const right=ent.x+(ent.w||1)-1,bottom=ent.y+(ent.h||1)-1;
+      return x>=ent.x-1&&x<=right+1&&y>=ent.y-1&&y<=bottom+1;
     }
 
     function findNearbyInteractive() {
       const baseEnt = entities.find((e) => e.kind === 'base');
-      if (baseEnt && isAdjacentOrSame(posX, posY, baseEnt.x, baseEnt.y)) {
+      if (baseEnt && isAdjacentToEntity(posX,posY,baseEnt)) {
         if (inventory.size > 0 || batCells < maxBatCells) {
           return baseEnt;
         }
@@ -669,7 +671,7 @@
 
       for (const ent of entities) {
         if (ent.kind === 'rock' || ent.kind === 'base' || ent.kind === 'quest') continue;
-        if (!isAdjacentOrSame(posX, posY, ent.x, ent.y)) continue;
+        if (!isAdjacentToEntity(posX,posY,ent)) continue;
 
         if (ent.kind === 'solar' && !ent.taken) return ent;
         if (ent.kind === 'crate' && !ent.opened) return ent;
@@ -677,7 +679,7 @@
         if (ent.kind === 'broken' && !ent.salvaged) return ent;
       }
 
-      if (baseEnt && isAdjacentOrSame(posX, posY, baseEnt.x, baseEnt.y)) {
+      if (baseEnt && isAdjacentToEntity(posX,posY,baseEnt)) {
         return baseEnt;
       }
 
@@ -703,7 +705,7 @@
 
     function updateBaseCharging() {
       const baseEnt = entities.find((e) => e.kind === 'base');
-      const nearBase = baseEnt && isAdjacentOrSame(posX, posY, baseEnt.x, baseEnt.y);
+      const nearBase = baseEnt && isAdjacentToEntity(posX,posY,baseEnt);
 
       if (nearBase && batCells < maxBatCells) {
         if (chargeTimer === null) {
@@ -759,6 +761,7 @@
           const y = viewY + sy;
           const cell = document.createElement('div');
           cell.className = 'map-cell';
+          cell.addEventListener('click',()=>onCellClick(x,y));
 
           const known=explored.has(x+','+y),ent=known?getEntityAt(x,y):null;
           if(!known){cell.classList.add('unexplored');}
