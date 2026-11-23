@@ -208,10 +208,34 @@
     color: #ffffff;
   }
 
-  .map-cell.marker {
+   .map-cell.marker {
     color: var(--grn-bright);
-    font-size: clamp(11px, 2.5vmin, 20px);
+    font-size: clamp(14px, 3vmin, 23px);
+    font-weight: 900;
+    text-shadow: 0 0 4px rgba(56,217,104,.75);
   }
+  .map-cell.sector {
+    color: var(--grn-muted);
+    font-size: clamp(10px, 2vmin, 16px);
+    font-weight: 700;
+  }
+  .telemetry {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:clamp(5px,1vw,12px);
+    white-space:nowrap;
+    overflow:hidden;
+    font-size:clamp(7px,1vw,11px);
+    letter-spacing:clamp(.1px,.12vw,.8px);
+  }
+  .telemetry-left {display:flex;align-items:center;gap:clamp(5px,.9vw,12px);min-width:0;white-space:nowrap}
+  .telemetry-center {flex:0 0 auto;text-align:center;white-space:nowrap}
+  .telemetry-right {flex:0 0 auto;text-align:right;white-space:nowrap;color:var(--grn-bright)}
+  .quest-name,.quest-detail {white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .quest-row>div {min-width:0}
+  .quest-row {grid-template-columns:minmax(0,1fr) auto;align-items:center;line-height:1.25}
+  
 
   .dock-panel {
     padding: 0;
@@ -454,7 +478,11 @@
     <div class="layout-grid">
       <section class="panel map-panel">
         <div class="panel-title telemetry">
-          <div class="telemetry-left">TX PEAK 15 / 15 W<br>THERMAL 30 / 70 W<br>AVG 50 / 90 W</div>
+          <div class="telemetry-left">
+            <span id="tx-peak">TX PEAK 15 / 15 W</span>
+            <span>THERMAL 30 / 70 W</span>
+            <span id="avg-load">AVG 50 / 90 W</span>
+          </div>
           <div class="telemetry-center">12.0 / 14 V</div>
           <div class="telemetry-right" id="rover-charging"></div>
         </div>
@@ -574,13 +602,11 @@
     }
 
     function writeLog(text) {
-      const mainEl = document.getElementById('log-main');
-      const prevEl = document.getElementById('log-prev');
-      const formatted = '> ' + text;
-      if (mainEl.textContent !== formatted) {
-        prevEl.textContent = mainEl.textContent;
-        mainEl.textContent = formatted;
-      }
+      const mainEl=document.getElementById('log-main');
+      const prevEl=document.getElementById('log-prev');
+      if(!mainEl||!prevEl)return;
+      const formatted='> '+text;
+      if(mainEl.textContent!==formatted){prevEl.textContent=mainEl.textContent;mainEl.textContent=formatted;}
     }
 
     function setMoveStateLabel(label) {
@@ -602,7 +628,10 @@
       const readout=document.getElementById('rover-voltage');
       readout.textContent='ROVER BAT '+volts.toFixed(1)+' / 14.0 V';
       readout.style.color=batCells<=1?'var(--crim)':'var(--grn-main)';
-      document.getElementById('rover-charging').textContent=chargeTimer?'ROVER CHARGING 40 W':'';
+      const charging=chargeTimer!==null;
+      document.getElementById('rover-charging').textContent=charging?'ROVER CHARGING 40 W':'';
+      document.getElementById('tx-peak').textContent='TX PEAK '+(charging?55:15)+' / '+(charging?55:15)+' W';
+      document.getElementById('avg-load').textContent='AVG '+(charging?90:50)+' / 90 W';
 
       updateTaskStatus();
     }
@@ -700,7 +729,10 @@
       moveDirection = null;
       document.querySelectorAll('.dir-btn').forEach((button) => button.classList.remove('is-active'));
       if (!chargeTimer) setMoveStateLabel('IDLE');
-      if (reasonText) writeLog(reasonText);
+      if (reasonText) {
+        setMoveStateLabel(reasonText.includes('BLOCKED')||reasonText.includes('LIMIT')?'BLOCKED':'IDLE');
+        writeLog(reasonText);
+      }
     }
 
     function updateBaseCharging() {
@@ -711,7 +743,7 @@
         if (chargeTimer === null) {
           chargeTimer = setInterval(() => {
             const b = entities.find((e) => e.kind === 'base');
-            if (!b || !isAdjacentOrSame(posX, posY, b.x, b.y) || batCells >= maxBatCells) {
+            if (!b || !isAdjacentToEntity(posX,posY,b) || batCells >= maxBatCells) {
               clearInterval(chargeTimer);
               chargeTimer = null;
               if (moveTimer === null) setMoveStateLabel('IDLE');
@@ -764,8 +796,11 @@
           cell.addEventListener('click',()=>onCellClick(x,y));
 
           const known=explored.has(x+','+y),ent=known?getEntityAt(x,y):null;
-          if(!known){cell.classList.add('unexplored');}
-          else if(x===posX&&y===posY){cell.classList.add('marker');cell.textContent=MARKER_CHAR;}
+          if(!known){
+            cell.classList.add('unexplored');
+            if(isSectorEdge(x,y)){cell.classList.add('corner','sector');cell.textContent='+';}
+          }
+          else if(x===posX&&y===posY){cell.classList.add('marker');cell.textContent='●';}
           else if(ent){
             cell.classList.add('structure');
             if(ent.kind==='base')cell.classList.add('obj-base');
@@ -879,20 +914,23 @@
 
     function startDirectionalMovement(direction) {
       if (batCells <= 0) {
-        writeLog('ROBOT BATTERY 0% — MOVEMENT LOCKED');
+        setMoveStateLabel('BATTERY EMPTY');
+        writeLog('ROBOT BATTERY DEPLETED — MOVEMENT LOCKED');
         return;
       }
+      const vectors={N:[0,-1],NE:[1,-1],E:[1,0],SE:[1,1],S:[0,1],SW:[-1,1],W:[-1,0],NW:[-1,-1]};
+      if(!Object.prototype.hasOwnProperty.call(vectors,direction))return;
       if (moveTimer !== null) return;
       moveDirection = direction;
       document.querySelectorAll('.dir-btn').forEach((button) => {
         button.classList.toggle('is-active', button.dataset.direction === direction);
       });
       setMoveStateLabel('MOVING ' + direction);
-      writeLog('MANUAL DRIVE ' + direction + ' // STEP IN ' + (STEP_MS / 1000).toFixed(2) + ' S');
       moveTimer = setTimeout(() => {
         moveTimer = null;
         stepInDirection();
       }, STEP_MS);
+      writeLog('MANUAL DRIVE ' + direction + ' // STEP IN ' + (STEP_MS / 1000).toFixed(2) + ' S');
     }
 
     function performInteract() {
