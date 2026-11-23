@@ -214,9 +214,11 @@
   }
 
   .dock-panel {
-    padding: 1.2% 1.5%;
+    padding: 0;
+    border: 0;
+    background: transparent;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(150px, 18%);
+    grid-template-columns: minmax(0, 1fr) minmax(170px, 18%);
     gap: 1.2%;
   }
 
@@ -239,8 +241,8 @@
   }
   .quest-heading {
     color: var(--grn-bright);
-    font-size: clamp(9px, 1.15vw, 11px);
-    letter-spacing: 1px;
+    font-size: clamp(12px, 1.45vw, 14px);
+    letter-spacing: 1.3px;
     border-bottom: 1px solid var(--grn-dim);
     padding-bottom: 4px;
   }
@@ -249,11 +251,11 @@
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
     align-items: start;
-    font-size: clamp(9px, 1.05vw, 11px);
-    line-height: 1.3;
+    font-size: clamp(12px, 1.35vw, 14px);
+    line-height: 1.42;
   }
-  .quest-name { color: var(--grn-main); }
-  .quest-detail { color: var(--grn-muted); }
+  .quest-name { color: var(--grn-bright); font-weight: bold; }
+  .quest-detail { color: var(--grn-main); }
   .quest-state { color: var(--grn-bright); white-space: nowrap; }
   .quest-row.locked .quest-name,
   .quest-row.locked .quest-detail,
@@ -355,19 +357,19 @@
     border-left: 1px solid var(--grn-dim);
     padding-left: 8px;
     display: grid;
-    grid-template-rows: auto minmax(72px, 1fr) auto auto;
-    gap: 8px;
+    grid-template-rows: auto minmax(100px, 1fr) auto;
+    gap: 10px;
   }
   .direction-pad {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    gap: 6px;
-    min-height: 72px;
+    grid-template-rows: repeat(2, minmax(46px, 1fr));
+    gap: 8px;
+    min-height: 100px;
   }
   .dir-btn {
     min-width: 0;
-    min-height: 30px;
+    min-height: 46px;
     border: 1px solid var(--grn-main);
     background: var(--bg);
     color: var(--grn-bright);
@@ -436,8 +438,8 @@
     <div class="layout-grid">
       <section class="panel map-panel">
         <div class="panel-title">
-          <span>+-- SECTOR GRID // MAP --+</span>
-          <span id="coord-readout">POS [02,04] -&gt; TGT [--,--]</span>
+          <span>CONTROL MODULE // CTRL 8 W + COMMS 12 W = 20 W AVG</span>
+          <span>EMERGENCY LINK // TX PEAK 45 W</span>
         </div>
         <div class="map-viewport">
           <div class="map-grid" id="map-grid"></div>
@@ -491,7 +493,6 @@
             <button type="button" class="dir-btn south" data-direction="S" aria-label="South">↓</button>
             <button type="button" class="dir-btn east" data-direction="E" aria-label="East">→</button>
           </div>
-          <button type="button" class="ctrl-btn" id="btn-stop">STOP</button>
           <button type="button" class="ctrl-btn" id="btn-act" disabled>ACT</button>
         </div>
       </section>
@@ -500,24 +501,25 @@
   </div>
 
   <script>
-    const MAP_W = 45;
-    const MAP_H = 27;
+    const MAP_W = 50;
+    const MAP_H = 50;
     const VIEW_W = 15;
     const VIEW_H = 9;
     const SCROLL_STEP = 5;
     let viewX = 0;
     let viewY = 0;
-    const STEP_MS = 1000;
+    const STEP_MS = 750;
     const CHARGE_MS = 2000;
     const STEPS_PER_CELL_CHARGE = 5;
 
-    const MARKER_CHAR = '\u2B24'; // ⚫
-    const TARGET_CHAR = '\u25CB'; // ○
-    // Маркеры на пересечениях секторов 10x10.
+    const MARKER_CHAR = '\u2B24'; // Cleaner rover
+    const TARGET_CHAR = '\u25CB'; // Selected point
+    // Границы секторов: крестики вдоль каждой линии через 10 клеток.
     const SECTOR_SIZE = 10;
 
-    let posX = 2;
-    let posY = 4;
+    // Базовый модуль находится в центре карты; робот стартует на соседней клетке.
+    let posX = 24;
+    let posY = 25;
     let targetX = null;
     let targetY = null;
     let moveDirection = null;
@@ -539,15 +541,15 @@
     // Объекты на карте:
     // base: ⬟, rock: ▲, crate: ▣ (полный) / □ (пустой), solar: ▤, assembler: ⌘, broken: ⧅ -> ░, quest: ◇
     const entities = [
-      { id: 'base',      x: 2,  y: 4, kind: 'base',      label: 'BASE (CHARGE & DROP-OFF)' },
-      { id: 'panel_1',   x: 6,  y: 2, kind: 'solar',     label: 'SOLAR PANEL', taskItem: 'panel', taken: false },
-      { id: 'crate_1',   x: 9,  y: 6, kind: 'crate',     label: 'CRATE [WIRING / PARTS / COMP]', taskItem: 'crate', opened: false },
-      { id: 'asm_1',     x: 11, y: 2, kind: 'assembler', label: 'ASSEMBLER FABRICATOR UNIT', taskItem: 'assembler', salvaged: false },
-      { id: 'broken_2',  x: 5,  y: 7, kind: 'broken',    label: 'BROKEN MODULE [SCRAP]', salvaged: false },
-      { id: 'quest_1',   x: 12, y: 4, kind: 'quest',     label: 'TASK BEACON: SALVAGE SECTOR' },
-      { id: 'rock_1',    x: 8,  y: 3, kind: 'rock',      label: 'IMPASSABLE ROCK TERRAIN' },
-      { id: 'rock_2',    x: 8,  y: 4, kind: 'rock',      label: 'IMPASSABLE ROCK TERRAIN' },
-      { id: 'rock_3',    x: 8,  y: 5, kind: 'rock',      label: 'IMPASSABLE ROCK TERRAIN' }
+      { id: 'base',      x: 25, y: 25, kind: 'base',      label: 'CONTROL MODULE / BASE' },
+      { id: 'panel_1',   x: 19, y: 20, kind: 'solar',     label: 'SOLAR PANEL', taskItem: 'panel', taken: false },
+      { id: 'crate_1',   x: 31, y: 29, kind: 'crate',     label: 'CRATE [WIRING / PARTS / COMP]', taskItem: 'crate', opened: false },
+      { id: 'asm_1',     x: 34, y: 19, kind: 'assembler', label: 'ASSEMBLER FABRICATOR UNIT', taskItem: 'assembler', salvaged: false },
+      { id: 'broken_2',  x: 20, y: 31, kind: 'broken',    label: 'BROKEN MODULE [SCRAP]', salvaged: false },
+      { id: 'quest_1',   x: 30, y: 24, kind: 'quest',     label: 'TASK BEACON: SALVAGE SECTOR' },
+      { id: 'rock_1',    x: 28, y: 21, kind: 'rock',      label: 'IMPASSABLE ROCK TERRAIN' },
+      { id: 'rock_2',    x: 28, y: 22, kind: 'rock',      label: 'IMPASSABLE ROCK TERRAIN' },
+      { id: 'rock_3',    x: 28, y: 23, kind: 'rock',      label: 'IMPASSABLE ROCK TERRAIN' }
     ];
 
     function pad2(n) {
@@ -592,8 +594,8 @@
       updateTaskStatus();
     }
 
-    function isBlockCorner(x, y) {
-      return x % SECTOR_SIZE === 0 && y % SECTOR_SIZE === 0;
+    function isSectorEdge(x, y) {
+      return x % SECTOR_SIZE === 0 || y % SECTOR_SIZE === 0;
     }
 
     function scrollMap(dx, dy) {
@@ -619,7 +621,8 @@
       if (ent.kind === 'rock') return '\u25B2';      // ▲
       if (ent.kind === 'solar') return ent.taken ? '' : '\u25A4'; // ▤
       if (ent.kind === 'crate') return ent.opened ? '\u25A1' : '\u25A3'; // □ / ▣
-      if (ent.kind === 'assembler') return ent.salvaged ? '\u2591' : '\u2318'; // ⌘ / ░
+      if (ent.kind === 'assembler') return ent.salvaged ? '\u2591' : '\u2699'; // ⚙ / ░
+      // ⌘ is reserved for a future aerial drone / multicopter unit.
       if (ent.kind === 'broken') return ent.salvaged ? '\u2591' : '\u29C5'; // ⧅ / ░
       if (ent.kind === 'quest') return '\u25C7';     // ◇
       return '';
@@ -662,7 +665,7 @@
 
     function stopMovement(reasonText) {
       if (moveTimer !== null) {
-        clearInterval(moveTimer);
+        clearTimeout(moveTimer);
         moveTimer = null;
       }
       moveDirection = null;
@@ -710,8 +713,7 @@
     }
 
     function updateReadout() {
-      document.getElementById('coord-readout').textContent =
-        'POS [' + pad2(posX) + ',' + pad2(posY) + '] // MANUAL DRIVE';
+      // Coordinates are shown in the telemetry line once the dedicated nav header is introduced.
     }
 
     function renderMap() {
@@ -746,7 +748,7 @@
               cell.classList.add('obj-item');
             }
             cell.textContent = sym;
-          } else if (isBlockCorner(x, y)) {
+          } else if (isSectorEdge(x, y)) {
             cell.classList.add('corner');
             cell.textContent = '+';
           }
@@ -851,6 +853,10 @@
       }
       posX = nextX;
       posY = nextY;
+      const completedDirection = moveDirection;
+      moveDirection = null;
+      document.querySelectorAll('.dir-btn').forEach((button) => button.classList.remove('is-active'));
+      setMoveStateLabel('IDLE');
       stepsSinceChargeLoss += 1;
       if (stepsSinceChargeLoss >= STEPS_PER_CELL_CHARGE) {
         stepsSinceChargeLoss = 0;
@@ -859,7 +865,7 @@
       keepUnitInView();
       renderVitals();
       renderMap();
-      writeLog('DRIVE ' + moveDirection + ' // POS [' + pad2(posX) + ',' + pad2(posY) + ']');
+      writeLog('DRIVE ' + completedDirection + ' // POS [' + pad2(posX) + ',' + pad2(posY) + ']');
       if (batCells <= 0) stopMovement('ROBOT BATTERY DEPLETED — RETURN TO A POWER SOURCE');
     }
 
@@ -868,15 +874,17 @@
         writeLog('ROBOT BATTERY 0% — MOVEMENT LOCKED');
         return;
       }
-      if (moveTimer !== null) stopMovement();
+      if (moveTimer !== null) return;
       moveDirection = direction;
       document.querySelectorAll('.dir-btn').forEach((button) => {
         button.classList.toggle('is-active', button.dataset.direction === direction);
       });
       setMoveStateLabel('MOVING ' + direction);
-      writeLog('MANUAL DRIVE ' + direction + ' // 1 CELL PER SECOND');
-      stepInDirection();
-      if (batCells > 0 && moveDirection) moveTimer = setInterval(stepInDirection, STEP_MS);
+      writeLog('MANUAL DRIVE ' + direction + ' // STEP IN ' + (STEP_MS / 1000).toFixed(2) + ' S');
+      moveTimer = setTimeout(() => {
+        moveTimer = null;
+        stepInDirection();
+      }, STEP_MS);
     }
 
     function performInteract() {
@@ -950,19 +958,15 @@
     document.querySelectorAll('.dir-btn').forEach((button) => {
       button.addEventListener('click', () => startDirectionalMovement(button.dataset.direction));
     });
-    document.getElementById('btn-stop').addEventListener('click', () => {
-      if (moveTimer !== null) {
-        stopMovement('STOPPED AT [' + pad2(posX) + ',' + pad2(posY) + ']');
-      } else {
-        writeLog('ALREADY IDLE AT [' + pad2(posX) + ',' + pad2(posY) + ']');
-      }
-    });
     document.getElementById('btn-act').addEventListener('click', performInteract);
 
     document.getElementById('map-north').addEventListener('click', () => scrollMap(0, -SCROLL_STEP));
     document.getElementById('map-south').addEventListener('click', () => scrollMap(0, SCROLL_STEP));
     document.getElementById('map-west').addEventListener('click', () => scrollMap(-SCROLL_STEP, 0));
     document.getElementById('map-east').addEventListener('click', () => scrollMap(SCROLL_STEP, 0));
+    // Начальная область просмотра центрирована на базовом модуле.
+    viewX = 18;
+    viewY = 21;
     renderVitals();
     renderMap();
   </script>
