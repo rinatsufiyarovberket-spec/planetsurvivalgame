@@ -10,7 +10,7 @@
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"DejaVu Sans Mono","Liberation Mono",Consolas,monospace;touch-action:manipulation}
 body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 .app{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:clamp(5px,1vh,10px)}
-.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(155px,1fr) minmax(300px,min(58vh,560px)) minmax(155px,1fr);gap:clamp(48px,5vw,76px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(11px,.92vw,13px);line-height:1.48}.panel-heading{color:#fff;font-size:clamp(11px,.95vw,13px);letter-spacing:.1em;margin:0 0 6px}.telemetry{display:flex;flex-direction:column;gap:5px}.telemetry strong{display:block;color:#fff;font-size:clamp(16px,1.5vw,21px);font-weight:500}.battery-state{display:inline-block;margin-left:12px;vertical-align:baseline;color:var(--mid);font-size:inherit;font-weight:500;letter-spacing:.045em;white-space:nowrap}.activity-heading{display:flex;align-items:center;gap:0;margin-top:14px;margin-bottom:6px;min-width:0}.activity-heading .panel-heading{display:none}.activity-action{display:flex;align-items:center;justify-content:center;align-self:center;flex:1;min-width:0;max-width:100%;height:22px;min-height:22px;margin:0;padding:0 7px;overflow:hidden;white-space:nowrap;font-size:clamp(10px,.8vw,12px);line-height:1;letter-spacing:.06em}.metric{padding-bottom:2px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:4px}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(10px,.8vw,11px)}.task-item b{display:flex;flex-wrap:nowrap;align-items:baseline;justify-content:space-between;gap:5px;color:#fff;font-weight:500;white-space:nowrap;overflow:hidden}.task-status{color:var(--mid);font-size:.82em;font-weight:400;letter-spacing:.04em;white-space:nowrap;flex-shrink:0}.control-help{margin-top:8px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
+.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(155px,1fr) minmax(300px,min(58vh,560px)) minmax(155px,1fr);gap:clamp(48px,5vw,76px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(11px,.92vw,13px);line-height:1.48}.panel-heading{color:#fff;font-size:clamp(11px,.95vw,13px);letter-spacing:.1em;margin:0 0 6px}.telemetry{display:flex;flex-direction:column;gap:5px}.telemetry strong{display:block;color:#fff;font-size:clamp(16px,1.5vw,21px);font-weight:500}.battery-state{display:inline-block;margin-left:12px;vertical-align:baseline;color:var(--mid);font-size:inherit;font-weight:500;letter-spacing:.045em;white-space:nowrap}.activity-heading{display:flex;align-items:center;gap:0;margin-top:14px;margin-bottom:6px;min-width:0}.activity-heading .panel-heading{display:none}.activity-action{display:flex;align-items:center;justify-content:center;align-self:center;flex:1;min-width:0;max-width:100%;height:22px;min-height:22px;margin:0;padding:0 7px;overflow:hidden;white-space:nowrap;font-size:clamp(10px,.8vw,12px);line-height:1;letter-spacing:.06em}.metric{padding-bottom:2px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:4px}.status-list,.outgoing-list{width:100%;min-width:0}.log-entry{max-width:100%;overflow-wrap:anywhere}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(10px,.8vw,11px)}.task-item b{display:flex;flex-wrap:nowrap;align-items:baseline;justify-content:space-between;gap:5px;color:#fff;font-weight:500;white-space:nowrap;overflow:hidden}.task-status{color:var(--mid);font-size:.82em;font-weight:400;letter-spacing:.04em;white-space:nowrap;flex-shrink:0;margin-right:12px}.control-help{margin-top:8px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
 .scope{position:relative;width:min(min(58vh,58vw),560px);height:auto;aspect-ratio:1;border-radius:50%;overflow:visible;background:radial-gradient(circle,rgba(255,255,255,.035),rgba(255,255,255,.012) 68%,transparent 69%)}
 .map-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:1}
 .map-svg .scan-boundary{fill:none;stroke:transparent;stroke-width:0}
@@ -49,7 +49,6 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
   
   <main class="radar-stage">
     <aside class="side-panel left-panel">
-      <div class="panel-heading">ROVER TELEMETRY</div>
       <div class="telemetry">
         <div class="metric">BATTERY VOLTAGE<strong><span id="battery-visible">14.0 V</span><span class="battery-state" id="battery-status">FULL CHARGED</span></strong></div>
         <div class="metric">ANTENNA DISTANCE<strong id="distance-visible">0.0 M</strong></div>
@@ -73,7 +72,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     <aside class="side-panel right-panel">
       <div class="panel-heading">MISSION OBJECTIVES</div>
       <div class="task-list" id="mission-list"><div class="task-item"><b>LOCATION SURVEY <span class="task-status">ACTIVE</span></b>Explore the area and identify nearby equipment</div></div>
-      <div class="control-help"><b>CONTROL</b><br>Use the eight arrows to move. Approach an object and press ACT. Return to the station to recharge and connect recovered equipment.</div>
+      <div class="control-help"><b>CONTROL</b><br>Use the eight arrows to move. Battery drains quickly while driving and working; monitor voltage and return to the station before it becomes critical. Leaving the communication range causes connection loss. Approach equipment and press ACT.</div>
     </aside>
     <div class="hidden-support">
       <div id="task-detail-title"></div><div id="task-detail-text"></div>
@@ -144,7 +143,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       {id:'engine_wreck',kind:'engine_wreck',w:2,h:2,label:'CRUSHED ENGINE / THRUSTER SECTION'},
       {id:'quest_1',kind:'quest',w:1,h:1,label:'TASK BEACON: SALVAGE SECTOR'},
       ...Array.from({length:8},(_,i)=>({id:'rock_'+i,kind:'rock',w:i%3===0?2:1,h:i%3===0?2:1,label:i%3===0?'BOULDER FORMATION':'ROCK OUTCROP'})),
-      ...Array.from({length:52},(_,i)=>({id:'debris_'+i,kind:['rubble','shard','debris','crater','hull','tank','nozzle','capsule','gravel','scrap','wire','stone'][i%12],w:1,h:1,label:['RUBBLE FIELD','BROKEN FRAGMENT','METAL DEBRIS','GROUND DEPRESSION','HULL PLATING','FUEL TANK REMNANT','ENGINE NOZZLE','CAPSULE STRUCTURE','LOOSE GRAVEL','METAL SCRAP','CABLE FRAGMENT','ROCK CHIPS'][i%12]}))
+      ...Array.from({length:52},(_,i)=>({id:'debris_'+i,kind:['rubble','shard','debris','hull','tank','nozzle','capsule','gravel','scrap','wire','stone'][i%12],w:1,h:1,label:['RUBBLE FIELD','BROKEN FRAGMENT','METAL DEBRIS','GROUND DEPRESSION','HULL PLATING','FUEL TANK REMNANT','ENGINE NOZZLE','CAPSULE STRUCTURE','LOOSE GRAVEL','METAL SCRAP','CABLE FRAGMENT','ROCK CHIPS'][i%12]}))
     ];
     function placeRandomEntities(){
       const occupied=[];
@@ -159,7 +158,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
           if(overlaps)continue;
           const visualDebrisType=k=>(k==='rubble'||k==='debris')?'loose-fragment':k;
           const adjacentSame=occupied.filter(o=>visualDebrisType(o.kind)===visualDebrisType(e.kind)&&Math.hypot((o.x||0)-x,(o.y||0)-y)<4);
-          if(['rubble','shard','debris','crater','hull','tank','nozzle','capsule','gravel','scrap','wire','stone'].includes(e.kind)&&adjacentSame.length)continue;
+          if(['rubble','shard','debris','hull','tank','nozzle','capsule','gravel','scrap','wire','stone'].includes(e.kind)&&adjacentSame.length)continue;
           const usedAngles=new Set(adjacentSame.map(o=>o.rotation));
           const candidates=[0,45,90,135,180,225,270,315].filter(a=>!usedAngles.has(a));
           e.x=x;e.y=y;e.rotation=candidates.length?candidates[Math.floor(worldRandom()*candidates.length)]:Math.round(worldRandom()*7)*45;occupied.push(e);placed=true;
@@ -173,7 +172,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       return String(n).padStart(2, '0');
     }
 
-    function writeLog(text){const formatted=toImportantMessage(text);const status=document.getElementById('status-messages');if(status){const item=document.createElement('div');item.className='status-item';item.textContent=formatted;status.prepend(item);while(status.children.length>5)status.lastElementChild.remove();}const history=document.getElementById('log-history');if(history){const line=document.createElement('div');line.className='log-entry';line.textContent='> '+formatted;history.prepend(line);while(history.children.length>5)history.lastElementChild.remove();}}
+    function writeLog(text){const formatted=toImportantMessage(text);if(!formatted)return;const status=document.getElementById('status-messages');if(status){const item=document.createElement('div');item.className='status-item';item.textContent=formatted;status.prepend(item);while(status.children.length>5)status.lastElementChild.remove();}const history=document.getElementById('log-history');if(history){const line=document.createElement('div');line.className='log-entry';line.textContent='> '+formatted;history.prepend(line);while(history.children.length>5)history.lastElementChild.remove();}}
 
     function toImportantMessage(text){
       const value=String(text).toUpperCase();
@@ -189,7 +188,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       if(value.includes('BATTERY')||value.includes('BAT '))return value.replace(/\s*\[[^\]]*\]/g,'');
       if(value.includes('DELIVERED'))return 'SUPPLIES DELIVERED // '+value;
       if(value.includes('QUEST COMPLETE'))return 'MISSION OBJECTIVE COMPLETE // '+value;
-      if(value.includes('DRIVE '))return 'ROVER MOVED // CONTINUE SURVEYING TERRAIN';
+      if(value.includes('DRIVE ')||value.includes('MANUAL DRIVE'))return '';
       if(value.includes('UNEXPLORED'))return '';
       return value;
     }
@@ -237,7 +236,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       if(!surveyDone)add('LOCATION SURVEY','IN PROGRESS','Explore and identify the equipment in this sector');
       if(panel&&objectDetected(panel)&&!panel.connected){
         const dir=directionToEntity(panel);
-        add('SOLAR ARRAY · '+dir,panel.cleaned?'IN PROGRESS':'ACTIVE',panel.cleaned?'Return to the control module; cable installation is automatic':'Remove dust and debris from the solar panel');
+        add('SOLAR ARRAY · '+dir,panel.cleaned?'IN PROGRESS':'ACTIVE',panel.cleaned?(inventory.has('cable')?'Return to the control module; cable installation is automatic':'Find and open the supply container to recover the solar cable'):'Remove dust and debris from the solar panel');
       }
       if(container&&objectDetected(container)&&!container.opened){
         const dir=directionToEntity(container);
@@ -339,7 +338,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       // ⌘ is reserved for a future aerial drone / multicopter unit.
       if (ent.kind === 'broken') return ent.salvaged ? '\u2591' : '\u29C5'; // ⧅ / ░
       if (ent.kind === 'quest') return '\u25C7';     // ◇
-      if (['debris','rubble','shard','crater'].includes(ent.kind)) return '\u00B7';
+      if (['debris','rubble','shard'].includes(ent.kind)) return '\u00B7';
       return '';
     }
 
@@ -351,7 +350,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 
     function findNearbyInteractive() {
       for (const ent of entities) {
-        if (['rock','base','quest','rubble','shard','debris','crater','cleaner'].includes(ent.kind)) continue;
+        if (['rock','base','quest','rubble','shard','debris','cleaner'].includes(ent.kind)) continue;
         if (!isAdjacentToEntity(posX,posY,ent)) continue;
         if (ent.kind === 'solar' && !ent.connected) return ent;
         if (ent.kind === 'transporter' && !ent.linked) return ent;
@@ -498,7 +497,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         }else if(ent.kind==='rock'){
           const z=ent.w>1?30:19;
           parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-fill" d="M '+(px-z)+' '+(py+z*.55)+' L '+(px-z*.65)+' '+(py-z*.25)+' L '+(px-z*.1)+' '+(py-z)+' L '+(px+z*.55)+' '+(py-z*.5)+' L '+(px+z)+' '+(py+z*.4)+' L '+(px+z*.45)+' '+(py+z*.7)+' Z"/>');
-        }else if(['rubble','shard','debris','crater','hull','tank','nozzle','capsule','gravel','scrap','wire','stone'].includes(ent.kind)){
+        }else if(['rubble','shard','debris','hull','tank','nozzle','capsule','gravel','scrap','wire','stone'].includes(ent.kind)){
           if(ent.kind==='crater')parts.push('<ellipse transform="rotate('+ent.rotation+' '+px+' '+py+')" class="terrain-shadow" cx="'+px+'" cy="'+py+'" rx="25" ry="13"/><ellipse class="terrain-ridge" cx="'+px+'" cy="'+py+'" rx="25" ry="13"/>');
           else if(ent.kind==='shard')parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-line" d="M '+(px-16)+' '+(py+10)+' L '+(px-3)+' '+(py-15)+' L '+(px+13)+' '+(py+5)+' Z"/>');
           else if(ent.kind==='hull')parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-fill" d="M '+(px-24)+' '+(py-8)+' L '+(px-5)+' '+(py-20)+' L '+(px+22)+' '+(py-9)+' L '+(px+13)+' '+(py+16)+' L '+(px-18)+' '+(py+20)+' Z"/>');
@@ -642,7 +641,6 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         moveTimer = null;
         stepInDirection();
       }, STEP_MS);
-      writeLog('MANUAL DRIVE ' + direction + ' // STEP IN ' + (STEP_MS / 1000).toFixed(2) + ' S');
     }
 
     function endMission(){if(missionEnded)return;missionEnded=true;stopMovement();if(chargeTimer!==null)clearInterval(chargeTimer);document.getElementById('mission-failed').classList.add('active');document.querySelectorAll('.dir-btn,#btn-act').forEach(b=>b.disabled=true);}
