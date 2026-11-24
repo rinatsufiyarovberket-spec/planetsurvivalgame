@@ -87,9 +87,8 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     const WORLD_SEED = Math.floor(Math.random()*0x7fffffff);
     function seededRandomFactory(seed){let t=seed>>>0;return ()=>{t+=0x6D2B79F5;let x=t;x=Math.imul(x^(x>>>15),x|1);x^=x+Math.imul(x^(x>>>7),x|61);return ((x^(x>>>14))>>>0)/4294967296;};}
     const worldRandom=seededRandomFactory(WORLD_SEED);
-    const BATTERY_CAPACITY_WH = 160;
-    let energyUsedWh = 0;
     let currentConsumptionW = 30;
+    let missionEnded = false;
 
     // Базовый модуль находится в центре карты; робот стартует на соседней клетке.
     let posX = 24;
@@ -116,10 +115,11 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     // Объекты на карте:
     // base: ⬟, rock: ▲, crate: ▣ (полный) / □ (пустой), solar: ▤, assembler: ⌘, broken: ⧅ -> ░, quest: ◇
     const entities = [
-      {id:'base',x:25,y:25,w:5,h:3,kind:'base',label:'CONTROL MODULE / BASE'},
+      {id:'base',x:25,y:25,w:2,h:1,kind:'base',label:'CONTROL MODULE / BASE',rotation:0},
       {id:'panel_1',kind:'solar',w:2,h:2,label:'SOLAR ARRAY',taskItem:'panel',taken:false},
       {id:'crate_1',kind:'crate',w:2,h:2,label:'SUPPLY POD',taskItem:'crate',opened:false},
-      {id:'asm_1',kind:'assembler',w:3,h:2,label:'FIELD FABRICATOR',taskItem:'assembler',salvaged:false},
+      {id:'transporter_1',kind:'transporter',w:2,h:2,label:'CARGO TRANSPORT ROVER',rotation:0,found:false},
+      {id:'asm_1',kind:'assembler',w:3,h:2,label:'FIELD ASSEMBLER STATION',taskItem:'assembler',salvaged:false},
       {id:'broken_2',kind:'broken',w:2,h:2,label:'DAMAGED MODULE',salvaged:false},
       {id:'quest_1',kind:'quest',w:1,h:1,label:'TASK BEACON: SALVAGE SECTOR'},
       ...Array.from({length:8},(_,i)=>({id:'rock_'+i,kind:'rock',w:i%3===0?2:1,h:i%3===0?2:1,label:i%3===0?'BOULDER FORMATION':'ROCK OUTCROP'})),
@@ -138,9 +138,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
           if(x<3||y<3||x+w>=MAP_W-3||y+h>=MAP_H-3)continue;
           const overlaps=occupied.some(o=>x<(o.x+(o.w||1)+1)&&x+w>o.x-1&&y<(o.y+(o.h||1)+1)&&y+h>o.y-1);
           if(overlaps)continue;
-          e.x=x;e.y=y;occupied.push(e);placed=true;
+          e.x=x;e.y=y;e.rotation=Math.round(worldRandom()*7)*45;occupied.push(e);placed=true;
         }
-        if(!placed){e.x=25+(occupied.length%5)-2;e.y=29+Math.floor(occupied.length/5);occupied.push(e);}
+        if(!placed){e.x=25+(occupied.length%5)-2;e.y=29+Math.floor(occupied.length/5);e.rotation=Math.round(worldRandom()*7)*45;occupied.push(e);}
       }
     }
     placeRandomEntities();
@@ -149,19 +149,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       return String(n).padStart(2, '0');
     }
 
-    function writeLog(text) {
-      const message=document.getElementById('mission-message');
-      const formatted=toImportantMessage(text);
-      if(message){message.dataset.manual='true';message.textContent=formatted;}
-      const history=document.getElementById('log-history');
-      if(history){
-        const line=document.createElement('div');
-        line.className='log-entry';
-        line.textContent='> '+formatted;
-        history.prepend(line);
-        while(history.children.length>3)history.lastElementChild.remove();
-      }
-    }
+    function writeLog(text){const formatted=toImportantMessage(text);const status=document.getElementById('status-messages');if(status){const item=document.createElement('div');item.className='status-item';item.textContent=formatted;status.prepend(item);while(status.children.length>4)status.lastElementChild.remove();}const history=document.getElementById('log-history');if(history){const line=document.createElement('div');line.className='log-entry';line.textContent='> '+formatted;history.prepend(line);while(history.children.length>5)history.lastElementChild.remove();}}
 
     function toImportantMessage(text){
       const value=String(text).toUpperCase();
@@ -171,7 +159,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       if(value.includes('PICKED UP SOLAR'))return 'ITEM RECOVERED // SOLAR PANEL — RETURN TO CONTROL MODULE';
       if(value.includes('OPENED CRATE'))return 'OBJECT OPENED // SUPPLIES AND COMPONENTS RECOVERED';
       if(value.includes('SALVAGED ASSEMBLER'))return 'OBJECT RECOVERED // ASSEMBLER COMPONENTS — RETURN TO BASE';
-      if(value.includes('BASE CHARGING')||value.includes('CHARGING AT BASE'))return 'ROVER CHARGING // REMAIN NEAR CONTROL MODULE';
+      if(value.includes('BASE CHARGING')||value.includes('CHARGING AT BASE'))return 'BATTERY RECHARGING';if(value.includes('BATTERY FULL'))return 'BATTERY RECHARGED';
       if(value.includes('BATTERY')||value.includes('BAT '))return value;
       if(value.includes('DELIVERED'))return 'SUPPLIES DELIVERED // '+value;
       if(value.includes('QUEST COMPLETE'))return 'MISSION OBJECTIVE COMPLETE // '+value;
@@ -204,18 +192,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       document.getElementById('task-detail-text').textContent=taskData[selectedTask].text;
       updateTaskStatus();
     }
-    function updateTaskStatus() {
-      const message=document.getElementById('mission-message');
-      if(!message)return;
-      if(chargeTimer!==null)message.textContent='ROVER IS CONNECTED TO THE CONTROL MODULE AND CHARGING. WAIT UNTIL BATTERY RECOVERY IS COMPLETE.';
-      else if(batCells<=1)message.textContent='BATTERY CRITICAL // RETURN TO BASE NOW';
-      else if(batCells<=2)message.textContent='BATTERY LOW // RESERVE POWER FOR RETURN TO BASE';
-      else if(batCells<=3)message.textContent='BATTERY RESERVE // PLAN RETURN TO BASE';
-      else if(!message.dataset.manual)message.textContent='SEARCH ACTIVE // POWER / ROVERS / MODULES / FABRICATORS / STATIONS // MONITOR VOLTAGE TO PRESERVE RETURN RESERVE';
-    }
-
+    function updateTaskStatus() {}
     function renderVitals() {
-      const volts=[9.0,10.2,11.1,11.8,12.8,14.0][batCells];
+      const volts=[8.8,9.0,10.2,11.1,11.8,12.8][batCells];
       const readout=document.getElementById('battery-visible');
       if(readout)readout.textContent=volts.toFixed(1)+' V';
       const hidden=document.getElementById('rover-voltage');
@@ -240,18 +219,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       for(let y=posY-LIDAR_RADIUS;y<=posY+LIDAR_RADIUS;y++)for(let x=posX-LIDAR_RADIUS;x<=posX+LIDAR_RADIUS;x++)
         if((x-posX)**2+(y-posY)**2<=LIDAR_RADIUS**2&&x>=0&&y>=0&&x<MAP_W&&y<MAP_H)explored.add(x+','+y);
     }
-    function updateEnergyReadout(){
-      const c=document.getElementById('consumption-visible');
-      const e=document.getElementById('energy-used');
-      if(c)c.textContent=currentConsumptionW+' W';
-      if(e)e.textContent='USED '+energyUsedWh.toFixed(2)+' Wh / '+BATTERY_CAPACITY_WH+' Wh';
-      const b=document.getElementById('battery-visible');if(b){const v=[9.0,10.2,11.1,11.8,12.8,14.0][batCells];b.textContent=v.toFixed(1)+' V';}
-      const rr=document.getElementById('range-readout');if(rr)rr.textContent=batCells<=1?'RETURN NOW // CRITICAL':batCells<=2?'RETURN RESERVE // LOW':'RETURN RESERVE // '+(batCells*20)+'% BATTERY';
-    }
+    function updateEnergyReadout(){const c=document.getElementById('consumption-visible');if(c)c.textContent=currentConsumptionW+' W';const b=document.getElementById('battery-visible');if(b){const v=[8.8,9.0,10.2,11.1,11.8,12.8][batCells];b.textContent=v.toFixed(1)+' V';}}
     function recordEnergy(powerW,durationMs){
-      energyUsedWh+=powerW*(durationMs/3600000);
-      currentConsumptionW=30;
-      updateEnergyReadout();
+      currentConsumptionW=30;updateEnergyReadout();
     }
     function recordManipulatorEnergy(){
       energyUsedWh+=60*(2000/3600000);
@@ -261,7 +231,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     function setActionLabel(){
       const btn=document.getElementById('btn-act'); if(!btn)return;
       const ent=findNearbyInteractive();
-      const labels={base:inventory.size?'CONNECT':'CHARGE',solar:'PICK UP',crate:'OPEN',assembler:'SALVAGE',broken:'SALVAGE'};
+      const labels={base:inventory.size?'UPLOAD':'CHARGE',solar:'RECOVER PANEL',transporter:'LOCATE ROVER',crate:'OPEN CACHE',assembler:'SALVAGE',broken:'RECOVER CACHE'};
       btn.textContent=ent?(labels[ent.kind]||'ACT'):'SCAN'; btn.disabled=false;
     }
     function structureGlyph(ent,x,y){
@@ -275,7 +245,8 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       if (!ent) return '';
       if (ent.kind === 'base') return '\u2B1F';      // ⬟
       if (ent.kind === 'rock') return '\u25B2';      // ▲
-      if (ent.kind === 'solar') return ent.taken ? '' : '\u25A4'; // ▤
+      if (ent.kind === 'solar') return ent.taken ? '' : '\u25A4';
+      if (ent.kind === 'transporter') return ent.found ? '' : '\u25A0'; // ▤
       if (ent.kind === 'crate') return ent.opened ? '\u25A1' : '\u25A3'; // □ / ▣
       if (ent.kind === 'assembler') return ent.salvaged ? '\u2591' : '\u2699'; // ⚙ / ░
       // ⌘ is reserved for a future aerial drone / multicopter unit.
@@ -304,6 +275,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         if (!isAdjacentToEntity(posX,posY,ent)) continue;
 
         if (ent.kind === 'solar' && !ent.taken) return ent;
+        if (ent.kind === 'transporter' && !ent.found) return ent;
         if (ent.kind === 'crate' && !ent.opened) return ent;
         if (ent.kind === 'assembler' && !ent.salvaged) return ent;
         if (ent.kind === 'broken' && !ent.salvaged) return ent;
@@ -352,13 +324,13 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
             batCells = Math.min(maxBatCells, batCells + 1);
             stepsSinceChargeLoss = 0;
             renderVitals();
-            writeLog('BASE CHARGING: BAT ' + (batCells * 20) + '%');
+            writeLog('BASE CHARGING');
             if (batCells === maxBatCells) {
               clearInterval(chargeTimer);
               chargeTimer = null;
               renderVitals();
               if (moveTimer === null) setMoveStateLabel('IDLE');
-              writeLog('BATTERY FULL [100%]');
+              writeLog('BATTERY RECHARGED');
             }
           }, CHARGE_MS);
           renderVitals();
@@ -415,6 +387,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
             parts.push('<path class="station-detail" d="M '+(ex+85)+' '+(ey+55)+' H '+(ex+415)+' M '+(ex+85)+' '+(ey+218)+' H '+(ex+415)+' M '+(ex+250)+' '+(ey+55)+' V '+(ey+218)+' M '+(ex+35)+' '+(ey+128)+' H '+(ex+72)+' M '+(ex+428)+' '+(ey+128)+' H '+(ex+465)+'"/>');
             parts.push('<rect class="station-core" x="'+(ex+220)+'" y="'+(ey+112)+'" width="60" height="44"/>');
           }
+        }else if(ent.kind==='transporter'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="station-shell" d="M '+(ex+12)+' '+(ey+42)+' L '+(ex+55)+' '+(ey+12)+' H '+(ex+150)+' L '+(ex+188)+' '+(ey+48)+' V '+(ey+154)+' L '+(ex+145)+' '+(ey+188)+' H '+(ex+48)+' L '+(ex+12)+' '+(ey+150)+' Z"/><path class="station-detail" d="M '+(ex+45)+' '+(ey+50)+' H '+(ex+150)+' V '+(ey+145)+' H '+(ex+45)+' Z"/><circle class="station-core" cx="'+(ex+96)+'" cy="'+(ey+96)+'" r="15"/></g>');
         }else if(ent.kind==='rock'){
           const z=ent.w>1?30:19;
           parts.push('<path class="object-fill" d="M '+(px-z)+' '+(py+z*.55)+' L '+(px-z*.65)+' '+(py-z*.25)+' L '+(px-z*.1)+' '+(py-z)+' L '+(px+z*.55)+' '+(py-z*.5)+' L '+(px+z)+' '+(py+z*.4)+' L '+(px+z*.45)+' '+(py+z*.7)+' Z"/>');
@@ -494,10 +467,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 
     function stepInDirection() {
       if (!moveDirection) return;
-      if (batCells <= 0) {
-        stopMovement('ROBOT BATTERY DEPLETED — RETURN TO A POWER SOURCE');
-        return;
-      }
+      if(missionEnded)return;if(batCells<=0){endMission();return;}
       const vectors = {N:[0,-1],NE:[1,-1],E:[1,0],SE:[1,1],S:[0,1],SW:[-1,1],W:[-1,0],NW:[-1,-1]};
       const [dx, dy] = vectors[moveDirection];
       const nextX = posX + dx;
@@ -534,15 +504,11 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       }else{
         writeLog('AREA SCANNED // NO EQUIPMENT DETECTED. CONTINUE SURVEY.');
       }
-      if (batCells <= 0) stopMovement('ROBOT BATTERY DEPLETED — RETURN TO A POWER SOURCE');
+      if(batCells<=0)endMission();
     }
 
     function startDirectionalMovement(direction) {
-      if (batCells <= 0) {
-        setMoveStateLabel('BATTERY EMPTY');
-        writeLog('ROBOT BATTERY DEPLETED — MOVEMENT LOCKED');
-        return;
-      }
+      if(missionEnded)return;if(batCells<=0){endMission();return;}
       const vectors={N:[0,-1],NE:[1,-1],E:[1,0],SE:[1,1],S:[0,1],SW:[-1,1],W:[-1,0],NW:[-1,-1]};
       if(!Object.prototype.hasOwnProperty.call(vectors,direction))return;
       if (moveTimer !== null) return;
@@ -561,6 +527,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       writeLog('MANUAL DRIVE ' + direction + ' // STEP IN ' + (STEP_MS / 1000).toFixed(2) + ' S');
     }
 
+    function endMission(){if(missionEnded)return;missionEnded=true;stopMovement();if(chargeTimer!==null)clearInterval(chargeTimer);document.getElementById('mission-failed').classList.add('active');document.querySelectorAll('.dir-btn,#btn-act').forEach(b=>b.disabled=true);}
     function performInteract() {
       const ent = findNearbyInteractive();
       if (!ent) {
@@ -594,6 +561,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         return;
       }
 
+      if(ent.kind==='transporter'&&!ent.found){ent.found=true;renderMap();writeLog('TRANSPORT ROVER LOCATED // CARGO UNIT IDENTIFIED');return;}
       if (ent.kind === 'solar' && !ent.taken) {
         ent.taken = true;
         inventory.add('panel');
