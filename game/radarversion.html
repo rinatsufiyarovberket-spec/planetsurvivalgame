@@ -10,7 +10,7 @@
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"DejaVu Sans Mono","Liberation Mono",Consolas,monospace;touch-action:manipulation}
 body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 .app{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:clamp(5px,1vh,10px)}
-.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(155px,1fr) minmax(300px,min(58vh,560px)) minmax(155px,1fr);gap:clamp(12px,1.7vw,24px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(11px,.92vw,13px);line-height:1.48}.panel-heading{color:#fff;font-size:clamp(11px,.95vw,13px);letter-spacing:.1em;margin:0 0 6px}.telemetry{display:flex;flex-direction:column;gap:5px}.telemetry strong{display:block;color:#fff;font-size:clamp(16px,1.5vw,21px);font-weight:500}.metric{padding-bottom:2px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:4px}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(10px,.8vw,11px)}.task-item b{display:block;color:#fff;font-weight:500}.control-help{margin-top:8px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
+.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(155px,1fr) minmax(300px,min(58vh,560px)) minmax(155px,1fr);gap:clamp(30px,3.2vw,48px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(11px,.92vw,13px);line-height:1.48}.panel-heading{color:#fff;font-size:clamp(11px,.95vw,13px);letter-spacing:.1em;margin:0 0 6px}.telemetry{display:flex;flex-direction:column;gap:5px}.telemetry strong{display:block;color:#fff;font-size:clamp(16px,1.5vw,21px);font-weight:500}.metric{padding-bottom:2px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:4px}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(10px,.8vw,11px)}.task-item b{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px;color:#fff;font-weight:500}.task-status{color:var(--mid);font-size:.82em;font-weight:400;letter-spacing:.04em;white-space:nowrap}.control-help{margin-top:8px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
 .scope{position:relative;width:min(min(58vh,58vw),560px);height:auto;aspect-ratio:1;border-radius:50%;overflow:visible;background:radial-gradient(circle,rgba(255,255,255,.035),rgba(255,255,255,.012) 68%,transparent 69%)}
 .map-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:1}
 .map-svg .scan-boundary{fill:none;stroke:transparent;stroke-width:0}
@@ -41,7 +41,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 .dir-btn.southeast{right:14%;bottom:14%;transform:translate(100%,100%) rotate(45deg)}
 .dir-btn.act-center,.scope-caption,.rover-battery,.hidden-support{display:none}
 .log-area{display:none}.action-button{border:1px solid rgba(245,248,250,.72);background:rgba(255,255,255,.035);color:#fff;font:600 11px monospace;letter-spacing:.08em;padding:7px 11px;cursor:pointer;margin-top:5px}.action-button:disabled{opacity:.28}.mission-failed{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.94);display:none;place-items:center;text-align:center;padding:24px;color:#fff}.mission-failed.active{display:grid}.mission-failed strong{display:block;font-size:clamp(28px,6vw,64px);letter-spacing:.12em}.mission-failed span{display:block;margin-top:12px;color:#aaa}
-@media(max-width:900px){body{padding:9px}.radar-stage{grid-template-columns:minmax(120px,.9fr) minmax(250px,min(54vh,52vw)) minmax(120px,.9fr);gap:8px}.scope{width:100%}.side-panel{font-size:10px}.telemetry strong{font-size:16px}.panel-heading{font-size:10px}.dir-btn{width:22px;height:22px;font-size:22px}}@media(max-width:620px){.radar-stage{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:8px}.scope{grid-column:1 / -1;grid-row:2;width:min(76vw,54vh);justify-self:center}.left-panel{grid-column:1;grid-row:1}.right-panel{grid-column:2;grid-row:1}.outgoing-list{display:flex}.control-help{margin-top:6px}.task-list{gap:5px}}@media(max-height:560px){.scope{width:min(50vh,50vw)}}
+@media(max-width:900px){body{padding:9px}.radar-stage{grid-template-columns:minmax(120px,.9fr) minmax(250px,min(54vh,52vw)) minmax(120px,.9fr);gap:18px}.scope{width:100%}.side-panel{font-size:10px}.telemetry strong{font-size:16px}.panel-heading{font-size:10px}.dir-btn{width:22px;height:22px;font-size:22px}}@media(max-width:620px){.radar-stage{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:8px}.scope{grid-column:1 / -1;grid-row:2;width:min(76vw,54vh);justify-self:center}.left-panel{grid-column:1;grid-row:1}.right-panel{grid-column:2;grid-row:1}.outgoing-list{display:flex}.control-help{margin-top:6px}.task-list{gap:5px}}@media(max-height:560px){.scope{width:min(50vh,50vw)}}
 </style>
 </head>
 <body>
@@ -49,14 +49,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
   
   <main class="radar-stage">
     <aside class="side-panel left-panel">
-      <div class="panel-heading">MISSION OBJECTIVES</div>
-      <div class="task-list">
-        <div class="task-item"><b>01 / SOLAR ARRAY</b>Locate one solar panel</div>
-        <div class="task-item"><b>02 / TRANSPORT ROVER</b>Find the cargo transporter</div>
-        <div class="task-item"><b>03 / ASSEMBLER STATION</b>Locate the field assembler</div>
-        <div class="task-item"><b>04 / UPGRADE CACHE</b>Recover parts and schematics for base and rovers</div>
-      </div>
-      <div class="panel-heading" style="margin-top:12px">ROVER TELEMETRY</div>
+      <div class="panel-heading">ROVER TELEMETRY</div>
       <div class="telemetry">
         <div class="metric">BATTERY VOLTAGE<strong id="battery-visible">12.8 V</strong></div>
         <div class="metric">DISTANCE FROM BASE<strong id="distance-visible">0.0 M</strong></div>
@@ -77,7 +70,14 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       <button class="dir-btn southeast" data-direction="SE" aria-label="Southeast">></button>
     </div>
     <aside class="side-panel right-panel">
-      <div class="panel-heading">ACTIVITY / EVENT LOG</div>
+      <div class="panel-heading">MISSION OBJECTIVES</div>
+      <div class="task-list">
+        <div class="task-item"><b>01 / SOLAR ARRAY <span class="task-status" id="task-status-panel">SEARCHING</span></b>Locate one solar panel</div>
+        <div class="task-item"><b>02 / TRANSPORT ROVER <span class="task-status" id="task-status-transporter">SEARCHING</span></b>Find the cargo transporter</div>
+        <div class="task-item"><b>03 / ASSEMBLER STATION <span class="task-status" id="task-status-assembler">SEARCHING</span></b>Locate the field assembler</div>
+        <div class="task-item"><b>04 / UPGRADE CACHE <span class="task-status" id="task-status-upgrade">SEARCHING</span></b>Recover parts and schematics for base and rovers</div>
+      </div>
+      <div class="panel-heading" style="margin-top:14px">ACTIVITY / EVENT LOG</div>
       <div class="status-list" id="status-messages"></div>
       <div class="outgoing-list" id="log-history"><div class="log-entry">> SEARCHING // LOCAL TERRAIN SCAN ACTIVE</div></div>
     </aside>
@@ -219,7 +219,26 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       document.getElementById('task-detail-text').textContent=taskData[selectedTask].text;
       updateTaskStatus();
     }
-    function updateTaskStatus() {}
+    function updateTaskStatus(){
+      const statusFor=(id,kind,itemKey,doneFlag)=>{
+        const node=document.getElementById(id);if(!node)return;
+        const entity=entities.find(e=>e.kind===kind);
+        if(delivered.has(itemKey)){node.textContent='COMPLETED';return;}
+        if(inventory.has(itemKey)){node.textContent='IN DELIVERY';return;}
+        if(entity&&doneFlag&&entity[doneFlag]){node.textContent='RECOVERED';return;}
+        if(entity&&entity.x!==undefined){
+          let detected=false;
+          for(let y=entity.y;y<entity.y+(entity.h||1)&&!detected;y++)for(let x=entity.x;x<entity.x+(entity.w||1);x++)if(explored.has(x+','+y)){detected=true;break;}
+          node.textContent=detected?'DETECTED':'SEARCHING';
+        }
+      };
+      statusFor('task-status-panel','solar','panel','taken');
+      const transporter=document.getElementById('task-status-transporter');
+      const transport=entities.find(e=>e.kind==='transporter');
+      if(transporter)transporter.textContent=transport&&transport.found?'LOCATED':'SEARCHING';
+      statusFor('task-status-assembler','assembler','assembler','salvaged');
+      statusFor('task-status-upgrade','broken','upgrade','salvaged');
+    }
     function renderVitals() {
       const volts=batteryVoltage;
       const readout=document.getElementById('battery-visible');
@@ -395,7 +414,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 
     function renderMap() {
       const svg=document.getElementById('map-svg');
-      updateReadout(); updateActButton(); updateBaseCharging(); updateMapNav(); revealAroundUnit();
+      updateReadout(); updateActButton(); updateBaseCharging(); updateMapNav(); revealAroundUnit(); updateTaskStatus();
       const parts=[];
       parts.push('<defs><clipPath id="lidarClip"><circle cx="750" cy="750" r="730"/></clipPath><pattern id="fireHatch" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M 0 12 L 12 0" stroke="#fff" stroke-opacity=".45" stroke-width="2"/></pattern></defs>');
       // 48 short protractor graduations with clear gaps around the eight direction controls.
