@@ -394,7 +394,7 @@
     grid-template-rows: auto minmax(100px, 1fr) auto;
     gap: 10px;
   }
-  .joystick-wrap{display:grid;place-items:center;min-height:0}.joystick{width:min(34vh,34vw,230px);height:min(34vh,34vw,230px);aspect-ratio:1;border:0;border-radius:50%;position:relative;touch-action:none;background:transparent}.joystick:before,.joystick:after{content:'';position:absolute;background:rgba(220,226,228,.15)}.joystick:before{width:1px;height:100%;left:50%;top:0}.joystick:after{height:1px;width:100%;top:50%;left:0}.joystick-knob{position:absolute;width:30%;height:30%;left:35%;top:35%;border:1px solid var(--grn-bright);border-radius:50%;background:rgba(220,226,228,.16);pointer-events:none}.power-status{width:100%;min-height:42px;padding:6px 8px;border:1px solid var(--grn-main);background:rgba(220,226,228,.045);color:var(--grn-bright);font:800 clamp(11px,1.5vw,15px) monospace;cursor:pointer}.power-status:disabled{cursor:default;opacity:.9}.object-callout{display:none}.unit-marker{position:absolute;z-index:4;width:0;height:0;pointer-events:none;color:#fff;text-shadow:0 0 8px currentColor;font-size:22px;line-height:1;transform:translate(-50%,-50%)}.unit-marker:before{content:'◇';position:absolute;transform:translate(-50%,-50%)}
+  .joystick-wrap{display:grid;place-items:center;min-height:0}.joystick{width:min(34vh,34vw,230px);height:min(34vh,34vw,230px);aspect-ratio:1;border:1px solid rgba(220,226,228,.42);border-radius:50%;position:relative;touch-action:none;background:transparent}.joystick-knob{position:absolute;width:30%;height:30%;left:50%;top:50%;transform:translate(-50%,-50%);border:1px solid var(--grn-bright);border-radius:50%;background:rgba(220,226,228,.16);pointer-events:none}.power-status{width:100%;min-height:42px;padding:6px 8px;border:1px solid var(--grn-main);background:rgba(220,226,228,.045);color:var(--grn-bright);font:800 clamp(11px,1.5vw,15px) monospace;cursor:pointer}.power-status:disabled{cursor:default;opacity:.9}.object-callout{display:none}.unit-marker{position:absolute;z-index:4;width:0;height:0;pointer-events:none;color:#fff;text-shadow:0 0 8px currentColor;font-size:22px;line-height:1;transform:translate(-50%,-50%)}.unit-marker:before{content:'◇';position:absolute;transform:translate(-50%,-50%)}
   .dir-btn {
     min-width: 0;
     min-height: 46px;
@@ -719,7 +719,7 @@ if(ent.kind==='mmrtg'&&!ent.recovered)return ent;
       const near=findNearbyInteractive(),base=entities.find(e=>e.kind==='base'),atBase=base&&isAdjacentToEntity(Math.floor(posX),Math.floor(posY),base);
       btnAct.style.opacity='.58';btnAct.style.background='rgba(220,226,228,.018)';
       if(actionTimer!==null){btnAct.disabled=true;btnAct.textContent=actionLabel+' // '+actionRemaining+'s';return;}
-      if(atBase&&batPercent<100){btnAct.disabled=true;btnAct.textContent='BATTERY '+Math.ceil(batPercent)+'% // '+Math.ceil((100-batPercent)/2*CHARGE_MS/1000)+'s TO FULL';}
+      if(atBase){btnAct.disabled=true;btnAct.textContent=batPercent>=100?'BATTERY 100% // FULLY CHARGED':'BATTERY '+Math.ceil(batPercent)+'% // '+Math.ceil((100-batPercent)/2*CHARGE_MS/1000)+'s TO FULL';}
       else {btnAct.disabled=!near;btnAct.textContent=near?'ACT // '+near.kind.toUpperCase().replace('_',' '):document.getElementById('rover-voltage').textContent;}
     }
 
@@ -860,23 +860,55 @@ const marker=document.getElementById('unit-marker');if(marker){marker.style.left
     const moveVectors={N:[0,-1],NE:[1,-1],E:[1,0],SE:[1,1],S:[0,1],SW:[-1,1],W:[-1,0],NW:[-1,-1]};
 function directionFromVector(x,y){if(Math.hypot(x,y)<.18)return null;const angle=(Math.atan2(y,x)*180/Math.PI+360)%360;return ['E','SE','S','SW','W','NW','N','NE'][Math.round(angle/45)%8];}
 function terrainStepMs(x,y,dir){const diagonal=dir&&dir.length===2;return (Math.sin(x*.31)*Math.cos(y*.27)>.42?980:620)*(diagonal?1.414:1);}
-function updateJoystickVisual(x,y){const k=document.getElementById('joystick-knob');if(k)k.style.transform='translate('+Math.max(-50,Math.min(50,x*50))+'%,'+Math.max(-50,Math.min(50,y*50))+'%)';}
+function updateJoystickVisual(x,y){const k=document.getElementById('joystick-knob');if(k){k.style.left=(50+Math.max(-1,Math.min(1,x)) * 35)+'%';k.style.top=(50+Math.max(-1,Math.min(1,y)) * 35)+'%';}}
 function setJoystickVector(x,y){
-joystickVector={x,y};const next=directionFromVector(x,y);
-if(!next){if(moveProgress>0){stopAfterSegment=true;}else{moveDirection=null;if(moveFrame!==null){cancelAnimationFrame(moveFrame);moveFrame=null;moveLastTime=0;}}}
-else{moveDirection=next;stopAfterSegment=false;if(moveFrame===null){moveLastTime=0;moveFrame=requestAnimationFrame(animateHauler);}}
+joystickVector={x,y};
+const next=directionFromVector(x,y);
+if(!next){
+  if(moveProgress>0){stopAfterSegment=true;}
+  else{
+    moveDirection=null;
+    if(moveFrame!==null){cancelAnimationFrame(moveFrame);moveFrame=null;}
+    moveLastTime=0;
+  }
+}else{
+  moveDirection=next;
+  stopAfterSegment=false;
+  if(moveFrame===null)moveFrame=requestAnimationFrame(animateHauler);
+}
 updateJoystickVisual(x,y);
 }
 function animateHauler(timestamp){
-if((!moveDirection&&moveProgress===0)||batPercent<=0){moveFrame=null;return;}
-if(!moveLastTime)moveLastTime=timestamp;const dt=Math.min(50,timestamp-moveLastTime);moveLastTime=timestamp;
-if(moveProgress===0){moveStartX=posX;moveStartY=posY;const v=moveVectors[moveDirection];moveTargetX=moveStartX+v[0];moveTargetY=moveStartY+v[1];const tx=Math.round(moveTargetX),ty=Math.round(moveTargetY),obstacle=getEntityAt(tx,ty);
-if(tx<0||ty<0||tx>=MAP_W||ty>=MAP_H||obstacle&&['base','assembler_base','solar_base','survivors','installer','mmrtg','wreck'].includes(obstacle.kind)){moveDirection=null;moveProgress=0;moveFrame=null;moveLastTime=0;writeLog('MOVEMENT BLOCKED // '+(obstacle?.label||'MAP EDGE'));return;}}
-moveProgress=Math.min(1,moveProgress+dt/terrainStepMs(moveTargetX,moveTargetY,moveDirection));posX=moveStartX+(moveTargetX-moveStartX)*moveProgress;posY=moveStartY+(moveTargetY-moveStartY)*moveProgress;
+moveFrame=null;
+if(!moveDirection||batPercent<=0){
+  if(moveProgress>0){stopAfterSegment=true;moveFrame=requestAnimationFrame(animateHauler);}
+  else{moveLastTime=0;}
+  return;
+}
+if(!moveLastTime)moveLastTime=timestamp;
+const dt=Math.min(50,Math.max(0,timestamp-moveLastTime));
+moveLastTime=timestamp;
+if(moveProgress===0){
+  moveStartX=Math.round(posX);moveStartY=Math.round(posY);
+  const v=moveVectors[moveDirection];
+  moveTargetX=moveStartX+v[0];moveTargetY=moveStartY+v[1];
+  const tx=Math.round(moveTargetX),ty=Math.round(moveTargetY),obstacle=getEntityAt(tx,ty);
+  if(tx<0||ty<0||tx>=MAP_W||ty>=MAP_H||obstacle&&['base','assembler_base','solar_base','survivors','installer','mmrtg','wreck'].includes(obstacle.kind)){
+    moveDirection=null;moveProgress=0;moveLastTime=0;writeLog('MOVEMENT BLOCKED // '+(obstacle?.label||'MAP EDGE'));return;
+  }
+}
+moveProgress=Math.min(1,moveProgress+dt/terrainStepMs(moveTargetX,moveTargetY,moveDirection));
+posX=moveStartX+(moveTargetX-moveStartX)*moveProgress;
+posY=moveStartY+(moveTargetY-moveStartY)*moveProgress;
 revealAroundUnit();keepUnitInView();renderMap();
-if(moveProgress>=1){posX=Math.round(moveTargetX);posY=Math.round(moveTargetY);batPercent=Math.max(0,batPercent-.45);moveProgress=0;renderVitals();updateBaseCharging();
-if(batPercent<=0||stopAfterSegment){moveDirection=null;stopAfterSegment=false;moveFrame=null;moveLastTime=0;return;}}
-moveFrame=requestAnimationFrame(animateHauler);
+if(moveProgress>=1){
+  posX=moveTargetX;posY=moveTargetY;moveProgress=0;
+  batPercent=Math.max(0,batPercent-.45);renderVitals();updateBaseCharging();
+  if(batPercent<=0||stopAfterSegment){
+    moveDirection=null;stopAfterSegment=false;moveLastTime=0;return;
+  }
+}
+if(moveDirection)moveFrame=requestAnimationFrame(animateHauler);
 }
 function startDirectionalMovement(direction){const v=moveVectors[direction];if(v&&batPercent>0)setJoystickVector(v[0],v[1]);}
 function stopDirectionalMovement(){setJoystickVector(0,0);}
