@@ -319,7 +319,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       if(!ent){btn.textContent='ACT';btn.disabled=true;return;}
       const secondsLeft=ent.actionEndsAt?Math.max(0,Math.ceil((ent.actionEndsAt-Date.now())/1000)):0;
       const labels={solar:ent.cleaning?'CLEANING '+secondsLeft+'S':'CLEAN PANEL',transporter:ent.linked?'LINKED':ent.busy?(ent.cleared?'STARTING '+secondsLeft+'S':'CLEARING '+secondsLeft+'S'):ent.standby?'RETURN TO BASE':ent.cleared?'ACTIVATE CARGO TRANSPORTER':'CLEAR DEBRIS',crate:ent.opened?'OPENED':ent.extracting?'EXTRACTING '+secondsLeft+'S':ent.extracted?'OPEN CONTAINER':'EXTRACT CONTAINER',assembler:ent.busy?(ent.unpacked?'STARTING STANDBY ':'UNPACKING ')+secondsLeft+'S':ent.standby?'STANDBY':ent.unpacked?'SET STANDBY':'UNPACK ASSEMBLER',capsule:'INSPECT CAPSULE',fire:'INSPECT ENGINE FIRE',engine_wreck:'INSPECT ENGINE WRECK',broken:'OPEN CONTAINER'};
-      btn.textContent=labels[ent.kind]||'ACT';btn.disabled=!!(ent.busy||ent.cleaning||ent.extracting);
+      btn.textContent=labels[ent.kind]||'ACT';btn.disabled=!!(ent.busy||ent.cleaning||ent.extracting||(ent.kind==='transporter'&&ent.standby));
     }
     function structureGlyph(ent,x,y){
       const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y;
