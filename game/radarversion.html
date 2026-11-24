@@ -346,7 +346,6 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         if (!isAdjacentToEntity(posX,posY,ent)) continue;
 
         if (ent.kind === 'solar' && !ent.connected) return ent;
-        if (ent.kind === 'transporter' && !ent.linked) return ent;
         if (ent.kind === 'cleaner' && !ent.active) return ent;
         if (ent.kind === 'crate' && !ent.opened) return ent;
         if (ent.kind === 'assembler' && !ent.standby) return ent;
