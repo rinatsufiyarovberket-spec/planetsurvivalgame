@@ -78,7 +78,6 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     let viewY = 0;
     const STEP_MS = 750;
     const CHARGE_MS = 2000;
-    const STEPS_PER_CELL_CHARGE = 5;
 
     const MARKER_CHAR = '\u25CF'; // Solid rover marker
     const TARGET_CHAR = '\u25CB'; // Selected point
@@ -120,6 +119,8 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       {id:'asm_1',kind:'assembler',w:3,h:2,label:'FIELD ASSEMBLER STATION',taskItem:'assembler',salvaged:false},
       {id:'broken_2',kind:'broken',w:2,h:2,label:'UPGRADE CACHE / PARTS & SCHEMATICS',salvaged:false},
       {id:'fire_zone',kind:'fire',w:3,h:3,label:'BURN ZONE / ENGINE FIRE',rotation:0},
+      {id:'capsule_wreck',kind:'capsule_wreck',w:2,h:2,label:'LANDING CAPSULE HULL SECTION'},
+      {id:'engine_wreck',kind:'engine_wreck',w:2,h:2,label:'CRUSHED ENGINE / THRUSTER SECTION'},
       {id:'quest_1',kind:'quest',w:1,h:1,label:'TASK BEACON: SALVAGE SECTOR'},
       ...Array.from({length:8},(_,i)=>({id:'rock_'+i,kind:'rock',w:i%3===0?2:1,h:i%3===0?2:1,label:i%3===0?'BOULDER FORMATION':'ROCK OUTCROP'})),
       ...Array.from({length:30},(_,i)=>({id:'debris_'+i,kind:['rubble','shard','debris','crater','hull','tank','nozzle','capsule'][i%8],w:1,h:1,label:['RUBBLE FIELD','BROKEN FRAGMENT','METAL DEBRIS','GROUND DEPRESSION','HULL PLATING','FUEL TANK REMNANT','ENGINE NOZZLE','CAPSULE STRUCTURE'][i%8]}))
@@ -128,7 +129,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const occupied=[];
       for(const e of entities){
         if(e.kind==='base'){occupied.push(e);continue;}
-        const important=['solar','crate','assembler','broken','quest','transporter','fire'].includes(e.kind);
+        const important=['solar','crate','assembler','broken','quest','transporter','fire','capsule_wreck','engine_wreck'].includes(e.kind);
         const minR=important?3:4,maxR=important?6:10;
         let placed=false;
         for(let attempt=0;attempt<180&&!placed;attempt++){
@@ -383,6 +384,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
             parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+50)+')"><path class="station-shell" d="M '+(ex+8)+' '+(ey+28)+' L '+(ex+22)+' '+(ey+20)+' H '+(ex+178)+' L '+(ex+192)+' '+(ey+28)+' V '+(ey+72)+' L '+(ex+178)+' '+(ey+80)+' H '+(ex+22)+' L '+(ex+8)+' '+(ey+72)+' Z"/><path class="station-detail" d="M '+(ex+35)+' '+(ey+34)+' H '+(ex+165)+' M '+(ex+35)+' '+(ey+66)+' H '+(ex+165)+' M '+(ex+100)+' '+(ey+34)+' V '+(ey+66)+'"/><rect class="station-core" x="'+(ex+87)+'" y="'+(ey+40)+'" width="26" height="20"/></g>');
           }
         }else if(ent.kind==='fire'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+150)+' '+(ey+150)+')"><path d="M '+(ex+10)+' '+(ey+35)+' l 30 -25 l 40 18 l 35 -22 l 55 36 v 130 l -40 20 l -40 -18 l -45 22 l -35 -35 Z" fill="url(#fireHatch)" stroke="#fff" stroke-width="2"/><path class="object-line" d="M '+(ex+105)+' '+(ey+115)+' C '+(ex+65)+' '+(ey+75)+' '+(ex+125)+' '+(ey+55)+' '+(ex+110)+' '+(ey+25)+' C '+(ex+170)+' '+(ey+70)+' '+(ex+145)+' '+(ey+90)+' '+(ex+105)+' '+(ey+115)+' Z"/><text x="'+(ex+105)+'" y="'+(ey+145)+'" fill="#fff" font-size="24" text-anchor="middle">!</text></g>');
+        }else if(['capsule_wreck','engine_wreck'].includes(ent.kind)&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;const shape=ent.kind==='capsule_wreck'?'<path class="station-shell" d="M '+(ex+12)+' '+(ey+52)+' L '+(ex+45)+' '+(ey+12)+' L '+(ex+158)+' '+(ey+20)+' L '+(ex+188)+' '+(ey+92)+' L '+(ex+145)+' '+(ey+184)+' L '+(ex+38)+' '+(ey+168)+' Z"/><path class="station-detail" d="M '+(ex+48)+' '+(ey+55)+' L '+(ex+145)+' '+(ey+62)+' L '+(ex+155)+' '+(ey+125)+' L '+(ex+65)+' '+(ey+145)+' Z"/>':'<path class="station-shell" d="M '+(ex+8)+' '+(ey+35)+' L '+(ex+65)+' '+(ey+12)+' L '+(ex+112)+' '+(ey+42)+' L '+(ex+188)+' '+(ey+18)+' L '+(ex+178)+' '+(ey+162)+' L '+(ex+108)+' '+(ey+188)+' L '+(ex+18)+' '+(ey+145)+' Z"/><path class="station-detail" d="M '+(ex+38)+' '+(ey+55)+' L '+(ex+145)+' '+(ey+130)+' M '+(ex+78)+' '+(ey+30)+' L '+(ex+110)+' '+(ey+168)+'"/>';parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')">'+shape+'</g>');
         }else if(ent.kind==='transporter'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="station-shell" d="M '+(ex+12)+' '+(ey+48)+' L '+(ex+42)+' '+(ey+22)+' H '+(ex+150)+' L '+(ex+188)+' '+(ey+52)+' V '+(ey+132)+' L '+(ex+145)+' '+(ey+158)+' H '+(ex+48)+' L '+(ex+12)+' '+(ey+130)+' Z"/><path class="station-detail" d="M '+(ex+45)+' '+(ey+50)+' H '+(ex+150)+' V '+(ey+145)+' H '+(ex+45)+' Z"/><circle class="station-core" cx="'+(ex+96)+'" cy="'+(ey+96)+'" r="15"/></g>');
         }else if(ent.kind==='rock'){
           const z=ent.w>1?30:19;
@@ -479,7 +481,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         return;
       }
       const blocked = getEntityAt(nextX, nextY);
-      if (blocked && ['rock','base','solar','crate','assembler','broken','rubble','fire','transporter'].includes(blocked.kind)) {
+      if (blocked && ['rock','base','solar','crate','assembler','broken','rubble','fire','transporter','capsule_wreck','engine_wreck'].includes(blocked.kind)) {
         stopMovement('MOVEMENT BLOCKED BY STRUCTURE OR ROCK');
         return;
       }
@@ -598,7 +600,6 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     }
 
     document.querySelectorAll('.dir-btn[data-direction]').forEach(button=>button.addEventListener('click',()=>startDirectionalMovement(button.dataset.direction)));
-    document.querySelectorAll('.task-tab').forEach(button=>button.addEventListener('click',()=>{document.getElementById('mission-message').dataset.manual='';selectTask(Number(button.dataset.task));}));
     document.getElementById('btn-act').addEventListener('click', performInteract);
     selectTask(0);
 
