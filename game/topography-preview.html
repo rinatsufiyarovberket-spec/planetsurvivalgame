@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EDGE FRAME // TOPOGRAPHY STUDY</title>
+<style>
+:root{color-scheme:dark;--bg:#090a0b;--line:#9ba3a5;--bright:#e3e6e6;--dim:#626b6e}
+*{box-sizing:border-box}body{margin:0;padding:22px;background:var(--bg);color:var(--bright);font:13px 'DejaVu Sans Mono',Consolas,monospace}
+h1{font-size:16px;letter-spacing:2px;font-weight:500;margin:0 0 8px}p{color:var(--line);line-height:1.5;margin:0 0 20px}
+.samples{display:grid;grid-template-columns:1fr 1fr;gap:18px}.sample{border:1px solid var(--line);padding:12px;min-width:0}.sample h2{font-size:13px;font-weight:500;margin:0 0 8px}.sample small{display:block;color:var(--dim);margin-top:8px;line-height:1.45}
+svg{width:100%;height:auto;display:block;background:#111416;border:1px solid #30383a}
+.contour{fill:none;stroke:#9ba3a5;stroke-width:1.15;opacity:.72}.index{stroke:#d5dbdc;stroke-width:1.8;opacity:.9}.minor{stroke:#697477;stroke-width:.8;opacity:.65}
+@media(max-width:760px){.samples{grid-template-columns:1fr}body{padding:12px}}
+</style>
+</head>
+<body>
+<h1>TOPOGRAPHY // DISPLAY STUDY</h1>
+<p>Два варианта отображения рельефа на карте грузчика. Это статические образцы; оба можно реализовать в текущей сетке без внешних изображений.</p>
+<div class="samples">
+<section class="sample">
+<h2>01 // CLASSIC CONTOUR LINES</h2>
+<svg viewBox="0 0 600 360" role="img" aria-label="Классические горизонтали топографической карты">
+<g class="minor">
+<path d="M-20 70 C70 15 150 20 205 70 S330 125 410 65 S550 10 630 55"/>
+<path d="M-20 95 C65 40 150 45 195 95 S330 150 420 90 S550 35 630 80"/>
+<path d="M-20 125 C55 70 140 75 180 125 S330 180 430 120 S550 65 630 110"/>
+<path d="M-20 235 C55 190 125 185 190 230 S330 290 405 235 S540 185 630 225"/>
+<path d="M-20 265 C55 220 125 215 185 260 S330 320 415 265 S540 215 630 255"/>
+<path d="M-20 295 C55 250 125 245 180 290 S330 350 425 295 S540 245 630 285"/>
+</g>
+<g class="contour">
+<path d="M65 170 C90 105 180 95 240 135 C295 172 280 235 225 255 C160 280 75 245 65 170Z"/>
+<path d="M95 170 C115 125 175 120 220 145 C260 168 250 215 215 235 C165 258 105 225 95 170Z"/>
+<path d="M125 170 C140 145 180 142 205 155 C230 170 220 205 195 215 C160 230 130 205 125 170Z"/>
+<path d="M330 155 C365 95 455 80 510 125 C565 170 545 240 490 260 C425 285 345 235 330 155Z"/>
+<path d="M360 155 C390 115 450 110 490 140 C525 165 510 220 475 238 C425 260 370 215 360 155Z"/>
+<path d="M390 155 C410 135 450 132 472 150 C495 170 480 205 455 215 C420 230 395 195 390 155Z"/>
+</g>
+<g class="index"><path d="M65 170 C90 105 180 95 240 135 C295 172 280 235 225 255 C160 280 75 245 65 170Z"/><path d="M330 155 C365 95 455 80 510 125 C565 170 545 240 490 260 C425 285 345 235 330 155Z"/></g>
+</svg>
+<small>Равномерные замкнутые горизонтали, индексные линии толще. Самый читаемый и привычный вариант; хорошо подходит для спокойного монохромного интерфейса.</small>
+</section>
+<section class="sample">
+<h2>02 // TERRAIN-SHADED CONTOURS</h2>
+<svg viewBox="0 0 600 360" role="img" aria-label="Топографические горизонтали с высотной заливкой">
+<defs>
+<linearGradient id="shade" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#283033"/><stop offset=".5" stop-color="#171d20"/><stop offset="1" stop-color="#30383a"/></linearGradient>
+<radialGradient id="hill"><stop stop-color="#424c4f" stop-opacity=".65"/><stop offset="1" stop-color="#111416" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="600" height="360" fill="url(#shade)"/>
+<ellipse cx="190" cy="150" rx="190" ry="145" fill="url(#hill)"/><ellipse cx="445" cy="225" rx="210" ry="155" fill="url(#hill)"/>
+<g class="minor">
+<path d="M-10 40 Q90 90 150 35 T310 40 T610 30"/><path d="M-10 65 Q90 115 150 60 T310 65 T610 55"/>
+<path d="M-10 285 Q90 235 150 290 T310 285 T610 295"/><path d="M-10 310 Q90 260 150 315 T310 310 T610 320"/>
+</g>
+<g class="contour">
+<path d="M35 150 C70 65 175 35 260 80 C345 125 330 230 250 275 C160 325 55 255 35 150Z"/>
+<path d="M75 150 C105 90 175 70 235 100 C300 135 290 215 230 250 C165 285 90 230 75 150Z"/>
+<path d="M115 150 C135 115 180 105 215 120 C255 140 250 195 215 220 C175 245 125 205 115 150Z"/>
+<path d="M300 215 C325 125 415 75 500 110 C585 145 595 245 525 295 C445 350 320 305 300 215Z"/>
+<path d="M340 215 C365 150 425 115 485 140 C545 165 550 235 500 275 C440 320 355 280 340 215Z"/>
+<path d="M380 215 C400 175 440 155 475 170 C510 185 510 225 480 250 C445 275 390 250 380 215Z"/>
+</g>
+<g class="index"><path d="M35 150 C70 65 175 35 260 80 C345 125 330 230 250 275 C160 325 55 255 35 150Z"/><path d="M300 215 C325 125 415 75 500 110 C585 145 595 245 525 295 C445 350 320 305 300 215Z"/></g>
+</svg>
+<small>Те же горизонтали, но с мягкой теневой подложкой и более выраженными формами склонов. Выразительнее, однако чуть дороже по отрисовке и визуально плотнее.</small>
+</section>
+</div>
+</body></html>
