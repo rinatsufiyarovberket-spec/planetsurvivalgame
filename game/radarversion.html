@@ -5,67 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ROVER // 360° LIDAR</title>
 <style>
-:root{--bg:#080b0c;--ink:#dce5e4;--mid:#9eaeaa;--dim:#53645f;--faint:rgba(140,190,170,.12);--accent:#a9e5c5;--warn:#e45a42}
+:root{--bg:#080b0c;--ink:#f0eee7;--mid:#a9a69b;--dim:#625f56;--faint:rgba(220,190,130,.10);--accent:#d6ad65;--warn:#e45a42}
 *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"DejaVu Sans Mono","Liberation Mono",Consolas,monospace;touch-action:manipulation}
 body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
 .app{height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:clamp(8px,1.6vh,16px)}
+.top-readout{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;min-height:58px;color:var(--mid);font-size:clamp(10px,1.15vw,13px);letter-spacing:.08em}.top-readout .consumption{padding-top:7px}.top-readout strong{display:block;color:var(--ink);font-size:clamp(16px,2vw,22px);letter-spacing:.02em;margin-top:3px}.top-readout .battery{text-align:right}.top-readout .battery strong{font-size:clamp(23px,3vw,34px);color:var(--accent)}
 .telemetry{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;white-space:nowrap;font-size:clamp(9px,1.15vw,13px);letter-spacing:.06em;color:var(--mid)}
 .telemetry-group{display:flex;gap:clamp(8px,2vw,24px);align-items:center}
 .telemetry strong{color:var(--ink);font-weight:600}
 .telemetry .right{color:var(--ink);text-align:right}
 .radar-stage{position:relative;min-height:0;display:grid;place-items:center;overflow:hidden}
 .scope{position:relative;width:min( min(76vh, 78vw), 760px);height:auto;aspect-ratio:1;border:1px solid rgba(169,229,197,.75);border-radius:50%;overflow:visible;background:radial-gradient(circle,rgba(28,63,49,.22) 0%,rgba(7,18,15,.52) 68%,rgba(5,10,10,.95) 100%);box-shadow:0 0 28px rgba(80,180,130,.08),inset 0 0 40px rgba(80,180,130,.07)}
-.scope:before{content:"";position:absolute;inset:0;border-radius:50%;z-index:2;pointer-events:none;background:linear-gradient(90deg,transparent calc(50% - .5px),rgba(151,207,177,.24) 50%,transparent calc(50% + .5px)),linear-gradient(0deg,transparent calc(50% - .5px),rgba(151,207,177,.24) 50%,transparent calc(50% + .5px)),radial-gradient(circle,transparent 24.7%,rgba(151,207,177,.24) 25%,transparent 25.3%,transparent 49.7%,rgba(151,207,177,.24) 50%,transparent 50.3%,transparent 74.7%,rgba(151,207,177,.24) 75%,transparent 75.3%)}
-.scope:after{content:"";position:absolute;inset:0;border-radius:50%;z-index:3;pointer-events:none;background:conic-gradient(from 0deg,transparent 0deg,rgba(113,220,158,.02) 300deg,rgba(113,220,158,.22) 350deg,rgba(113,220,158,.48) 359deg,transparent 360deg);animation:sweep 8s linear infinite}
-@keyframes sweep{to{transform:rotate(360deg)}}
+.scope:before{content:"";position:absolute;inset:0;border-radius:50%;z-index:3;pointer-events:none;background:radial-gradient(circle,transparent 16.35%,rgba(214,173,101,.18) 16.55%,rgba(214,173,101,.18) 16.8%,transparent 17%),radial-gradient(circle,transparent 32.9%,rgba(214,173,101,.34) 33.1%,rgba(214,173,101,.34) 33.35%,transparent 33.55%),radial-gradient(circle,transparent 49.5%,rgba(214,173,101,.82) 49.75%,rgba(214,173,101,.82) 50%,transparent 50.25%)}
+.scope:after{content:none}
 .map-grid{position:absolute;inset:0;z-index:1;display:grid;grid-template-columns:repeat(15,minmax(0,1fr));grid-template-rows:repeat(15,minmax(0,1fr));border-radius:50%;overflow:hidden}
 .map-cell{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;color:var(--mid);font-size:clamp(10px,2.2vmin,19px);line-height:1;overflow:visible}
 .map-cell.unexplored,.map-cell.outside{background:rgba(0,0,0,.45);color:transparent}
-.map-cell.sector{color:rgba(174,203,188,.45);font-size:clamp(8px,1.5vmin,13px);font-weight:700}
+.map-cell.sector{display:none}
 .map-cell.marker{color:#fff;font-size:clamp(17px,3.1vmin,27px);text-shadow:0 0 10px #a9e5c5;z-index:4}
 .map-cell.structure{font-weight:800;color:var(--ink);text-shadow:0 0 5px rgba(200,255,220,.35);z-index:2}
 .map-cell.obj-hazard{color:#c4c7b9}.map-cell.obj-item{color:#dce5e4}.map-cell.core{color:#fff}
 .map-cell.structure.edge-top{border-top:1px solid var(--mid)}.map-cell.structure.edge-bottom{border-bottom:1px solid var(--mid)}.map-cell.structure.edge-left{border-left:1px solid var(--mid)}.map-cell.structure.edge-right{border-right:1px solid var(--mid)}
-.bearing{position:absolute;z-index:4;color:var(--mid);font-size:clamp(9px,1.1vw,12px);letter-spacing:.08em;pointer-events:none}
+.bearing{display:none}
 .bearing.n{top:8px;left:50%;transform:translateX(-50%)}.bearing.e{right:9px;top:50%;transform:translateY(-50%)}.bearing.s{bottom:8px;left:50%;transform:translateX(-50%)}.bearing.w{left:9px;top:50%;transform:translateY(-50%)}
 .center-mark{position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border:1px solid var(--accent);border-radius:50%;background:var(--bg);box-shadow:0 0 9px rgba(169,229,197,.7);pointer-events:none}
 .center-mark:before,.center-mark:after{content:"";position:absolute;background:var(--accent);opacity:.85}.center-mark:before{width:24px;height:1px;left:50%;top:50%;transform:translate(-50%,-50%)}.center-mark:after{height:24px;width:1px;left:50%;top:50%;transform:translate(-50%,-50%)}
 .dir-btn{position:absolute;z-index:7;width:clamp(34px,5.4vmin,48px);height:clamp(34px,5.4vmin,48px);border:1px solid rgba(190,220,205,.65);border-radius:2px;background:rgba(5,12,10,.88);color:var(--ink);font:600 clamp(16px,2.3vmin,22px) monospace;display:grid;place-items:center;cursor:pointer;touch-action:manipulation}
 .dir-btn:active,.dir-btn.is-active{background:rgba(169,229,197,.25);border-color:var(--accent);color:#fff}
 .dir-btn:disabled{opacity:.28}
-.dir-btn.north{top:5%;left:50%;transform:translateX(-50%)}.dir-btn.south{bottom:5%;left:50%;transform:translateX(-50%)}
-.dir-btn.west{left:5%;top:50%;transform:translateY(-50%)}.dir-btn.east{right:5%;top:50%;transform:translateY(-50%)}
-.dir-btn.northwest{left:17%;top:17%}.dir-btn.northeast{right:17%;top:17%}.dir-btn.southwest{left:17%;bottom:17%}.dir-btn.southeast{right:17%;bottom:17%}
-.dir-btn.act-center{left:50%;top:50%;transform:translate(-50%,-50%);width:clamp(40px,6.4vmin,56px);height:clamp(30px,4.8vmin,42px);font-size:clamp(10px,1.4vmin,13px);border-color:var(--accent);background:rgba(5,12,10,.92)}
-.scope-caption{position:absolute;left:50%;bottom:-24px;transform:translateX(-50%);color:var(--dim);font-size:10px;letter-spacing:.14em;white-space:nowrap}
+.dir-btn.north{top:50%;left:-52px;transform:translate(-100%,-50%)}.dir-btn.south{top:50%;right:-52px;transform:translate(100%,-50%)}
+.dir-btn.west{left:50%;top:-52px;transform:translate(-50%,-100%)}.dir-btn.east{left:50%;bottom:-52px;transform:translate(-50%,100%)}
+.dir-btn.northwest{left:-42px;top:-42px;transform:translate(-100%,-100%)}.dir-btn.northeast{right:-42px;top:-42px;transform:translate(100%,-100%)}.dir-btn.southwest{left:-42px;bottom:-42px;transform:translate(-100%,100%)}.dir-btn.southeast{right:-42px;bottom:-42px;transform:translate(100%,100%)}
+.dir-btn.act-center{display:none}
+.scope-caption{display:none}
 .log-area{min-height:48px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:start;padding-top:5px;color:var(--mid);font-size:clamp(9px,1.1vw,12px);line-height:1.45}
 .log-left{min-width:0;text-align:left;overflow:hidden}.log-label{color:var(--dim);letter-spacing:.1em;margin-bottom:3px}.mission-message{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.log-history{color:var(--dim);display:flex;flex-direction:column;gap:1px}.log-entry{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rover-battery{color:var(--ink);font-size:clamp(11px,1.25vw,14px);font-weight:700;white-space:nowrap;padding-top:15px}
 .hidden-support{display:none}
-@media(max-width:600px){body{padding:10px}.telemetry{font-size:8px;gap:5px}.telemetry-group{gap:7px}.scope{width:min(88vw,68vh)}.dir-btn{width:34px;height:34px}.dir-btn.northwest{left:15%;top:15%}.dir-btn.northeast{right:15%;top:15%}.dir-btn.southwest{left:15%;bottom:15%}.dir-btn.southeast{right:15%;bottom:15%}.log-area{gap:8px}.rover-battery{font-size:10px}}
+@media(max-width:600px){body{padding:10px}.top-readout{min-height:48px}.top-readout .consumption{font-size:9px}.top-readout strong{font-size:17px}.top-readout .battery strong{font-size:23px}.scope{width:min(76vw,58vh)}.dir-btn{width:30px;height:30px;font-size:19px}.dir-btn.north{left:-34px}.dir-btn.south{right:-34px}.dir-btn.west{top:-34px}.dir-btn.east{bottom:-34px}.dir-btn.northwest{left:-28px;top:-28px}.dir-btn.northeast{right:-28px;top:-28px}.dir-btn.southwest{left:-28px;bottom:-28px}.dir-btn.southeast{right:-28px;bottom:-28px}.log-area{gap:6px}}
 </style>
 </head>
 <body>
 <div class="app">
-  <header class="telemetry">
-    <div class="telemetry-group"><span id="tx-peak">TX PEAK <strong>15/15 W</strong></span><span>THERMAL <strong>30/70 W</strong></span></div>
-    <div class="telemetry-group"><span>BUS <strong>12.0/14 V</strong></span><span id="avg-load">AVG <strong>50/90 W</strong></span></div>
-    <div class="right" id="rover-charging"></div>
+  <header class="top-readout">
+    <div class="consumption">CONSUMPTION<strong id="consumption-visible">30 W</strong><span id="energy-used">ENERGY USED 0.00 Wh</span></div>
+    <div class="battery">BATTERY<strong id="battery-visible">12.8/14.0 V</strong></div>
   </header>
   <main class="radar-stage">
     <div class="scope" aria-label="360 degree rover lidar radar">
       <div class="map-grid" id="map-grid"></div>
-      <span class="bearing n">000°</span><span class="bearing e">090°</span><span class="bearing s">180°</span><span class="bearing w">270°</span>
       <span class="center-mark"></span>
       <button class="dir-btn northwest" data-direction="NW" aria-label="Northwest">↖</button>
-      <button class="dir-btn north" data-direction="N" aria-label="North">↑</button>
+      <button class="dir-btn north" data-direction="N" aria-label="North">⌃</button>
       <button class="dir-btn northeast" data-direction="NE" aria-label="Northeast">↗</button>
-      <button class="dir-btn west" data-direction="W" aria-label="West">←</button>
+      <button class="dir-btn west" data-direction="W" aria-label="West">‹</button>
       <button class="dir-btn act-center" id="btn-act" disabled>ACT</button>
-      <button class="dir-btn east" data-direction="E" aria-label="East">→</button>
+      <button class="dir-btn east" data-direction="E" aria-label="East">›</button>
       <button class="dir-btn southwest" data-direction="SW" aria-label="Southwest">↙</button>
-      <button class="dir-btn south" data-direction="S" aria-label="South">↓</button>
+      <button class="dir-btn south" data-direction="S" aria-label="South">⌄</button>
       <button class="dir-btn southeast" data-direction="SE" aria-label="Southeast">↘</button>
     </div>
     <div class="hidden-support">
@@ -77,10 +75,9 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
   <footer class="log-area">
     <div class="log-left">
       <div class="log-label">MISSION / EVENT LOG</div>
-      <div class="mission-message" id="mission-message">INITIALIZING ROVER LIDAR // FULL AZIMUTH 360°.</div>
+      <div class="mission-row"><button class="action-button" id="btn-act" disabled>SCAN</button><div class="mission-message" id="mission-message">INFRARED LIDAR INITIALIZED // OBJECT DETECTION RANGE: INNER RING.</div></div>
       <div class="log-history" id="log-history"></div>
     </div>
-    <div class="rover-battery" id="battery-visible">BAT 12.8/14.0 V</div>
   </footer>
 </div>
 <script>
@@ -98,8 +95,11 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
 
     const MARKER_CHAR = '\u25CF'; // Solid rover marker
     const TARGET_CHAR = '\u25CB'; // Selected point
-    // Fine navigation grid: plus markers at every second cell intersection.
-    const SECTOR_SIZE = 2;
+    // LIDAR reveals only the central detection circle.
+    const LIDAR_RADIUS = 2;
+    const BATTERY_CAPACITY_WH = 160;
+    let energyUsedWh = 0;
+    let currentConsumptionW = 30;
 
     // Базовый модуль находится в центре карты; робот стартует на соседней клетке.
     let posX = 24;
@@ -213,19 +213,11 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
 
     function renderVitals() {
       const volts=[9.0,10.2,11.1,11.8,12.8,14.0][batCells];
-      const readout=document.getElementById('rover-voltage');
-      readout.textContent='BAT '+volts.toFixed(1)+'/14.0 V';
-      readout.style.color=batCells<=1?'var(--crim)':'var(--grn-main)';
-      const charging=chargeTimer!==null;
-      document.getElementById('rover-charging').textContent=charging?'ROVER CHARGING 40 W':'';
-      document.getElementById('tx-peak').textContent='TX PEAK 15/15 W';
-      document.getElementById('avg-load').textContent='AVG '+(charging?90:50)+'/90 W';
-
-      updateTaskStatus();
-    }
-
-    function isSectorEdge(x, y) {
-      return x % SECTOR_SIZE === 0 && y % SECTOR_SIZE === 0;
+      const readout=document.getElementById('battery-visible');
+      if(readout)readout.textContent=volts.toFixed(1)+'/14.0 V';
+      const hidden=document.getElementById('rover-voltage');
+      if(hidden)hidden.textContent=volts.toFixed(1)+'/14.0 V';
+      updateEnergyReadout(); updateTaskStatus();
     }
 
     function scrollMap(dx, dy) {
@@ -242,8 +234,25 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
       return entities.find(e=>x>=e.x&&x<e.x+(e.w||1)&&y>=e.y&&y<e.y+(e.h||1))||null;
     }
     function revealAroundUnit(){
-      for(let y=posY-2;y<=posY+2;y++)for(let x=posX-2;x<=posX+2;x++)
-        if(x>=0&&y>=0&&x<MAP_W&&y<MAP_H)explored.add(x+','+y);
+      for(let y=posY-LIDAR_RADIUS;y<=posY+LIDAR_RADIUS;y++)for(let x=posX-LIDAR_RADIUS;x<=posX+LIDAR_RADIUS;x++)
+        if((x-posX)**2+(y-posY)**2<=LIDAR_RADIUS**2&&x>=0&&y>=0&&x<MAP_W&&y<MAP_H)explored.add(x+','+y);
+    }
+    function updateEnergyReadout(){
+      const c=document.getElementById('consumption-visible');
+      const e=document.getElementById('energy-used');
+      if(c)c.textContent=currentConsumptionW+' W';
+      if(e)e.textContent='ENERGY USED '+energyUsedWh.toFixed(2)+' Wh / '+BATTERY_CAPACITY_WH+' Wh';
+    }
+    function recordEnergy(powerW,durationMs){
+      currentConsumptionW=powerW;
+      energyUsedWh+=powerW*(durationMs/3600000);
+      updateEnergyReadout();
+    }
+    function setActionLabel(){
+      const btn=document.getElementById('btn-act'); if(!btn)return;
+      const ent=findNearbyInteractive();
+      const labels={base:inventory.size?'CONNECT':'CHARGE',solar:'PICK UP',crate:'OPEN',assembler:'SALVAGE',broken:'SALVAGE'};
+      btn.textContent=ent?(labels[ent.kind]||'ACT'):'SCAN'; btn.disabled=!ent;
     }
     function structureGlyph(ent,x,y){
       const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y;
@@ -298,9 +307,7 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
     }
 
     function updateActButton() {
-      const btnAct = document.getElementById('btn-act');
-      const near = findNearbyInteractive();
-      btnAct.disabled = !near;
+      setActionLabel();
     }
 
     function stopMovement(reasonText) {
@@ -389,7 +396,6 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
           const known=explored.has(x+','+y),ent=known?getEntityAt(x,y):null;
           if(!known){
             cell.classList.add('unexplored');
-            if(isSectorEdge(x,y)){cell.classList.add('corner','sector');cell.textContent='+';}
           }
           else if(x===posX&&y===posY){cell.classList.add('marker');cell.textContent='●';}
           else if(ent){
@@ -406,7 +412,7 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
             }
             const glyph=structureGlyph(ent,x,y);if(glyph)cell.textContent=glyph;
             if(x===ent.x+Math.floor((ent.w||1)/2)&&y===ent.y+Math.floor((ent.h||1)/2))cell.classList.add('core');
-          } else if(isSectorEdge(x,y)){cell.classList.add('corner','sector');cell.textContent='+';}
+          }
 
           frag.appendChild(cell);
         }
@@ -494,6 +500,8 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
       moveDirection = null;
       document.querySelectorAll('.dir-btn').forEach((button) => button.classList.remove('is-active'));
       setMoveStateLabel('IDLE');
+      const rough = entities.some(e=>e.kind==='debris'&&isAdjacentOrSame(nextX,nextY,e.x,e.y));
+      recordEnergy(rough?95:80,STEP_MS);
       stepsSinceChargeLoss += 1;
       if (stepsSinceChargeLoss >= STEPS_PER_CELL_CHARGE) {
         stepsSinceChargeLoss = 0;
@@ -539,6 +547,7 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
         writeLog('NO INTERACTIVE OBJECT NEARBY');
         return;
       }
+      recordEnergy(60,2000);
 
       if (ent.kind === 'base') {
         if (inventory.size > 0) {
@@ -612,10 +621,8 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
     revealAroundUnit();
     renderVitals();
     renderMap();
-  
-document.getElementById('battery-visible').textContent=document.getElementById('rover-voltage').textContent;
-const batteryObserver=new MutationObserver(()=>{document.getElementById('battery-visible').textContent=document.getElementById('rover-voltage').textContent;});
-batteryObserver.observe(document.getElementById('rover-voltage'),{childList:true,characterData:true,subtree:true});
+
+  updateEnergyReadout();
 </script>
 </body>
 </html>
