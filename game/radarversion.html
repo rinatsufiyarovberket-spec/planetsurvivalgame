@@ -9,25 +9,30 @@
 *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"DejaVu Sans Mono","Liberation Mono",Consolas,monospace;touch-action:manipulation}
 body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
-.app{height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:clamp(5px,1vh,10px)}
-.top-readout{display:grid;grid-template-columns:1fr auto;align-items:center;gap:18px;min-height:48px;padding:4px 2px 8px;border-bottom:1px solid var(--line);color:var(--mid);font-size:clamp(9px,1vw,12px);letter-spacing:.12em}
-.top-readout .consumption{display:grid;grid-template-columns:auto 1fr;align-items:baseline;column-gap:12px;row-gap:2px}
-.top-readout .consumption strong{font-size:clamp(14px,1.6vw,19px);letter-spacing:.02em}
-.top-readout .consumption span{grid-column:1/-1;color:var(--dim);font-size:9px;letter-spacing:.08em}
-.top-readout strong{display:block;color:var(--ink);font-weight:500}
-.top-readout .battery{text-align:right;white-space:nowrap}
-.top-readout .battery strong{font-size:clamp(20px,2.5vw,29px);color:#fff;letter-spacing:.02em;margin-top:2px}
+.app{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:clamp(5px,1vh,10px)}
+.hud-data{position:absolute;z-index:5;top:12px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;color:var(--mid);font-size:clamp(9px,.95vw,11px);line-height:1.65;letter-spacing:.08em;text-shadow:0 1px 4px #000}
+.hud-data .side{display:flex;flex-direction:column;gap:2px;min-width:112px}
+.hud-data .side.right{text-align:right;align-items:flex-end}
+.hud-data strong{color:#fff;font-weight:500;font-size:clamp(12px,1.15vw,14px)}
+.hud-data .micro{color:var(--dim);font-size:9px;letter-spacing:.06em}
 .radar-stage{position:relative;min-height:0;display:grid;place-items:center;overflow:visible}
 .scope{position:relative;width:min(min(58vh,58vw),560px);height:auto;aspect-ratio:1;border-radius:50%;overflow:visible;background:radial-gradient(circle,rgba(255,255,255,.035),rgba(255,255,255,.012) 68%,transparent 69%)}
 .map-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:1}
-.map-svg .scan-boundary{fill:none;stroke:rgba(245,248,250,.7);stroke-width:1.3}
+.map-svg .scan-boundary{fill:none;stroke:transparent;stroke-width:0}
 .map-svg .tick{stroke:rgba(245,248,250,.48);stroke-width:1.5}
 .map-svg .tick.major{stroke:rgba(255,255,255,.9);stroke-width:2.4}
 .map-svg .terrain-point{fill:rgba(245,248,250,.48)}
+.map-svg .terrain-fine{fill:rgba(245,248,250,.26)}
+.map-svg .terrain-ridge{fill:none;stroke:rgba(245,248,250,.20);stroke-width:1.5}
+.map-svg .terrain-shadow{fill:rgba(245,248,250,.045);stroke:rgba(245,248,250,.16);stroke-width:1.5}
 .map-svg .object-line{fill:none;stroke:rgba(245,248,250,.86);stroke-width:2.4}
 .map-svg .object-fill{fill:rgba(245,248,250,.12);stroke:rgba(245,248,250,.9);stroke-width:2}
 .map-svg .object-dot{fill:#fff}
+.map-svg .station-shell{fill:rgba(255,255,255,.055);stroke:rgba(245,248,250,.9);stroke-width:3;stroke-linejoin:bevel}
+.map-svg .station-detail{fill:none;stroke:rgba(245,248,250,.58);stroke-width:2}
+.map-svg .station-core{fill:#fff}
 .map-svg .rover{fill:#fff;stroke:#080a0c;stroke-width:3}
+.map-svg .rover-halo{fill:none;stroke:rgba(255,255,255,.72);stroke-width:2.5}
 .dir-btn{position:absolute;z-index:7;width:clamp(22px,3.2vmin,30px);height:clamp(22px,3.2vmin,30px);border:0;border-radius:0;background:transparent;color:#fff;font:400 clamp(22px,3.1vmin,30px)/1 monospace;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;padding:0}
 .dir-btn:active,.dir-btn.is-active{color:#aeb4ba;text-shadow:0 0 8px #fff}
 .dir-btn:disabled{opacity:.28}
@@ -40,26 +45,27 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 .dir-btn.southwest{left:14%;bottom:14%;transform:translate(-100%,100%) rotate(135deg)}
 .dir-btn.southeast{right:14%;bottom:14%;transform:translate(100%,100%) rotate(45deg)}
 .dir-btn.act-center,.scope-caption,.rover-battery,.hidden-support{display:none}
-.log-area{min-height:56px;display:grid;grid-template-columns:minmax(0,1fr);gap:4px;align-items:start;padding-top:6px;border-top:1px solid var(--line);color:var(--mid);font-size:clamp(9px,1vw,11px);line-height:1.4}
+.log-area{min-height:74px;display:grid;grid-template-columns:minmax(0,1fr);gap:4px;align-items:start;padding-top:7px;border-top:1px solid var(--line);color:var(--mid);font-size:clamp(12px,1.2vw,14px);line-height:1.5}
 .log-left{min-width:0;text-align:left;overflow:hidden}
-.log-label{color:var(--dim);letter-spacing:.14em;margin-bottom:4px}
+.log-label{display:none}
 .mission-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.mission-message{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;flex:1}
-.log-history{color:var(--dim);display:flex;flex-direction:column;gap:1px}
+.mission-message{color:var(--ink);white-space:normal;overflow:hidden;text-overflow:ellipsis;text-align:left;flex:1;font-size:clamp(12px,1.2vw,14px)}
+.log-history{color:var(--mid);display:flex;flex-direction:column;gap:2px;font-size:clamp(11px,1.1vw,13px)}
 .log-entry{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.action-button{flex:none;border:1px solid rgba(245,248,250,.65);background:transparent;color:#fff;font:600 10px monospace;letter-spacing:.1em;padding:6px 11px;cursor:pointer}
+.action-button{flex:none;border:1px solid rgba(245,248,250,.72);background:rgba(255,255,255,.035);color:#fff;font:600 12px monospace;letter-spacing:.1em;padding:8px 13px;cursor:pointer}
 .action-button:disabled{opacity:.28}
-@media(max-width:600px){body{padding:9px}.app{gap:5px}.top-readout{min-height:43px}.top-readout .consumption{column-gap:7px}.top-readout .battery strong{font-size:21px}.scope{width:min(66vw,53vh)}.dir-btn{width:22px;height:22px;font-size:22px}.dir-btn.northwest{left:13%;top:13%}.dir-btn.northeast{right:13%;top:13%}.dir-btn.southwest{left:13%;bottom:13%}.dir-btn.southeast{right:13%;bottom:13%}.log-area{min-height:52px}}
-@media(max-height:560px){.scope{width:min(50vh,50vw)}.top-readout{min-height:38px}.log-area{min-height:45px}}
+@media(max-width:700px){body{padding:9px}.app{gap:5px}.scope{width:min(66vw,53vh)}.hud-data{top:3px;left:2px;right:2px;font-size:8px}.hud-data .side{min-width:82px}.hud-data strong{font-size:11px}.hud-data .micro{font-size:7px}.dir-btn{width:22px;height:22px;font-size:22px}.dir-btn.northwest{left:13%;top:13%}.dir-btn.northeast{right:13%;top:13%}.dir-btn.southwest{left:13%;bottom:13%}.dir-btn.southeast{right:13%;bottom:13%}.log-area{min-height:52px}}
+@media(max-height:560px){.scope{width:min(50vh,50vw)}.log-area{min-height:52px}}
 </style>
 </head>
 <body>
 <div class="app">
-  <header class="top-readout">
-    <div class="consumption">CONSUMPTION<strong id="consumption-visible">30 W</strong><span id="energy-used">ENERGY USED 0.00 Wh</span></div>
-    <div class="battery">BATTERY<strong id="battery-visible">12.8/14.0 V</strong></div>
-  </header>
+  
   <main class="radar-stage">
+    <div class="hud-data" aria-label="Rover telemetry">
+      <div class="side"><div>BAT <strong id="battery-visible">12.8 V</strong></div><div>LOAD <strong id="consumption-visible">30 W</strong></div><div class="micro" id="energy-used">USED 0.00 Wh</div></div>
+      <div class="side right"><div>MODE <strong>SEARCH / AUTONOMY</strong></div><div>SCAN <strong>360° / ACTIVE</strong></div><div class="micro" id="range-readout">RETURN RESERVE MONITOR</div></div>
+    </div>
     <div class="scope" aria-label="360 degree rover lidar radar">
       <svg class="map-svg" id="map-svg" viewBox="0 0 1500 1500" role="img" aria-label="LIDAR terrain map"></svg>
       <button class="dir-btn northwest" data-direction="NW" aria-label="Northwest">></button>
@@ -80,8 +86,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
   </main>
   <footer class="log-area">
     <div class="log-left">
-      <div class="log-label">MISSION / EVENT LOG</div>
-      <div class="mission-row"><button class="action-button" id="btn-act" disabled>SCAN</button><div class="mission-message" id="mission-message">INFRARED LIDAR INITIALIZED // OBJECT DETECTION RANGE: INNER RING.</div></div>
+      <div class="mission-row"><button class="action-button" id="btn-act" disabled>SCAN</button><div class="mission-message" id="mission-message">SEARCH: POWER SOURCES / ROVERS / MODULES / FABRICATORS / STATIONS. MONITOR BATTERY VOLTAGE AND KEEP RETURN ENERGY IN RESERVE.</div></div>
       <div class="log-history" id="log-history"></div>
     </div>
   </footer>
@@ -103,6 +108,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     const TARGET_CHAR = '\u25CB'; // Selected point
     // LIDAR reveals only the central detection circle.
     const LIDAR_RADIUS = 7;
+    const WORLD_SEED = Math.floor(Math.random()*0x7fffffff);
+    function seededRandomFactory(seed){let t=seed>>>0;return ()=>{t+=0x6D2B79F5;let x=t;x=Math.imul(x^(x>>>15),x|1);x^=x+Math.imul(x^(x>>>7),x|61);return ((x^(x>>>14))>>>0)/4294967296;};}
+    const worldRandom=seededRandomFactory(WORLD_SEED);
     const BATTERY_CAPACITY_WH = 160;
     let energyUsedWh = 0;
     let currentConsumptionW = 30;
@@ -133,21 +141,34 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     // base: ⬟, rock: ▲, crate: ▣ (полный) / □ (пустой), solar: ▤, assembler: ⌘, broken: ⧅ -> ░, quest: ◇
     const entities = [
       {id:'base',x:25,y:25,w:5,h:3,kind:'base',label:'CONTROL MODULE / BASE'},
-      {id:'panel_1',x:19,y:20,w:3,h:3,kind:'solar',label:'SOLAR PANEL',taskItem:'panel',taken:false},
-      {id:'crate_1',x:32,y:30,w:3,h:3,kind:'crate',label:'CRATE [WIRING / PARTS / COMP]',taskItem:'crate',opened:false},
-      {id:'asm_1',x:35,y:19,w:3,h:3,kind:'assembler',label:'ASSEMBLER FABRICATOR UNIT',taskItem:'assembler',salvaged:false},
-      {id:'broken_2',x:20,y:32,w:3,h:3,kind:'broken',label:'BROKEN MODULE [SCRAP]',salvaged:false},
-      {id:'quest_1',x:31,y:24,w:1,h:1,kind:'quest',label:'TASK BEACON: SALVAGE SECTOR'},
-      {id:'rock_1',x:28,y:21,w:1,h:1,kind:'rock',label:'IMPASSABLE ROCK TERRAIN'},
-      {id:'rock_2',x:28,y:22,w:1,h:1,kind:'rock',label:'IMPASSABLE ROCK TERRAIN'},
-      {id:'rock_3',x:28,y:23,w:1,h:1,kind:'rock',label:'IMPASSABLE ROCK TERRAIN'},
-      {id:'debris_1',x:16,y:27,w:1,h:1,kind:'debris',label:'METAL DEBRIS'},
-      {id:'debris_2',x:22,y:34,w:1,h:1,kind:'debris',label:'CERAMIC FRAGMENT'},
-      {id:'debris_3',x:38,y:28,w:1,h:1,kind:'debris',label:'CABLE SCRAP'},
-      {id:'debris_4',x:40,y:21,w:1,h:1,kind:'debris',label:'STRUCTURAL FRAGMENT'},
-      {id:'debris_5',x:14,y:33,w:1,h:1,kind:'debris',label:'METAL DEBRIS'}
+      {id:'panel_1',kind:'solar',w:2,h:2,label:'SOLAR ARRAY',taskItem:'panel',taken:false},
+      {id:'crate_1',kind:'crate',w:2,h:2,label:'SUPPLY POD',taskItem:'crate',opened:false},
+      {id:'asm_1',kind:'assembler',w:3,h:2,label:'FIELD FABRICATOR',taskItem:'assembler',salvaged:false},
+      {id:'broken_2',kind:'broken',w:2,h:2,label:'DAMAGED MODULE',salvaged:false},
+      {id:'quest_1',kind:'quest',w:1,h:1,label:'TASK BEACON: SALVAGE SECTOR'},
+      ...Array.from({length:8},(_,i)=>({id:'rock_'+i,kind:'rock',w:i%3===0?2:1,h:i%3===0?2:1,label:i%3===0?'BOULDER FORMATION':'ROCK OUTCROP'})),
+      ...Array.from({length:22},(_,i)=>({id:'debris_'+i,kind:['rubble','shard','debris','crater'][i%4],w:1,h:1,label:['RUBBLE FIELD','BROKEN FRAGMENT','METAL DEBRIS','GROUND DEPRESSION'][i%4]}))
     ];
-
+    function placeRandomEntities(){
+      const occupied=[];
+      for(const e of entities){
+        if(e.kind==='base'){occupied.push(e);continue;}
+        const important=['solar','crate','assembler','broken','quest'].includes(e.kind);
+        const minR=important?3:4,maxR=important?6:10;
+        let placed=false;
+        for(let attempt=0;attempt<180&&!placed;attempt++){
+          const angle=worldRandom()*Math.PI*2,dist=minR+worldRandom()*(maxR-minR);
+          const x=Math.round(25+Math.cos(angle)*dist),y=Math.round(25+Math.sin(angle)*dist),w=e.w||1,h=e.h||1;
+          if(x<3||y<3||x+w>=MAP_W-3||y+h>=MAP_H-3)continue;
+          const overlaps=occupied.some(o=>x<(o.x+(o.w||1)+1)&&x+w>o.x-1&&y<(o.y+(o.h||1)+1)&&y+h>o.y-1);
+          if(overlaps)continue;
+          e.x=x;e.y=y;occupied.push(e);placed=true;
+        }
+        if(!placed){e.x=25+(occupied.length%5)-2;e.y=29+Math.floor(occupied.length/5);occupied.push(e);}
+      }
+    }
+    placeRandomEntities();
+    const terrainReturns=Array.from({length:260},()=>({x:worldRandom()*MAP_W,y:worldRandom()*MAP_H,r:1+worldRandom()*3,kind:worldRandom()}));
     function pad2(n) {
       return String(n).padStart(2, '0');
     }
@@ -211,16 +232,16 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const message=document.getElementById('mission-message');
       if(!message)return;
       if(chargeTimer!==null)message.textContent='ROVER IS CONNECTED TO THE CONTROL MODULE AND CHARGING. WAIT UNTIL BATTERY RECOVERY IS COMPLETE.';
-      else if(batCells<=1)message.textContent='CRITICAL BATTERY: RETURN TO CONTROL MODULE IMMEDIATELY. ROVER POWER IS ALMOST DEPLETED.';
-      else if(batCells<=2)message.textContent='LOW BATTERY: RETURN TO CONTROL MODULE FOR RECHARGING BEFORE CONTINUING THE SURVEY.';
-      else if(batCells<=3)message.textContent='BATTERY WARNING: PLAN A RETURN TO THE CONTROL MODULE FOR RECHARGING.';
-      else if(!message.dataset.manual)message.textContent='IMPORTANT // PROCEED WITH ROVER TO SURVEY NEARBY TERRAIN. APPROACH OBJECTS AND USE ACT.';
+      else if(batCells<=1)message.textContent='BATTERY CRITICAL // RETURN TO BASE NOW';
+      else if(batCells<=2)message.textContent='BATTERY LOW // RESERVE POWER FOR RETURN TO BASE';
+      else if(batCells<=3)message.textContent='BATTERY RESERVE // PLAN RETURN TO BASE';
+      else if(!message.dataset.manual)message.textContent='SEARCH ACTIVE // POWER / ROVERS / MODULES / FABRICATORS / STATIONS // MONITOR VOLTAGE TO PRESERVE RETURN RESERVE';
     }
 
     function renderVitals() {
       const volts=[9.0,10.2,11.1,11.8,12.8,14.0][batCells];
       const readout=document.getElementById('battery-visible');
-      if(readout)readout.textContent=volts.toFixed(1)+'/14.0 V';
+      if(readout)readout.textContent=volts.toFixed(1)+' V';
       const hidden=document.getElementById('rover-voltage');
       if(hidden)hidden.textContent=volts.toFixed(1)+'/14.0 V';
       updateEnergyReadout(); updateTaskStatus();
@@ -247,7 +268,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const c=document.getElementById('consumption-visible');
       const e=document.getElementById('energy-used');
       if(c)c.textContent=currentConsumptionW+' W';
-      if(e)e.textContent='ENERGY USED '+energyUsedWh.toFixed(2)+' Wh / '+BATTERY_CAPACITY_WH+' Wh CAPACITY';
+      if(e)e.textContent='USED '+energyUsedWh.toFixed(2)+' Wh / '+BATTERY_CAPACITY_WH+' Wh';
+      const b=document.getElementById('battery-visible');if(b){const v=[9.0,10.2,11.1,11.8,12.8,14.0][batCells];b.textContent=v.toFixed(1)+' V';}
+      const rr=document.getElementById('range-readout');if(rr)rr.textContent=batCells<=1?'RETURN NOW // CRITICAL':batCells<=2?'RETURN RESERVE // LOW':'RETURN RESERVE // '+(batCells*20)+'% BATTERY';
     }
     function recordEnergy(powerW,durationMs){
       energyUsedWh+=powerW*(durationMs/3600000);
@@ -282,7 +305,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       // ⌘ is reserved for a future aerial drone / multicopter unit.
       if (ent.kind === 'broken') return ent.salvaged ? '\u2591' : '\u29C5'; // ⧅ / ░
       if (ent.kind === 'quest') return '\u25C7';     // ◇
-      if (ent.kind === 'debris') return '\u00B7';
+      if (['debris','rubble','shard','crater'].includes(ent.kind)) return '\u00B7';
       return '';
     }
 
@@ -301,7 +324,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       }
 
       for (const ent of entities) {
-        if (ent.kind === 'rock' || ent.kind === 'base' || ent.kind === 'quest') continue;
+        if (['rock','base','quest','rubble','shard','debris','crater'].includes(ent.kind)) continue;
         if (!isAdjacentToEntity(posX,posY,ent)) continue;
 
         if (ent.kind === 'solar' && !ent.taken) return ent;
@@ -386,40 +409,56 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       updateReadout(); updateActButton(); updateBaseCharging(); updateMapNav(); revealAroundUnit();
       const parts=[];
       parts.push('<defs><clipPath id="lidarClip"><circle cx="750" cy="750" r="730"/></clipPath></defs>');
-      for(let i=0;i<24;i++){
-        const a=i*15-90,nearest=Math.round(a/45)*45;
+      // 48 short protractor graduations with clear gaps around the eight direction controls.
+      for(let i=0;i<48;i++){
+        const a=i*7.5-90,nearest=Math.round(a/45)*45;
         const delta=Math.abs(((a-nearest+180)%360+360)%360-180);
-        if(delta<9)continue;
-        const rad=a*Math.PI/180,major=i%2===0,r1=major?714:720,r2=730;
+        if(delta<8.2)continue;
+        const rad=a*Math.PI/180,major=i%4===0,r1=major?716:722,r2=730;
         parts.push('<line class="tick '+(major?'major':'')+'" x1="'+(750+Math.cos(rad)*r1).toFixed(1)+'" y1="'+(750+Math.sin(rad)*r1).toFixed(1)+'" x2="'+(750+Math.cos(rad)*r2).toFixed(1)+'" y2="'+(750+Math.sin(rad)*r2).toFixed(1)+'"/>');
       }
-      parts.push('<circle class="scan-boundary" cx="750" cy="750" r="730"/><g clip-path="url(#lidarClip)">');
+      parts.push('<g clip-path="url(#lidarClip)">');
+      for(const p of terrainReturns){
+        const sx=Math.round(p.x-viewX),sy=Math.round(p.y-viewY),dx=sx-7,dy=sy-7;
+        if(sx<0||sy<0||sx>=VIEW_W||sy>=VIEW_H||dx*dx+dy*dy>LIDAR_RADIUS*LIDAR_RADIUS)continue;
+        const px=750+dx*100,py=750+dy*100;
+        if(p.kind<.48)parts.push('<circle class="terrain-fine" cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+p.r.toFixed(1)+'"/>');
+        else if(p.kind<.72)parts.push('<path class="terrain-ridge" d="M '+(px-7)+' '+(py+3)+' l 7 -'+(p.r*3).toFixed(1)+' l 8 '+(p.r*2).toFixed(1)+'"/>');
+        else if(p.kind<.88)parts.push('<ellipse class="terrain-shadow" cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" rx="'+(p.r*3).toFixed(1)+'" ry="'+(p.r*1.6).toFixed(1)+'"/>');
+        else parts.push('<path class="terrain-point" d="M '+(px-p.r)+' '+py+' l '+(p.r*2)+' 0 M '+px+' '+(py-p.r)+' l 0 '+(p.r*2)+'"/>');
+      }
       for(let sy=0;sy<VIEW_H;sy++)for(let sx=0;sx<VIEW_W;sx++){
         const x=viewX+sx,y=viewY+sy,dx=sx-7,dy=sy-7;
         if(dx*dx+dy*dy>LIDAR_RADIUS*LIDAR_RADIUS||!explored.has(x+','+y))continue;
-        const px=750+dx*100,py=750+dy*100,seed=(x*37+y*61)%11;
-        if(seed<7){
-          const ox=((x*17+y*13)%43)-21,oy=((x*29+y*7)%39)-19;
-          parts.push('<circle class="terrain-point" cx="'+(px+ox)+'" cy="'+(py+oy)+'" r="'+(seed%3+2)+'"/>');
-        }
-        const ent=getEntityAt(x,y); if(!ent)continue;
-        const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y;
-        if(w>1&&h>1){
-          const ex=750+(ent.x-viewX-7)*100-42,ey=750+(ent.y-viewY-7)*100-42;
-          if(lx===0&&ly===0)parts.push('<rect class="object-fill" x="'+ex+'" y="'+ey+'" width="'+(w*100-16)+'" height="'+(h*100-16)+'"/>');
-          if(lx===Math.floor(w/2)&&ly===Math.floor(h/2))parts.push('<circle class="object-dot" cx="'+px+'" cy="'+py+'" r="7"/>');
+        const ent=getEntityAt(x,y);if(!ent)continue;
+        const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y,px=750+dx*100,py=750+dy*100;
+        if(ent.kind==='base'){
+          if(lx===0&&ly===0){
+            const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;
+            parts.push('<path class="station-shell" d="M '+(ex+16)+' '+(ey+22)+' L '+(ex+72)+' '+(ey+4)+' L '+(ex+428)+' '+(ey+4)+' L '+(ex+484)+' '+(ey+22)+' L '+(ex+484)+' '+(ey+88)+' L '+(ex+438)+' '+(ey+72)+' L '+(ex+392)+' '+(ey+112)+' L '+(ex+92)+' '+(ey+112)+' L '+(ex+48)+' '+(ey+72)+' L '+(ex+16)+' '+(ey+88)+' Z"/>');
+            parts.push('<path class="station-detail" d="M '+(ex+85)+' '+(ey+26)+' H '+(ex+415)+' M '+(ex+85)+' '+(ey+88)+' H '+(ex+415)+' M '+(ex+250)+' '+(ey+26)+' V '+(ey+88)+' M '+(ex+35)+' '+(ey+54)+' H '+(ex+72)+' M '+(ex+428)+' '+(ey+54)+' H '+(ex+465)+'"/>');
+            parts.push('<rect class="station-core" x="'+(ex+220)+'" y="'+(ey+43)+'" width="60" height="27"/>');
+          }
         }else if(ent.kind==='rock'){
-          parts.push('<path class="object-line" d="M '+(px-19)+' '+(py+17)+' L '+px+' '+(py-21)+' L '+(px+19)+' '+(py+17)+' Z"/>');
+          const z=ent.w>1?30:19;
+          parts.push('<path class="object-fill" d="M '+(px-z)+' '+(py+z*.55)+' L '+(px-z*.65)+' '+(py-z*.25)+' L '+(px-z*.1)+' '+(py-z)+' L '+(px+z*.55)+' '+(py-z*.5)+' L '+(px+z)+' '+(py+z*.4)+' L '+(px+z*.45)+' '+(py+z*.7)+' Z"/>');
+        }else if(['rubble','shard','debris','crater'].includes(ent.kind)){
+          if(ent.kind==='crater')parts.push('<ellipse class="terrain-shadow" cx="'+px+'" cy="'+py+'" rx="25" ry="13"/><ellipse class="terrain-ridge" cx="'+px+'" cy="'+py+'" rx="25" ry="13"/>');
+          else if(ent.kind==='shard')parts.push('<path class="object-line" d="M '+(px-16)+' '+(py+10)+' L '+(px-3)+' '+(py-15)+' L '+(px+13)+' '+(py+5)+' Z"/>');
+          else parts.push('<path class="object-line" d="M '+(px-14)+' '+(py-6)+' l 10 -8 l 7 13 l 12 -4 M '+(px-8)+' '+(py+10)+' l 17 -5"/>');
         }else if(ent.kind==='quest'){
           parts.push('<path class="object-line" d="M '+px+' '+(py-15)+' L '+(px+15)+' '+py+' L '+px+' '+(py+15)+' L '+(px-15)+' '+py+' Z"/>');
-        }else if(ent.kind==='debris'){
-          parts.push('<path class="object-line" d="M '+(px-9)+' '+(py-3)+' l 18 6 M '+(px-4)+' '+(py-10)+' l 8 20"/>');
+        }else if(w>1&&h>1&&lx===0&&ly===0){
+          const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;
+          if(ent.kind==='solar')parts.push('<path class="object-fill" d="M '+(ex+8)+' '+(ey+18)+' L '+(ex+190)+' '+(ey+18)+' L '+(ex+190)+' '+(ey+182)+' L '+(ex+8)+' '+(ey+182)+' Z M '+(ex+100)+' '+(ey+18)+' V '+(ey+182)+' M '+(ex+8)+' '+(ey+100)+' H '+(ex+190)+'"/>');
+          else if(ent.kind==='assembler')parts.push('<path class="station-shell" d="M '+(ex+12)+' '+(ey+18)+' H '+(ex+280)+' V '+(ey+178)+' H '+(ex+210)+' L '+(ex+180)+' '+(ey+145)+' H '+(ex+72)+' L '+(ex+42)+' '+(ey+178)+' H '+(ex+12)+' Z"/><path class="station-detail" d="M '+(ex+38)+' '+(ey+44)+' H '+(ex+250)+' M '+(ex+38)+' '+(ey+145)+' H '+(ex+250)+'"/>');
+          else parts.push('<path class="object-fill" d="M '+(ex+18)+' '+(ey+18)+' H '+(ex+182)+' V '+(ey+182)+' H '+(ex+18)+' Z"/><path class="station-detail" d="M '+(ex+18)+' '+(ey+72)+' H '+(ex+182)+' M '+(ex+72)+' '+(ey+18)+' V '+(ey+182)+'"/>');
         }else{
-          parts.push('<rect class="object-line" x="'+(px-17)+'" y="'+(py-17)+'" width="34" height="34"/><circle class="object-dot" cx="'+px+'" cy="'+py+'" r="4"/>');
+          parts.push('<rect class="object-line" x="'+(px-14)+'" y="'+(py-14)+'" width="28" height="28"/><circle class="object-dot" cx="'+px+'" cy="'+py+'" r="4"/>');
         }
       }
       const rx=750+(posX-viewX-7)*100,ry=750+(posY-viewY-7)*100;
-      parts.push('<circle class="rover" cx="'+rx+'" cy="'+ry+'" r="8"/></g>');
+      parts.push('<circle class="rover-halo" cx="'+rx+'" cy="'+ry+'" r="17"/><circle class="rover" cx="'+rx+'" cy="'+ry+'" r="13"/></g>');
       svg.innerHTML=parts.join('');
     }
 
@@ -492,7 +531,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         return;
       }
       const blocked = getEntityAt(nextX, nextY);
-      if (blocked && ['rock','base','solar','crate','assembler','broken'].includes(blocked.kind)) {
+      if (blocked && ['rock','base','solar','crate','assembler','broken','rubble'].includes(blocked.kind)) {
         stopMovement('MOVEMENT BLOCKED BY STRUCTURE OR ROCK');
         return;
       }
@@ -502,7 +541,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       moveDirection = null;
       document.querySelectorAll('.dir-btn').forEach((button) => button.classList.remove('is-active'));
       setMoveStateLabel('IDLE');
-      const rough = entities.some(e=>e.kind==='debris'&&isAdjacentOrSame(nextX,nextY,e.x,e.y));
+      const rough = entities.some(e=>['debris','rubble','shard','crater'].includes(e.kind)&&isAdjacentOrSame(nextX,nextY,e.x,e.y));
       recordEnergy(rough?95:80,STEP_MS);
       stepsSinceChargeLoss += 1;
       if (stepsSinceChargeLoss >= STEPS_PER_CELL_CHARGE) {
@@ -533,7 +572,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       if (moveTimer !== null) return;
       moveDirection = direction;
       const vec={N:[0,-1],NE:[1,-1],E:[1,0],SE:[1,1],S:[0,1],SW:[-1,1],W:[-1,0],NW:[-1,-1]}[direction];
-      const rough=entities.some(e=>e.kind==='debris'&&isAdjacentOrSame(posX+vec[0],posY+vec[1],e.x,e.y));
+      const rough=entities.some(e=>['debris','rubble','shard','crater'].includes(e.kind)&&isAdjacentOrSame(posX+vec[0],posY+vec[1],e.x,e.y));
       currentConsumptionW=rough?95:80; updateEnergyReadout();
       document.querySelectorAll('.dir-btn').forEach((button) => {
         button.classList.toggle('is-active', button.dataset.direction === direction);
