@@ -222,24 +222,12 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       updateTaskStatus();
     }
     function updateTaskStatus(){
-      const statusFor=(id,kind,itemKey,doneFlag)=>{
-        const node=document.getElementById(id);if(!node)return;
-        const entity=entities.find(e=>e.kind===kind);
-        if(delivered.has(itemKey)){node.textContent='COMPLETED';return;}
-        if(inventory.has(itemKey)){node.textContent='IN DELIVERY';return;}
-        if(entity&&doneFlag&&entity[doneFlag]){node.textContent='RECOVERED';return;}
-        if(entity&&entity.x!==undefined){
-          let detected=false;
-          for(let y=entity.y;y<entity.y+(entity.h||1)&&!detected;y++)for(let x=entity.x;x<entity.x+(entity.w||1);x++)if(explored.has(x+','+y)){detected=true;break;}
-          node.textContent=detected?'DETECTED':'SEARCHING';
-        }
-      };
-      statusFor('task-status-panel','solar','panel','taken');
-      const transporter=document.getElementById('task-status-transporter');
-      const transport=entities.find(e=>e.kind==='transporter');
-      if(transporter)transporter.textContent=transport&&transport.found?'LOCATED':'SEARCHING';
-      statusFor('task-status-assembler','assembler','assembler','salvaged');
-      statusFor('task-status-upgrade','broken','upgrade','salvaged');
+      const detected=e=>{if(!e)return false;for(let y=e.y;y<e.y+(e.h||1);y++)for(let x=e.x;x<e.x+(e.w||1);x++)if(explored.has(x+','+y))return true;return false;};
+      const panel=entities.find(e=>e.kind==='solar'),transport=entities.find(e=>e.kind==='transporter'),assembler=entities.find(e=>e.kind==='assembler'),container=entities.find(e=>e.kind==='crate');
+      const p=document.getElementById('task-status-panel');if(p)p.textContent=panel?(panel.connected?'COMPLETED':panel.cleaned?'CLEANED // CABLE NEEDED':detected(panel)?'DETECTED':'SEARCHING'):'SEARCHING';
+      const t=document.getElementById('task-status-transporter');if(t)t.textContent=transport?(transport.linked?'COMPLETED':transport.active?'STANDBY // AWAITING LINK':transport.cleared?'READY TO START':transport.found?'DEBRIS CLEARANCE':detected(transport)?'DETECTED':'SEARCHING'):'SEARCHING';
+      const as=document.getElementById('task-status-assembler');if(as)as.textContent=assembler?(assembler.cleared?(assembler.heavyDebris?'AWAITING LOADER':'CLEARED'):detected(assembler)?'DETECTED':'SEARCHING'):'SEARCHING';
+      const c=document.getElementById('task-status-upgrade');if(c)c.textContent=container?(container.opened?'CABLE SECURED':detected(container)?'DETECTED':'SEARCHING'):'SEARCHING';
     }
     function renderVitals() {
       const volts=batteryVoltage;
@@ -451,7 +439,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
           }
         }else if(ent.kind==='fire'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+150)+' '+(ey+150)+')"><path d="M '+(ex+10)+' '+(ey+35)+' l 30 -25 l 40 18 l 35 -22 l 55 36 v 130 l -40 20 l -40 -18 l -45 22 l -35 -35 Z" fill="url(#fireHatch)" stroke="#fff" stroke-width="2"/><path class="object-line" d="M '+(ex+105)+' '+(ey+115)+' C '+(ex+65)+' '+(ey+75)+' '+(ex+125)+' '+(ey+55)+' '+(ex+110)+' '+(ey+25)+' C '+(ex+170)+' '+(ey+70)+' '+(ex+145)+' '+(ey+90)+' '+(ex+105)+' '+(ey+115)+' Z"/><text x="'+(ex+105)+'" y="'+(ey+145)+'" fill="#fff" font-size="24" text-anchor="middle">!</text></g>');
         }else if(['capsule_wreck','engine_wreck'].includes(ent.kind)&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;const shape=ent.kind==='capsule_wreck'?'<path class="station-shell" d="M '+(ex+12)+' '+(ey+52)+' L '+(ex+45)+' '+(ey+12)+' L '+(ex+158)+' '+(ey+20)+' L '+(ex+188)+' '+(ey+92)+' L '+(ex+145)+' '+(ey+184)+' L '+(ex+38)+' '+(ey+168)+' Z"/><path class="station-detail" d="M '+(ex+48)+' '+(ey+55)+' L '+(ex+145)+' '+(ey+62)+' L '+(ex+155)+' '+(ey+125)+' L '+(ex+65)+' '+(ey+145)+' Z"/>':'<path class="station-shell" d="M '+(ex+8)+' '+(ey+35)+' L '+(ex+65)+' '+(ey+12)+' L '+(ex+112)+' '+(ey+42)+' L '+(ex+188)+' '+(ey+18)+' L '+(ex+178)+' '+(ey+162)+' L '+(ex+108)+' '+(ey+188)+' L '+(ex+18)+' '+(ey+145)+' Z"/><path class="station-detail" d="M '+(ex+38)+' '+(ey+55)+' L '+(ex+145)+' '+(ey+130)+' M '+(ex+78)+' '+(ey+30)+' L '+(ex+110)+' '+(ey+168)+'"/>';parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')">'+shape+'</g>');
-        }else if(ent.kind==='transporter'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="station-shell" d="M '+(ex+12)+' '+(ey+48)+' L '+(ex+42)+' '+(ey+22)+' H '+(ex+150)+' L '+(ex+188)+' '+(ey+52)+' V '+(ey+132)+' L '+(ex+145)+' '+(ey+158)+' H '+(ex+48)+' L '+(ex+12)+' '+(ey+130)+' Z"/><path class="station-detail" d="M '+(ex+45)+' '+(ey+50)+' H '+(ex+150)+' V '+(ey+145)+' H '+(ex+45)+' Z"/><circle class="station-core" cx="'+(ex+96)+'" cy="'+(ey+96)+'" r="15"/></g>');
+        }else if(ent.kind==='transporter'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="station-shell" d="M '+(ex+12)+' '+(ey+48)+' L '+(ex+42)+' '+(ey+22)+' H '+(ex+150)+' L '+(ex+188)+' '+(ey+52)+' V '+(ey+132)+' L '+(ex+145)+' '+(ey+158)+' H '+(ex+48)+' L '+(ex+12)+' '+(ey+130)+' Z"/><path class="station-detail" d="M '+(ex+45)+' '+(ey+50)+' H '+(ex+150)+' V '+(ey+145)+' H '+(ex+45)+' Z"/><circle class="station-core" cx="'+(ex+96)+'" cy="'+(ey+96)+'" r="15"/>'+(ent.found?'':'<path d="M '+(ex-10)+' '+(ey+65)+' l 65 -35 l 45 55 l 90 -10 l 25 70 l -65 35 l -110 -10 Z" fill="rgba(245,248,250,.3)" stroke="#fff" stroke-width="2"/><path d="M '+(ex+5)+' '+(ey+165)+' l 40 -35 l 55 25 l 60 -30 l 55 40" fill="none" stroke="#fff" stroke-width="3"/>')+'</g>');
         }else if(ent.kind==='rock'){
           const z=ent.w>1?30:19;
           parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-fill" d="M '+(px-z)+' '+(py+z*.55)+' L '+(px-z*.65)+' '+(py-z*.25)+' L '+(px-z*.1)+' '+(py-z)+' L '+(px+z*.55)+' '+(py-z*.5)+' L '+(px+z)+' '+(py+z*.4)+' L '+(px+z*.45)+' '+(py+z*.7)+' Z"/>');
@@ -467,8 +455,8 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
           parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-line" d="M '+px+' '+(py-15)+' L '+(px+15)+' '+py+' L '+px+' '+(py+15)+' L '+(px-15)+' '+py+' Z"/>');
         }else if(w>1&&h>1&&lx===0&&ly===0){
           const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;
-          if(ent.kind==='solar')parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="object-fill" d="M '+(ex+12)+' '+(ey+28)+' L '+(ex+175)+' '+(ey+8)+' L '+(ex+190)+' '+(ey+172)+' L '+(ex+30)+' '+(ey+190)+' Z M '+(ex+95)+' '+(ey+18)+' L '+(ex+110)+' '+(ey+181)+' M '+(ex+20)+' '+(ey+105)+' L '+(ex+182)+' '+(ey+88)+'"/></g>');
-          else if(ent.kind==='assembler')parts.push('<g transform="rotate('+ent.rotation+' '+(ex+150)+' '+(ey+100)+')"><path class="station-shell" d="M '+(ex+12)+' '+(ey+55)+' L '+(ex+38)+' '+(ey+18)+' H '+(ex+250)+' L '+(ex+285)+' '+(ey+50)+' V '+(ey+148)+' L '+(ex+250)+' '+(ey+182)+' H '+(ex+45)+' L '+(ex+12)+' '+(ey+145)+' Z"/><path class="station-detail" d="M '+(ex+55)+' '+(ey+55)+' H '+(ex+245)+' V '+(ey+145)+' H '+(ex+55)+' Z M '+(ex+150)+' '+(ey+55)+' V '+(ey+145)+'"/></g>');
+          if(ent.kind==='solar')parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="object-fill" d="M '+(ex+12)+' '+(ey+28)+' L '+(ex+175)+' '+(ey+8)+' L '+(ex+190)+' '+(ey+172)+' L '+(ex+30)+' '+(ey+190)+' Z M '+(ex+95)+' '+(ey+18)+' L '+(ex+110)+' '+(ey+181)+' M '+(ex+20)+' '+(ey+105)+' L '+(ex+182)+' '+(ey+88)+'"/>'+(ent.cleaned?'':'<path d="M '+(ex+5)+' '+(ey+65)+' l 45 -45 l 45 25 l 70 -15 l 25 95 l -45 60 l -115 -5 Z" fill="rgba(245,248,250,.3)" stroke="#fff" stroke-width="2"/><path d="M '+(ex+20)+' '+(ey+160)+' l 55 -25 l 55 20 l 45 -35" stroke="#fff" stroke-width="4" fill="none"/>')+'</g>');
+          else if(ent.kind==='assembler')parts.push('<g transform="rotate('+ent.rotation+' '+(ex+150)+' '+(ey+100)+')"><path class="station-shell" d="M '+(ex+12)+' '+(ey+55)+' L '+(ex+38)+' '+(ey+18)+' H '+(ex+250)+' L '+(ex+285)+' '+(ey+50)+' V '+(ey+148)+' L '+(ex+250)+' '+(ey+182)+' H '+(ex+45)+' L '+(ex+12)+' '+(ey+145)+' Z"/><path class="station-detail" d="M '+(ex+55)+' '+(ey+55)+' H '+(ex+245)+' V '+(ey+145)+' H '+(ex+55)+' Z M '+(ex+150)+' '+(ey+55)+' V '+(ey+145)+'"/>'+(ent.cleared?'':'<path d="M '+(ex-5)+' '+(ey+70)+' l 70 -40 l 60 35 l 65 -25 l 95 45 l -35 95 l -100 25 l -105 -35 Z" fill="rgba(245,248,250,.32)" stroke="#fff" stroke-width="2"/>')+'</g>');
           else parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="object-fill" d="M '+(ex+18)+' '+(ey+42)+' L '+(ex+70)+' '+(ey+10)+' L '+(ex+185)+' '+(ey+35)+' L '+(ex+168)+' '+(ey+160)+' L '+(ex+95)+' '+(ey+190)+' L '+(ex+15)+' '+(ey+135)+' Z"/><path class="station-detail" d="M '+(ex+42)+' '+(ey+65)+' L '+(ex+145)+' '+(ey+45)+' L '+(ex+150)+' '+(ey+130)+' L '+(ex+75)+' '+(ey+155)+' Z"/></g>');
         }else{
           parts.push('<rect class="object-line" x="'+(px-14)+'" y="'+(py-14)+'" width="28" height="28"/><circle class="object-dot" cx="'+px+'" cy="'+py+'" r="4"/>');
@@ -496,16 +484,16 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         return coord + ' ROCKS [▲] IMPASSABLE';
       }
       if (ent.kind === 'solar') {
-        return coord + (ent.taken ? ' SOLAR MOUNT [EMPTY]' : ' SOLAR PANEL [▤] QUEST ITEM');
+        return coord + (ent.connected ? ' SOLAR ARRAY [CONNECTED]' : ent.cleaned ? ' SOLAR ARRAY [CLEAN // CABLE REQUIRED]' : ' SOLAR ARRAY [BURIED UNDER DUST/DEBRIS]');
       }
       if (ent.kind === 'crate') {
-        return coord + (ent.opened ? ' CRATE [□] EMPTY' : ' CRATE [▣] WIRING/PARTS/COMP');
+        return coord + (ent.opened ? ' SUPPLY CONTAINER [OPEN]' : ' SEALED SUPPLY CONTAINER [CABLE/PARTS]');
       }
       if (ent.kind === 'assembler') {
-        return coord + (ent.salvaged ? ' ASSEMBLER [░] SALVAGED' : ' ASSEMBLER FABRICATOR [⚙] QUEST ITEM');
+        return coord + (ent.cleared ? ' ASSEMBLER [EXPOSED // LOADER REQUIRED]' : ' ASSEMBLER [BURIED UNDER LARGE DEBRIS]');
       }
       if (ent.kind === 'broken') {
-        return coord + (ent.salvaged ? ' WRECK [░] SALVAGED' : ' BROKEN MODULE [⧅] SCRAP');
+        return coord + ' METAL WRECKAGE';
       }
       if (ent.kind === 'quest') {
         return coord + ' QUEST BEACON [◇] ' + delivered.size + '/4 DONE';
