@@ -10,12 +10,7 @@
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"DejaVu Sans Mono","Liberation Mono",Consolas,monospace;touch-action:manipulation}
 body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 .app{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:clamp(5px,1vh,10px)}
-.hud-data{position:absolute;z-index:5;top:12px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;color:var(--mid);font-size:clamp(9px,.95vw,11px);line-height:1.65;letter-spacing:.08em;text-shadow:0 1px 4px #000}
-.hud-data .side{display:flex;flex-direction:column;gap:2px;min-width:112px}
-.hud-data .side.right{text-align:right;align-items:flex-end}
-.hud-data strong{color:#fff;font-weight:500;font-size:clamp(12px,1.15vw,14px)}
-.hud-data .micro{color:var(--dim);font-size:9px;letter-spacing:.06em}
-.radar-stage{position:relative;min-height:0;display:grid;place-items:center;overflow:visible}
+.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(145px,1fr) minmax(300px,min(58vh,560px)) minmax(175px,1fr);gap:clamp(12px,2vw,28px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(12px,1.05vw,14px);line-height:1.65}.panel-heading{color:#fff;font-size:clamp(13px,1.15vw,16px);letter-spacing:.12em;margin:0 0 9px}.telemetry{display:flex;flex-direction:column;gap:8px}.telemetry strong{display:block;color:#fff;font-size:clamp(20px,2vw,27px);font-weight:500}.metric{border-bottom:1px solid rgba(235,240,245,.12);padding-bottom:6px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:6px}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(10px,.95vw,12px)}.task-item b{display:block;color:#fff;font-weight:500}.control-help{margin-top:18px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
 .scope{position:relative;width:min(min(58vh,58vw),560px);height:auto;aspect-ratio:1;border-radius:50%;overflow:visible;background:radial-gradient(circle,rgba(255,255,255,.035),rgba(255,255,255,.012) 68%,transparent 69%)}
 .map-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:1}
 .map-svg .scan-boundary{fill:none;stroke:transparent;stroke-width:0}
@@ -45,28 +40,14 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 .dir-btn.southwest{left:14%;bottom:14%;transform:translate(-100%,100%) rotate(135deg)}
 .dir-btn.southeast{right:14%;bottom:14%;transform:translate(100%,100%) rotate(45deg)}
 .dir-btn.act-center,.scope-caption,.rover-battery,.hidden-support{display:none}
-.log-area{min-height:74px;display:grid;grid-template-columns:minmax(0,1fr);gap:4px;align-items:start;padding-top:7px;border-top:1px solid var(--line);color:var(--mid);font-size:clamp(12px,1.2vw,14px);line-height:1.5}
-.log-left{min-width:0;text-align:left;overflow:hidden}
-.log-label{display:none}
-.mission-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.mission-message{color:var(--ink);white-space:normal;overflow:hidden;text-overflow:ellipsis;text-align:left;flex:1;font-size:clamp(12px,1.2vw,14px)}
-.log-history{color:var(--mid);display:flex;flex-direction:column;gap:2px;font-size:clamp(11px,1.1vw,13px)}
-.log-entry{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.action-button{flex:none;border:1px solid rgba(245,248,250,.72);background:rgba(255,255,255,.035);color:#fff;font:600 12px monospace;letter-spacing:.1em;padding:8px 13px;cursor:pointer}
-.action-button:disabled{opacity:.28}
-@media(max-width:700px){body{padding:9px}.app{gap:5px}.scope{width:min(66vw,53vh)}.hud-data{top:3px;left:2px;right:2px;font-size:8px}.hud-data .side{min-width:82px}.hud-data strong{font-size:11px}.hud-data .micro{font-size:7px}.dir-btn{width:22px;height:22px;font-size:22px}.dir-btn.northwest{left:13%;top:13%}.dir-btn.northeast{right:13%;top:13%}.dir-btn.southwest{left:13%;bottom:13%}.dir-btn.southeast{right:13%;bottom:13%}.log-area{min-height:52px}}
-@media(max-height:560px){.scope{width:min(50vh,50vw)}.log-area{min-height:52px}}
+.log-area{display:none}.action-button{border:1px solid rgba(245,248,250,.72);background:rgba(255,255,255,.035);color:#fff;font:600 12px monospace;letter-spacing:.1em;padding:8px 13px;cursor:pointer;margin-top:12px}.action-button:disabled{opacity:.28}.mission-failed{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.94);display:none;place-items:center;text-align:center;padding:24px;color:#fff}.mission-failed.active{display:grid}.mission-failed strong{display:block;font-size:clamp(28px,6vw,64px);letter-spacing:.12em}.mission-failed span{display:block;margin-top:12px;color:#aaa}
+@media(max-width:900px){body{padding:9px}.radar-stage{grid-template-columns:minmax(105px,.8fr) minmax(250px,min(54vh,52vw)) minmax(125px,.9fr);gap:8px}.scope{width:100%}.side-panel{font-size:10px}.telemetry strong{font-size:17px}.panel-heading{font-size:11px}.dir-btn{width:22px;height:22px;font-size:22px}}@media(max-width:620px){.radar-stage{grid-template-columns:1fr 1fr;grid-template-rows:auto minmax(0,1fr);gap:8px}.scope{grid-column:1 / -1;grid-row:2;width:min(76vw,54vh);justify-self:center}.left-panel{grid-column:1;grid-row:1}.right-panel{grid-column:2;grid-row:1}.outgoing-list{display:none}.control-help{margin-top:6px}.task-list{gap:5px}}@media(max-height:560px){.scope{width:min(50vh,50vw)}}
 </style>
 </head>
 <body>
 <div class="app">
   
-  <main class="radar-stage">
-    <div class="hud-data" aria-label="Rover telemetry">
-      <div class="side"><div>BAT <strong id="battery-visible">12.8 V</strong></div><div>LOAD <strong id="consumption-visible">30 W</strong></div><div class="micro" id="energy-used">USED 0.00 Wh</div></div>
-      <div class="side right"><div>MODE <strong>SEARCH / AUTONOMY</strong></div><div>SCAN <strong>360° / ACTIVE</strong></div><div class="micro" id="range-readout">RETURN RESERVE MONITOR</div></div>
-    </div>
-    <div class="scope" aria-label="360 degree rover lidar radar">
+  <main class="radar-stage"><aside class="side-panel left-panel"><div class="panel-heading">ROVER STATUS</div><div class="telemetry"><div class="metric">BATTERY<strong id="battery-visible">12.8 V</strong></div><div class="metric">DRIVE LOAD<strong id="consumption-visible">30 W</strong></div><div class="status-list"><div class="status-item">LINK: CONNECTED</div><div class="status-item">LIDAR: ACTIVE 360°</div><div class="status-item">MODE: SEARCH</div></div></div><div class="panel-heading" style="margin-top:18px">STATUS / ALERTS</div><div class="status-list" id="status-messages"><div class="status-item">MISSION INITIALIZED</div><div class="status-item">ROVER ONLINE</div></div><div class="panel-heading" style="margin-top:18px">OUTGOING LOG</div><div class="outgoing-list" id="log-history"></div></aside><div class="scope aria-label="360 degree rover lidar radar">
       <svg class="map-svg" id="map-svg" viewBox="0 0 1500 1500" role="img" aria-label="LIDAR terrain map"></svg>
       <button class="dir-btn northwest" data-direction="NW" aria-label="Northwest">></button>
       <button class="dir-btn north" data-direction="N" aria-label="North">></button>
@@ -78,18 +59,13 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       <button class="dir-btn south" data-direction="S" aria-label="South">></button>
       <button class="dir-btn southeast" data-direction="SE" aria-label="Southeast">></button>
     </div>
-    <div class="hidden-support">
+    <aside class="side-panel right-panel"><div class="panel-heading">MISSION OBJECTIVES</div><div class="task-list"><div class="task-item"><b>01 / SOLAR ARRAY</b>Locate one solar panel</div><div class="task-item"><b>02 / TRANSPORT ROVER</b>Find the cargo transporter</div><div class="task-item"><b>03 / ASSEMBLER STATION</b>Locate the field assembler</div><div class="task-item"><b>04 / UPGRADE CACHE</b>Recover parts and schematics for base and rovers</div></div><div class="control-help"><b>ROVER CONTROL</b><br>Use the eight directional arrows to drive. Press SCAN / ACT near an object to inspect or recover it.<br><br><b>POWER WARNING</b><br>Monitor voltage. Below 9 V the rover shuts down and the mission ends. Return to base before power runs out.</div><button class="action-button" id="btn-act">SCAN</button></aside><div class="hidden-support">
       <div id="task-detail-title"></div><div id="task-detail-text"></div>
       <div id="rover-voltage"></div>
       <button class="task-tab" data-task="0"></button><button class="task-tab" data-task="1"></button><button class="task-tab" data-task="2"></button><button class="task-tab" data-task="3"></button>
     </div>
   </main>
-  <footer class="log-area">
-    <div class="log-left">
-      <div class="mission-row"><button class="action-button" id="btn-act" disabled>SCAN</button><div class="mission-message" id="mission-message">SEARCH: POWER SOURCES / ROVERS / MODULES / FABRICATORS / STATIONS. MONITOR BATTERY VOLTAGE AND KEEP RETURN ENERGY IN RESERVE.</div></div>
-      <div class="log-history" id="log-history"></div>
-    </div>
-  </footer>
+  <div class="mission-failed" id="mission-failed"><div><strong>MISSION FAILED</strong><span>CONNECTION WITH ROVER LOST // BATTERY VOLTAGE BELOW 9 V</span></div></div>
 </div>
 <script>
 
