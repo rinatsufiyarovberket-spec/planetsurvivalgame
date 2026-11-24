@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ROVER // 360° LIDAR</title>
+<style>
+:root{--bg:#080b0c;--ink:#dce5e4;--mid:#9eaeaa;--dim:#53645f;--faint:rgba(140,190,170,.12);--accent:#a9e5c5;--warn:#e45a42}
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"DejaVu Sans Mono","Liberation Mono",Consolas,monospace;touch-action:manipulation}
+body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
+.app{height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:clamp(8px,1.6vh,16px)}
+.telemetry{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;white-space:nowrap;font-size:clamp(9px,1.15vw,13px);letter-spacing:.06em;color:var(--mid)}
+.telemetry-group{display:flex;gap:clamp(8px,2vw,24px);align-items:center}
+.telemetry strong{color:var(--ink);font-weight:600}
+.telemetry .right{color:var(--ink);text-align:right}
+.radar-stage{position:relative;min-height:0;display:grid;place-items:center;overflow:hidden}
+.scope{position:relative;width:min( min(76vh, 78vw), 760px);height:auto;aspect-ratio:1;border:1px solid rgba(169,229,197,.75);border-radius:50%;overflow:visible;background:radial-gradient(circle,rgba(28,63,49,.22) 0%,rgba(7,18,15,.52) 68%,rgba(5,10,10,.95) 100%);box-shadow:0 0 28px rgba(80,180,130,.08),inset 0 0 40px rgba(80,180,130,.07)}
+.scope:before{content:"";position:absolute;inset:0;border-radius:50%;z-index:2;pointer-events:none;background:linear-gradient(90deg,transparent calc(50% - .5px),rgba(151,207,177,.24) 50%,transparent calc(50% + .5px)),linear-gradient(0deg,transparent calc(50% - .5px),rgba(151,207,177,.24) 50%,transparent calc(50% + .5px)),radial-gradient(circle,transparent 24.7%,rgba(151,207,177,.24) 25%,transparent 25.3%,transparent 49.7%,rgba(151,207,177,.24) 50%,transparent 50.3%,transparent 74.7%,rgba(151,207,177,.24) 75%,transparent 75.3%)}
+.scope:after{content:"";position:absolute;inset:0;border-radius:50%;z-index:3;pointer-events:none;background:conic-gradient(from 0deg,transparent 0deg,rgba(113,220,158,.02) 300deg,rgba(113,220,158,.22) 350deg,rgba(113,220,158,.48) 359deg,transparent 360deg);animation:sweep 8s linear infinite}
+@keyframes sweep{to{transform:rotate(360deg)}}
+.map-grid{position:absolute;inset:0;z-index:1;display:grid;grid-template-columns:repeat(15,minmax(0,1fr));grid-template-rows:repeat(15,minmax(0,1fr));border-radius:50%;overflow:hidden}
+.map-cell{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;color:var(--mid);font-size:clamp(10px,2.2vmin,19px);line-height:1;overflow:visible}
+.map-cell.unexplored,.map-cell.outside{background:rgba(0,0,0,.45);color:transparent}
+.map-cell.sector{color:rgba(174,203,188,.45);font-size:clamp(8px,1.5vmin,13px);font-weight:700}
+.map-cell.marker{color:#fff;font-size:clamp(17px,3.1vmin,27px);text-shadow:0 0 10px #a9e5c5;z-index:4}
+.map-cell.structure{font-weight:800;color:var(--ink);text-shadow:0 0 5px rgba(200,255,220,.35);z-index:2}
+.map-cell.obj-hazard{color:#c4c7b9}.map-cell.obj-item{color:#dce5e4}.map-cell.core{color:#fff}
+.map-cell.structure.edge-top{border-top:1px solid var(--mid)}.map-cell.structure.edge-bottom{border-bottom:1px solid var(--mid)}.map-cell.structure.edge-left{border-left:1px solid var(--mid)}.map-cell.structure.edge-right{border-right:1px solid var(--mid)}
+.bearing{position:absolute;z-index:4;color:var(--mid);font-size:clamp(9px,1.1vw,12px);letter-spacing:.08em;pointer-events:none}
+.bearing.n{top:8px;left:50%;transform:translateX(-50%)}.bearing.e{right:9px;top:50%;transform:translateY(-50%)}.bearing.s{bottom:8px;left:50%;transform:translateX(-50%)}.bearing.w{left:9px;top:50%;transform:translateY(-50%)}
+.center-mark{position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border:1px solid var(--accent);border-radius:50%;background:var(--bg);box-shadow:0 0 9px rgba(169,229,197,.7);pointer-events:none}
+.center-mark:before,.center-mark:after{content:"";position:absolute;background:var(--accent);opacity:.85}.center-mark:before{width:24px;height:1px;left:50%;top:50%;transform:translate(-50%,-50%)}.center-mark:after{height:24px;width:1px;left:50%;top:50%;transform:translate(-50%,-50%)}
+.dir-btn{position:absolute;z-index:7;width:clamp(34px,5.4vmin,48px);height:clamp(34px,5.4vmin,48px);border:1px solid rgba(190,220,205,.65);border-radius:2px;background:rgba(5,12,10,.88);color:var(--ink);font:600 clamp(16px,2.3vmin,22px) monospace;display:grid;place-items:center;cursor:pointer;touch-action:manipulation}
+.dir-btn:active,.dir-btn.is-active{background:rgba(169,229,197,.25);border-color:var(--accent);color:#fff}
+.dir-btn:disabled{opacity:.28}
+.dir-btn.north{top:5%;left:50%;transform:translateX(-50%)}.dir-btn.south{bottom:5%;left:50%;transform:translateX(-50%)}
+.dir-btn.west{left:5%;top:50%;transform:translateY(-50%)}.dir-btn.east{right:5%;top:50%;transform:translateY(-50%)}
+.dir-btn.northwest{left:17%;top:17%}.dir-btn.northeast{right:17%;top:17%}.dir-btn.southwest{left:17%;bottom:17%}.dir-btn.southeast{right:17%;bottom:17%}
+.dir-btn.act-center{left:50%;top:50%;transform:translate(-50%,-50%);width:clamp(40px,6.4vmin,56px);height:clamp(30px,4.8vmin,42px);font-size:clamp(10px,1.4vmin,13px);border-color:var(--accent);background:rgba(5,12,10,.92)}
+.scope-caption{position:absolute;left:50%;bottom:-24px;transform:translateX(-50%);color:var(--dim);font-size:10px;letter-spacing:.14em;white-space:nowrap}
+.log-area{min-height:48px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:start;padding-top:5px;color:var(--mid);font-size:clamp(9px,1.1vw,12px);line-height:1.45}
+.log-left{min-width:0;text-align:left;overflow:hidden}.log-label{color:var(--dim);letter-spacing:.1em;margin-bottom:3px}.mission-message{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.log-history{color:var(--dim);display:flex;flex-direction:column;gap:1px}.log-entry{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rover-battery{color:var(--ink);font-size:clamp(11px,1.25vw,14px);font-weight:700;white-space:nowrap;padding-top:15px}
+.hidden-support{display:none}
+@media(max-width:600px){body{padding:10px}.telemetry{font-size:8px;gap:5px}.telemetry-group{gap:7px}.scope{width:min(88vw,68vh)}.dir-btn{width:34px;height:34px}.dir-btn.northwest{left:15%;top:15%}.dir-btn.northeast{right:15%;top:15%}.dir-btn.southwest{left:15%;bottom:15%}.dir-btn.southeast{right:15%;bottom:15%}.log-area{gap:8px}.rover-battery{font-size:10px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="telemetry">
+    <div class="telemetry-group"><span id="tx-peak">TX PEAK <strong>15/15 W</strong></span><span>THERMAL <strong>30/70 W</strong></span></div>
+    <div class="telemetry-group"><span>BUS <strong>12.0/14 V</strong></span><span id="avg-load">AVG <strong>50/90 W</strong></span></div>
+    <div class="right" id="rover-charging"></div>
+  </header>
+  <main class="radar-stage">
+    <div class="scope" aria-label="360 degree rover lidar radar">
+      <div class="map-grid" id="map-grid"></div>
+      <span class="bearing n">000°</span><span class="bearing e">090°</span><span class="bearing s">180°</span><span class="bearing w">270°</span>
+      <span class="center-mark"></span>
+      <button class="dir-btn northwest" data-direction="NW" aria-label="Northwest">↖</button>
+      <button class="dir-btn north" data-direction="N" aria-label="North">↑</button>
+      <button class="dir-btn northeast" data-direction="NE" aria-label="Northeast">↗</button>
+      <button class="dir-btn west" data-direction="W" aria-label="West">←</button>
+      <button class="dir-btn act-center" id="btn-act" disabled>ACT</button>
+      <button class="dir-btn east" data-direction="E" aria-label="East">→</button>
+      <button class="dir-btn southwest" data-direction="SW" aria-label="Southwest">↙</button>
+      <button class="dir-btn south" data-direction="S" aria-label="South">↓</button>
+      <button class="dir-btn southeast" data-direction="SE" aria-label="Southeast">↘</button>
+    </div>
+    <div class="hidden-support">
+      <div id="task-detail-title"></div><div id="task-detail-text"></div>
+      <div id="rover-voltage"></div>
+      <button class="task-tab" data-task="0"></button><button class="task-tab" data-task="1"></button><button class="task-tab" data-task="2"></button><button class="task-tab" data-task="3"></button>
+    </div>
+  </main>
+  <footer class="log-area">
+    <div class="log-left">
+      <div class="log-label">MISSION / EVENT LOG</div>
+      <div class="mission-message" id="mission-message">INITIALIZING ROVER LIDAR // FULL AZIMUTH 360°.</div>
+      <div class="log-history" id="log-history"></div>
+    </div>
+    <div class="rover-battery" id="battery-visible">BAT 12.8/14.0 V</div>
+  </footer>
+</div>
+<script>
+
+    const MAP_W = 50;
+    const MAP_H = 50;
+    const VIEW_W = 15;
+    const VIEW_H = 15;
+    const SCROLL_STEP = 5;
+    let viewX = 0;
+    let viewY = 0;
+    const STEP_MS = 750;
+    const CHARGE_MS = 2000;
+    const STEPS_PER_CELL_CHARGE = 5;
+
+    const MARKER_CHAR = '\u25CF'; // Solid rover marker
+    const TARGET_CHAR = '\u25CB'; // Selected point
+    // Fine navigation grid: plus markers at every second cell intersection.
+    const SECTOR_SIZE = 2;
+
+    // Базовый модуль находится в центре карты; робот стартует на соседней клетке.
+    let posX = 24;
+    let posY = 25;
+    let targetX = null;
+    let targetY = null;
+    let moveDirection = null;
+    let moveTimer = null;
+    let chargeTimer = null;
+
+    let hp = 20;
+    const maxHp = 20;
+    let tmp = 24;
+    const maxTmp = 100;
+
+    let batCells = 4; // 80% [■■■■□]
+    const maxBatCells = 5;
+    let stepsSinceChargeLoss = 0;
+
+    const explored = new Set();
+    const inventory = new Set(); // 'panel', 'crate', 'assembler'
+    const delivered = new Set(); // 'panel', 'crate', 'assembler'
+
+    // Объекты на карте:
+    // base: ⬟, rock: ▲, crate: ▣ (полный) / □ (пустой), solar: ▤, assembler: ⌘, broken: ⧅ -> ░, quest: ◇
+    const entities = [
+      {id:'base',x:25,y:25,w:5,h:3,kind:'base',label:'CONTROL MODULE / BASE'},
+      {id:'panel_1',x:19,y:20,w:3,h:3,kind:'solar',label:'SOLAR PANEL',taskItem:'panel',taken:false},
+      {id:'crate_1',x:32,y:30,w:3,h:3,kind:'crate',label:'CRATE [WIRING / PARTS / COMP]',taskItem:'crate',opened:false},
+      {id:'asm_1',x:35,y:19,w:3,h:3,kind:'assembler',label:'ASSEMBLER FABRICATOR UNIT',taskItem:'assembler',salvaged:false},
+      {id:'broken_2',x:20,y:32,w:3,h:3,kind:'broken',label:'BROKEN MODULE [SCRAP]',salvaged:false},
+      {id:'quest_1',x:31,y:24,w:1,h:1,kind:'quest',label:'TASK BEACON: SALVAGE SECTOR'},
+      {id:'rock_1',x:28,y:21,w:1,h:1,kind:'rock',label:'IMPASSABLE ROCK TERRAIN'},
+      {id:'rock_2',x:28,y:22,w:1,h:1,kind:'rock',label:'IMPASSABLE ROCK TERRAIN'},
+      {id:'rock_3',x:28,y:23,w:1,h:1,kind:'rock',label:'IMPASSABLE ROCK TERRAIN'},
+      {id:'debris_1',x:16,y:27,w:1,h:1,kind:'debris',label:'METAL DEBRIS'},
+      {id:'debris_2',x:22,y:34,w:1,h:1,kind:'debris',label:'CERAMIC FRAGMENT'},
+      {id:'debris_3',x:38,y:28,w:1,h:1,kind:'debris',label:'CABLE SCRAP'},
+      {id:'debris_4',x:40,y:21,w:1,h:1,kind:'debris',label:'STRUCTURAL FRAGMENT'},
+      {id:'debris_5',x:14,y:33,w:1,h:1,kind:'debris',label:'METAL DEBRIS'}
+    ];
+
+    function pad2(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function writeLog(text) {
+      const message=document.getElementById('mission-message');
+      const formatted=toImportantMessage(text);
+      if(message){message.dataset.manual='true';message.textContent=formatted;}
+      const history=document.getElementById('log-history');
+      if(history){
+        const line=document.createElement('div');
+        line.className='log-entry';
+        line.textContent='> '+formatted;
+        history.prepend(line);
+        while(history.children.length>3)history.lastElementChild.remove();
+      }
+    }
+
+    function toImportantMessage(text){
+      const value=String(text).toUpperCase();
+      if(value.includes('BLOCKED BY STRUCTURE')||value.includes('ROCK'))return 'OBSTACLE AHEAD // ROCK FORMATION OR STRUCTURE';
+      if(value.includes('MAP LIMIT'))return 'MAP LIMIT // NO FURTHER TERRAIN IN THIS DIRECTION';
+      if(value.includes('NO INTERACTIVE OBJECT'))return 'NO OBJECT IN RANGE // MOVE CLOSER AND USE ACT';
+      if(value.includes('PICKED UP SOLAR'))return 'ITEM RECOVERED // SOLAR PANEL — RETURN TO CONTROL MODULE';
+      if(value.includes('OPENED CRATE'))return 'OBJECT OPENED // SUPPLIES AND COMPONENTS RECOVERED';
+      if(value.includes('SALVAGED ASSEMBLER'))return 'OBJECT RECOVERED // ASSEMBLER COMPONENTS — RETURN TO BASE';
+      if(value.includes('BASE CHARGING')||value.includes('CHARGING AT BASE'))return 'ROVER CHARGING // REMAIN NEAR CONTROL MODULE';
+      if(value.includes('BATTERY')||value.includes('BAT '))return value;
+      if(value.includes('DELIVERED'))return 'SUPPLIES DELIVERED // '+value;
+      if(value.includes('QUEST COMPLETE'))return 'MISSION OBJECTIVE COMPLETE // '+value;
+      if(value.includes('DRIVE '))return 'ROVER MOVED // CONTINUE SURVEYING TERRAIN';
+      if(value.includes('UNEXPLORED'))return 'UNEXPLORED TERRAIN // MOVE ROVER TO SCAN AREA';
+      return value;
+    }
+
+    function setMoveStateLabel(label) {
+      // Movement state is communicated through mission messages, not the battery readout.
+    }
+
+    function makeAsciiBar(val, maxVal, width, fillChar, emptyChar) {
+      const clamped = Math.max(0, Math.min(maxVal, val));
+      const filled = maxVal > 0 ? Math.round((clamped / maxVal) * width) : 0;
+      return '[' + fillChar.repeat(filled) + emptyChar.repeat(width - filled) + ']';
+    }
+
+    const taskData=[
+      {title:'01 // SURVEY',text:'Use the directional controls to move the rover one cell at a time. Explore nearby terrain, inspect detected objects and obstacles, and press ACT when close to equipment.'},
+      {title:'02 // FIND ENERGY',text:'Locate solar panels, battery banks, generators and RTG units. Minimum infrastructure: one solar panel and one battery bank. Approach equipment and use ACT to interact.'},
+      {title:'03 // FIND UNITS',text:'Search for other rovers, autonomous robots, communication stations and processing modules. Approach discovered equipment to inspect it.'},
+      {title:'04 // RECOVER PARTS',text:'Locate salvageable components, wiring, tools and structural fragments. Move close to an object and use ACT to collect or recover it, then return to the control module.'}
+    ];
+    let selectedTask=0;
+    function selectTask(index){
+      selectedTask=Math.max(0,Math.min(taskData.length-1,index));
+      document.querySelectorAll('.task-tab').forEach((button,i)=>button.classList.toggle('active',i===selectedTask));
+      document.getElementById('task-detail-title').textContent=taskData[selectedTask].title;
+      document.getElementById('task-detail-text').textContent=taskData[selectedTask].text;
+      updateTaskStatus();
+    }
+    function updateTaskStatus() {
+      const message=document.getElementById('mission-message');
+      if(!message)return;
+      if(chargeTimer!==null)message.textContent='ROVER IS CONNECTED TO THE CONTROL MODULE AND CHARGING. WAIT UNTIL BATTERY RECOVERY IS COMPLETE.';
+      else if(batCells<=1)message.textContent='CRITICAL BATTERY: RETURN TO CONTROL MODULE IMMEDIATELY. ROVER POWER IS ALMOST DEPLETED.';
+      else if(batCells<=2)message.textContent='LOW BATTERY: RETURN TO CONTROL MODULE FOR RECHARGING BEFORE CONTINUING THE SURVEY.';
+      else if(batCells<=3)message.textContent='BATTERY WARNING: PLAN A RETURN TO THE CONTROL MODULE FOR RECHARGING.';
+      else if(!message.dataset.manual)message.textContent='IMPORTANT // PROCEED WITH ROVER TO SURVEY NEARBY TERRAIN. APPROACH OBJECTS AND USE ACT.';
+    }
+
+    function renderVitals() {
+      const volts=[9.0,10.2,11.1,11.8,12.8,14.0][batCells];
+      const readout=document.getElementById('rover-voltage');
+      readout.textContent='BAT '+volts.toFixed(1)+'/14.0 V';
+      readout.style.color=batCells<=1?'var(--crim)':'var(--grn-main)';
+      const charging=chargeTimer!==null;
+      document.getElementById('rover-charging').textContent=charging?'ROVER CHARGING 40 W':'';
+      document.getElementById('tx-peak').textContent='TX PEAK 15/15 W';
+      document.getElementById('avg-load').textContent='AVG '+(charging?90:50)+'/90 W';
+
+      updateTaskStatus();
+    }
+
+    function isSectorEdge(x, y) {
+      return x % SECTOR_SIZE === 0 && y % SECTOR_SIZE === 0;
+    }
+
+    function scrollMap(dx, dy) {
+      viewX = Math.max(0, Math.min(MAP_W - VIEW_W, viewX + dx));
+      viewY = Math.max(0, Math.min(MAP_H - VIEW_H, viewY + dy));
+      renderMap();
+    }
+
+    function updateMapNav() {
+      // The rover stays at the center of the radar; the map follows its position.
+    }
+
+    function getEntityAt(x,y) {
+      return entities.find(e=>x>=e.x&&x<e.x+(e.w||1)&&y>=e.y&&y<e.y+(e.h||1))||null;
+    }
+    function revealAroundUnit(){
+      for(let y=posY-2;y<=posY+2;y++)for(let x=posX-2;x<=posX+2;x++)
+        if(x>=0&&y>=0&&x<MAP_W&&y<MAP_H)explored.add(x+','+y);
+    }
+    function structureGlyph(ent,x,y){
+      const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y;
+      if(w===1&&h===1)return getEntitySymbol(ent);
+      if(lx===Math.floor(w/2)&&ly===Math.floor(h/2))return getEntitySymbol(ent);
+      return '';
+    }
+
+    function getEntitySymbol(ent) {
+      if (!ent) return '';
+      if (ent.kind === 'base') return '\u2B1F';      // ⬟
+      if (ent.kind === 'rock') return '\u25B2';      // ▲
+      if (ent.kind === 'solar') return ent.taken ? '' : '\u25A4'; // ▤
+      if (ent.kind === 'crate') return ent.opened ? '\u25A1' : '\u25A3'; // □ / ▣
+      if (ent.kind === 'assembler') return ent.salvaged ? '\u2591' : '\u2699'; // ⚙ / ░
+      // ⌘ is reserved for a future aerial drone / multicopter unit.
+      if (ent.kind === 'broken') return ent.salvaged ? '\u2591' : '\u29C5'; // ⧅ / ░
+      if (ent.kind === 'quest') return '\u25C7';     // ◇
+      if (ent.kind === 'debris') return '\u00B7';
+      return '';
+    }
+
+    function isAdjacentOrSame(x1,y1,x2,y2){return Math.abs(x1-x2)<=1&&Math.abs(y1-y2)<=1;}
+    function isAdjacentToEntity(x,y,ent){
+      const right=ent.x+(ent.w||1)-1,bottom=ent.y+(ent.h||1)-1;
+      return x>=ent.x-1&&x<=right+1&&y>=ent.y-1&&y<=bottom+1;
+    }
+
+    function findNearbyInteractive() {
+      const baseEnt = entities.find((e) => e.kind === 'base');
+      if (baseEnt && isAdjacentToEntity(posX,posY,baseEnt)) {
+        if (inventory.size > 0 || batCells < maxBatCells) {
+          return baseEnt;
+        }
+      }
+
+      for (const ent of entities) {
+        if (ent.kind === 'rock' || ent.kind === 'base' || ent.kind === 'quest') continue;
+        if (!isAdjacentToEntity(posX,posY,ent)) continue;
+
+        if (ent.kind === 'solar' && !ent.taken) return ent;
+        if (ent.kind === 'crate' && !ent.opened) return ent;
+        if (ent.kind === 'assembler' && !ent.salvaged) return ent;
+        if (ent.kind === 'broken' && !ent.salvaged) return ent;
+      }
+
+      if (baseEnt && isAdjacentToEntity(posX,posY,baseEnt)) {
+        return baseEnt;
+      }
+
+      return null;
+    }
+
+    function updateActButton() {
+      const btnAct = document.getElementById('btn-act');
+      const near = findNearbyInteractive();
+      btnAct.disabled = !near;
+    }
+
+    function stopMovement(reasonText) {
+      if (moveTimer !== null) {
+        clearTimeout(moveTimer);
+        moveTimer = null;
+      }
+      moveDirection = null;
+      document.querySelectorAll('.dir-btn').forEach((button) => button.classList.remove('is-active'));
+      if (!chargeTimer) setMoveStateLabel('IDLE');
+      if (reasonText) {
+        setMoveStateLabel(reasonText.includes('BLOCKED')||reasonText.includes('LIMIT')?'BLOCKED':'IDLE');
+        writeLog(reasonText);
+      }
+    }
+
+    function updateBaseCharging() {
+      const baseEnt = entities.find((e) => e.kind === 'base');
+      const nearBase = baseEnt && isAdjacentToEntity(posX,posY,baseEnt);
+
+      if (nearBase && batCells < maxBatCells) {
+        if (chargeTimer === null) {
+          chargeTimer = setInterval(() => {
+            const b = entities.find((e) => e.kind === 'base');
+            if (!b || !isAdjacentToEntity(posX,posY,b) || batCells >= maxBatCells) {
+              clearInterval(chargeTimer);
+              chargeTimer = null;
+              renderVitals();
+              if (moveTimer === null) setMoveStateLabel('IDLE');
+              return;
+            }
+            batCells = Math.min(maxBatCells, batCells + 1);
+            stepsSinceChargeLoss = 0;
+            renderVitals();
+            writeLog('BASE CHARGING: BAT ' + (batCells * 20) + '%');
+            if (batCells === maxBatCells) {
+              clearInterval(chargeTimer);
+              chargeTimer = null;
+              renderVitals();
+              if (moveTimer === null) setMoveStateLabel('IDLE');
+              writeLog('BATTERY FULL [100%]');
+            }
+          }, CHARGE_MS);
+          renderVitals();
+        }
+        if (moveTimer === null) {
+          setMoveStateLabel('CHARGING');
+        }
+      } else if (chargeTimer !== null) {
+        clearInterval(chargeTimer);
+        chargeTimer = null;
+        renderVitals();
+        if (moveTimer === null) {
+          setMoveStateLabel('IDLE');
+        }
+      }
+    }
+
+    function updateReadout() {
+      // Coordinates are shown in the telemetry line once the dedicated nav header is introduced.
+    }
+
+    function renderMap() {
+      const gridEl = document.getElementById('map-grid');
+      updateReadout();
+      updateActButton();
+      updateBaseCharging();
+
+      updateMapNav();
+      revealAroundUnit();
+      const frag = document.createDocumentFragment();
+
+      for (let sy = 0; sy < VIEW_H; sy++) {
+        for (let sx = 0; sx < VIEW_W; sx++) {
+          const x = viewX + sx;
+          const y = viewY + sy;
+          const cell = document.createElement('div');
+          cell.className = 'map-cell';
+          if(x<0||y<0||x>=MAP_W||y>=MAP_H){
+            cell.classList.add('outside');
+            frag.appendChild(cell);
+            continue;
+          }
+          cell.addEventListener('click',()=>onCellClick(x,y));
+
+          const known=explored.has(x+','+y),ent=known?getEntityAt(x,y):null;
+          if(!known){
+            cell.classList.add('unexplored');
+            if(isSectorEdge(x,y)){cell.classList.add('corner','sector');cell.textContent='+';}
+          }
+          else if(x===posX&&y===posY){cell.classList.add('marker');cell.textContent='●';}
+          else if(ent){
+            cell.classList.add('structure');
+            if(ent.kind==='base')cell.classList.add('obj-base');
+            else if(ent.kind==='rock')cell.classList.add('obj-hazard');
+            else if(!['debris','quest'].includes(ent.kind))cell.classList.add('obj-item');
+            const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y;
+            if(w>1&&h>1){
+              if(ly===0)cell.classList.add('edge-top');
+              if(ly===h-1)cell.classList.add('edge-bottom');
+              if(lx===0)cell.classList.add('edge-left');
+              if(lx===w-1)cell.classList.add('edge-right');
+            }
+            const glyph=structureGlyph(ent,x,y);if(glyph)cell.textContent=glyph;
+            if(x===ent.x+Math.floor((ent.w||1)/2)&&y===ent.y+Math.floor((ent.h||1)/2))cell.classList.add('core');
+          } else if(isSectorEdge(x,y)){cell.classList.add('corner','sector');cell.textContent='+';}
+
+          frag.appendChild(cell);
+        }
+      }
+
+      gridEl.replaceChildren(frag);
+    }
+
+    function describeCell(x, y) {
+      const ent = getEntityAt(x, y);
+      const coord = '[' + pad2(x) + ',' + pad2(y) + ']';
+      if(!explored.has(x+','+y))return coord+' UNEXPLORED';
+      if (x === posX && y === posY) {
+        return coord + ' UNIT @ POS (BAT ' + (batCells * 20) + '%)';
+      }
+      if (!ent) {
+        return coord + ' OPEN GROUND';
+      }
+      if (ent.kind === 'base') {
+        return coord + ' BASE [⬟] CHARGE + QUEST DROP-OFF';
+      }
+      if (ent.kind === 'rock') {
+        return coord + ' ROCKS [▲] IMPASSABLE';
+      }
+      if (ent.kind === 'solar') {
+        return coord + (ent.taken ? ' SOLAR MOUNT [EMPTY]' : ' SOLAR PANEL [▤] QUEST ITEM');
+      }
+      if (ent.kind === 'crate') {
+        return coord + (ent.opened ? ' CRATE [□] EMPTY' : ' CRATE [▣] WIRING/PARTS/COMP');
+      }
+      if (ent.kind === 'assembler') {
+        return coord + (ent.salvaged ? ' ASSEMBLER [░] SALVAGED' : ' ASSEMBLER FABRICATOR [⚙] QUEST ITEM');
+      }
+      if (ent.kind === 'broken') {
+        return coord + (ent.salvaged ? ' WRECK [░] SALVAGED' : ' BROKEN MODULE [⧅] SCRAP');
+      }
+      if (ent.kind === 'quest') {
+        return coord + ' QUEST BEACON [◇] ' + delivered.size + '/3 DONE';
+      }
+      return coord + ' ' + ent.label;
+    }
+
+    function onCellClick(x,y){if(explored.has(x+','+y))writeLog(describeCell(x,y));}
+
+    function getStepVector() {
+      const dx = posX === targetX ? 0 : (posX < targetX ? 1 : -1);
+      const dy = posY === targetY ? 0 : (posY < targetY ? 1 : -1);
+
+      let dir = '';
+      if (dy < 0) dir += 'N';
+      else if (dy > 0) dir += 'S';
+      if (dx > 0) dir += 'E';
+      else if (dx < 0) dir += 'W';
+
+      return { dx, dy, dir };
+    }
+
+    function keepUnitInView() {
+      viewX = posX - Math.floor(VIEW_W / 2);
+      viewY = posY - Math.floor(VIEW_H / 2);
+    }
+
+    function stepInDirection() {
+      if (!moveDirection) return;
+      if (batCells <= 0) {
+        stopMovement('ROBOT BATTERY DEPLETED — RETURN TO A POWER SOURCE');
+        return;
+      }
+      const vectors = {N:[0,-1],NE:[1,-1],E:[1,0],SE:[1,1],S:[0,1],SW:[-1,1],W:[-1,0],NW:[-1,-1]};
+      const [dx, dy] = vectors[moveDirection];
+      const nextX = posX + dx;
+      const nextY = posY + dy;
+      if (nextX < 0 || nextY < 0 || nextX >= MAP_W || nextY >= MAP_H) {
+        stopMovement('MAP LIMIT REACHED');
+        return;
+      }
+      const blocked = getEntityAt(nextX, nextY);
+      if (blocked && ['rock','base','solar','crate','assembler','broken'].includes(blocked.kind)) {
+        stopMovement('MOVEMENT BLOCKED BY STRUCTURE OR ROCK');
+        return;
+      }
+      posX = nextX;
+      posY = nextY;
+      const completedDirection = moveDirection;
+      moveDirection = null;
+      document.querySelectorAll('.dir-btn').forEach((button) => button.classList.remove('is-active'));
+      setMoveStateLabel('IDLE');
+      stepsSinceChargeLoss += 1;
+      if (stepsSinceChargeLoss >= STEPS_PER_CELL_CHARGE) {
+        stepsSinceChargeLoss = 0;
+        batCells = Math.max(0, batCells - 1);
+      }
+      keepUnitInView();
+      renderVitals();
+      renderMap();
+      const nearby=entities.find(e=>e.kind!=='debris'&&isAdjacentToEntity(posX,posY,e));
+      if(nearby){
+        const names={base:'CONTROL MODULE',solar:'SOLAR PANEL',crate:'SUPPLY CRATE',assembler:'ASSEMBLER',broken:'DAMAGED MODULE',rock:'ROCK FORMATION',quest:'UNKNOWN OBJECT'};
+        writeLog('OBJECT DETECTED // '+(names[nearby.kind]||'UNKNOWN EQUIPMENT')+' — APPROACH AND USE ACT');
+      }else{
+        writeLog('AREA SCANNED // NO EQUIPMENT DETECTED. CONTINUE SURVEY.');
+      }
+      if (batCells <= 0) stopMovement('ROBOT BATTERY DEPLETED — RETURN TO A POWER SOURCE');
+    }
+
+    function startDirectionalMovement(direction) {
+      if (batCells <= 0) {
+        setMoveStateLabel('BATTERY EMPTY');
+        writeLog('ROBOT BATTERY DEPLETED — MOVEMENT LOCKED');
+        return;
+      }
+      const vectors={N:[0,-1],NE:[1,-1],E:[1,0],SE:[1,1],S:[0,1],SW:[-1,1],W:[-1,0],NW:[-1,-1]};
+      if(!Object.prototype.hasOwnProperty.call(vectors,direction))return;
+      if (moveTimer !== null) return;
+      moveDirection = direction;
+      document.querySelectorAll('.dir-btn').forEach((button) => {
+        button.classList.toggle('is-active', button.dataset.direction === direction);
+      });
+      setMoveStateLabel('MOVING ' + direction);
+      moveTimer = setTimeout(() => {
+        moveTimer = null;
+        stepInDirection();
+      }, STEP_MS);
+      writeLog('MANUAL DRIVE ' + direction + ' // STEP IN ' + (STEP_MS / 1000).toFixed(2) + ' S');
+    }
+
+    function performInteract() {
+      const ent = findNearbyInteractive();
+      if (!ent) {
+        writeLog('NO INTERACTIVE OBJECT NEARBY');
+        return;
+      }
+
+      if (ent.kind === 'base') {
+        if (inventory.size > 0) {
+          const added = [];
+          for (const item of inventory) {
+            if (!delivered.has(item)) {
+              delivered.add(item);
+              added.push(item.toUpperCase());
+            }
+          }
+          inventory.clear();
+          renderVitals();
+          if (delivered.size >= 3) {
+            writeLog('QUEST COMPLETE! 3/3 DELIVERED TO BASE');
+          } else {
+            writeLog('DELIVERED: ' + added.join(', ') + ' (' + delivered.size + '/3)');
+          }
+        } else if (batCells < maxBatCells) {
+          writeLog('CHARGING AT BASE: +20% EVERY 2S');
+        } else {
+          writeLog('BASE READY: BAT 100%, NO ITEMS TO DROP');
+        }
+        renderMap();
+        return;
+      }
+
+      if (ent.kind === 'solar' && !ent.taken) {
+        ent.taken = true;
+        inventory.add('panel');
+        renderVitals();
+        renderMap();
+        writeLog('PICKED UP SOLAR PANEL [▤] -> BRING TO BASE');
+        return;
+      }
+
+      if (ent.kind === 'crate' && !ent.opened) {
+        ent.opened = true;
+        if (ent.taskItem) inventory.add(ent.taskItem);
+        renderVitals();
+        renderMap();
+        writeLog('OPENED CRATE [▣->□]: LOOTED WIRING/PARTS/COMP');
+        return;
+      }
+
+      if (ent.kind === 'assembler' && !ent.salvaged) {
+        ent.salvaged = true;
+        if (ent.taskItem) inventory.add(ent.taskItem);
+        renderVitals();
+        renderMap();
+        writeLog('SALVAGED ASSEMBLER [⚙] -> BRING TO BASE');
+        return;
+      }
+
+      if (ent.kind === 'broken' && !ent.salvaged) {
+        ent.salvaged = true;
+        tmp = Math.min(maxTmp, tmp + 4);
+        renderVitals();
+        renderMap();
+        writeLog('SALVAGED BROKEN MODULE [⧅->░] [+4 TMP]');
+      }
+    }
+
+    document.querySelectorAll('.dir-btn[data-direction]').forEach(button=>button.addEventListener('click',()=>startDirectionalMovement(button.dataset.direction)));
+    document.querySelectorAll('.task-tab').forEach(button=>button.addEventListener('click',()=>{document.getElementById('mission-message').dataset.manual='';selectTask(Number(button.dataset.task));}));
+    document.getElementById('btn-act').addEventListener('click', performInteract);
+    selectTask(0);
+
+    // Начальная область просмотра центрирована на базовом модуле.
+    viewX = posX - Math.floor(VIEW_W / 2);
+    viewY = posY - Math.floor(VIEW_H / 2);
+    revealAroundUnit();
+    renderVitals();
+    renderMap();
+  
+document.getElementById('battery-visible').textContent=document.getElementById('rover-voltage').textContent;
+const batteryObserver=new MutationObserver(()=>{document.getElementById('battery-visible').textContent=document.getElementById('rover-voltage').textContent;});
+batteryObserver.observe(document.getElementById('rover-voltage'),{childList:true,characterData:true,subtree:true});
+</script>
+</body>
+</html>
