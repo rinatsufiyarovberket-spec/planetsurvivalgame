@@ -534,12 +534,12 @@
     const SECTOR_SIZE = 2;
 
     // Базовый модуль находится в центре карты; робот стартует на соседней клетке.
-    let posX=58,posY=60;
+    let posX=55,posY=60;
     let targetX = null;
     let targetY = null;
     let moveDirection=null,moveTimer=null,moveFrame=null,moveLastTime=0,moveProgress=0,moveStartX=posX,moveStartY=posY,moveTargetX=posX,moveTargetY=posY;
     let joystickPointer=null,joystickVector={x:0,y:0},stopAfterSegment=false;
-    let chargeTimer = null;
+    let chargeTimer=null,actionTimer=null,actionInterval=null,actionRemaining=0;
 
     let hp = 20;
     const maxHp = 20;
@@ -663,6 +663,7 @@ updateTaskStatus();updateActButton();
     }
     function revealAroundUnit(){
       for(let y=Math.floor(posY)-7;y<=Math.ceil(posY)+7;y++)for(let x=Math.floor(posX)-7;x<=Math.ceil(posX)+7;x++)if(x>=0&&y>=0&&x<MAP_W&&y<MAP_H&&Math.hypot(x+.5-posX,y+.5-posY)<=7)explored.add(x+','+y);
+      const unknown=entities.find(e=>e.kind==='unknown');if(unknown&&Math.hypot(unknown.x-posX,unknown.y-posY)<=35)explored.add(unknown.x+','+unknown.y);
     }
     function structureGlyph(ent,x,y){
       const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y;
@@ -717,6 +718,7 @@ if(ent.kind==='mmrtg'&&!ent.recovered)return ent;
     function updateActButton() {
       const btnAct = document.getElementById('btn-act');
       const near=findNearbyInteractive(),base=entities.find(e=>e.kind==='base'),atBase=base&&isAdjacentToEntity(Math.floor(posX),Math.floor(posY),base);
+      if(actionTimer!==null){btnAct.disabled=true;btnAct.textContent=actionLabel+' // '+actionRemaining+'s';return;}
       btnAct.disabled=!near&&!atBase;
       btnAct.textContent=near?'ACT // '+near.kind.toUpperCase().replace('_',' '):atBase?'ACT // BASE SERVICE':document.getElementById('rover-voltage').textContent;
     }
@@ -797,7 +799,7 @@ if(batPercent>=100){clearInterval(chargeTimer);chargeTimer=null;renderVitals();}
 
       gridEl.replaceChildren(frag);
 const marker=document.getElementById('unit-marker');if(marker){marker.style.left=((posX-viewX+.5)/VIEW_W*100)+'%';marker.style.top=((posY-viewY+.5)/VIEW_H*100)+'%';}
-const callout=document.getElementById('object-callout'),near=findNearbyInteractive();if(callout)callout.textContent=near?near.label+' // IN ACT RANGE':'HAULER // '+Math.ceil(batPercent)+'% BATTERY';
+const callout=document.getElementById('object-callout'),near=findNearbyInteractive(),unknown=entities.find(e=>e.kind==='unknown');if(callout){if(unknown&&explored.has(unknown.x+','+unknown.y))callout.textContent='UNKNOWN PLATFORM // COMBAT MODIFICATIONS SUSPECTED // DO NOT APPROACH';else callout.textContent=near?near.label+' // IN ACT RANGE':'HAULER // '+Math.ceil(batPercent)+'% BATTERY';}
     }
 
     function describeCell(x, y) {
@@ -882,15 +884,22 @@ moveFrame=requestAnimationFrame(animateHauler);
 function startDirectionalMovement(direction){const v=moveVectors[direction];if(v&&batPercent>0)setJoystickVector(v[0],v[1]);}
 function stopDirectionalMovement(){setJoystickVector(0,0);}
 
+    let actionLabel='PROCESSING';
+    function beginTimedAction(label,seconds,callback){
+      if(actionTimer!==null)return;
+      actionLabel=label;actionRemaining=seconds;updateActButton();
+      actionTimer=setTimeout(()=>{clearInterval(actionInterval);actionInterval=null;actionTimer=null;callback();renderVitals();renderMap();},seconds*1000);
+      actionInterval=setInterval(()=>{actionRemaining=Math.max(0,Math.ceil((seconds*1000-(Date.now()-actionStartedAt))/1000));updateActButton();},200);
+      const actionStartedAt=Date.now();
+    }
     function performInteract(){
 const base=entities.find(e=>e.kind==='base');
-if(base&&isAdjacentToEntity(Math.floor(posX),Math.floor(posY),base)){if(inventory.size){for(const item of inventory)delivered.add(item);inventory.clear();writeLog('CARGO TRANSFERRED TO BASE // '+[...delivered].join(', ').toUpperCase());}else writeLog('BASE LINK ACTIVE // NO CARGO TO TRANSFER');renderVitals();renderMap();return;}
+if(base&&isAdjacentToEntity(Math.floor(posX),Math.floor(posY),base)){if(inventory.size){beginTimedAction('TRANSFERRING CARGO',3,()=>{for(const item of inventory)delivered.add(item);inventory.clear();writeLog('CARGO TRANSFERRED TO BASE // '+[...delivered].join(', ').toUpperCase());});}else writeLog('BASE LINK ACTIVE // NO CARGO TO TRANSFER');return;}
 const ent=findNearbyInteractive();if(!ent){writeLog('NO RECOVERABLE OBJECT IN RANGE');return;}
-if(ent.kind==='debris'){ent.studied=true;missionProgress.debris++;writeLog('WRECKAGE ANALYSED // '+ent.label+' // '+missionProgress.debris+'/7 FRAGMENTS');}
-else if(ent.kind==='survivors'){ent.found=true;missionProgress.survivors=true;writeLog('SURVIVORS LOCATED // LIFE SIGNS CONFIRMED // REPORT SENT');}
-else if(ent.kind==='installer'){ent.salvaged=true;missionProgress.installer=true;inventory.add('installer working blocks');writeLog('FIELD INSTALLER SALVAGED // WORKING BLOCKS SECURED FOR BASE DELIVERY');}
-else if(ent.kind==='mmrtg'){ent.recovered=true;missionProgress.mmrtg=true;inventory.add('MMRTG');writeLog('MMRTG RECOVERED // RETURN TO CONTROL MODULE');}
-renderVitals();renderMap();
+if(ent.kind==='debris')beginTimedAction('ANALYSING WRECKAGE',3,()=>{ent.studied=true;missionProgress.debris++;writeLog('WRECKAGE ANALYSED // '+ent.label+' // '+missionProgress.debris+'/7 FRAGMENTS');});
+else if(ent.kind==='survivors')beginTimedAction('VERIFYING LIFE SIGNS',5,()=>{ent.found=true;missionProgress.survivors=true;writeLog('SURVIVORS LOCATED // LIFE SIGNS CONFIRMED // REPORT SENT');});
+else if(ent.kind==='installer')beginTimedAction('SALVAGING WORKING BLOCKS',7,()=>{ent.salvaged=true;missionProgress.installer=true;inventory.add('installer working blocks');writeLog('FIELD INSTALLER SALVAGED // WORKING BLOCKS SECURED FOR BASE DELIVERY');});
+else if(ent.kind==='mmrtg')beginTimedAction('SECURING MMRTG',5,()=>{ent.recovered=true;missionProgress.mmrtg=true;inventory.add('MMRTG');writeLog('MMRTG RECOVERED // RETURN TO CONTROL MODULE');});
 }
 
     const joystick=document.getElementById('joystick');
@@ -908,7 +917,7 @@ joystick.addEventListener('pointerup',releaseJoystick);joystick.addEventListener
     document.getElementById('map-west').addEventListener('click', () => scrollMap(-SCROLL_STEP, 0));
     document.getElementById('map-east').addEventListener('click', () => scrollMap(SCROLL_STEP, 0));
     // Начальная область просмотра центрирована на базовом модуле.
-    viewX=48;viewY=53;
+    viewX=43;viewY=53;
     revealAroundUnit();
     renderVitals();
     renderMap();
