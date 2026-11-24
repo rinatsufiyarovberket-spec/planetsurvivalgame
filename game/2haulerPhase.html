@@ -618,6 +618,19 @@
 {title:'05 // UNKNOWN CONTACT',text:'A distant autonomous platform has been detected. Its markings do not match known equipment. Remote analysis indicates possible combat modifications. The onboard computer recommends observation only. Do not approach or attempt interaction.'}
 ];
 const missionProgress={debris:0,survivors:false,installer:false,mmrtg:false};
+function updateMissionTabs(){
+  const checks=[
+    entities.some(e=>e.kind==='debris'&&explored.has(e.x+','+e.y))&&missionProgress.debris<7,
+    entities.some(e=>e.kind==='survivors'&&explored.has(e.x+','+e.y))&&!missionProgress.survivors,
+    entities.some(e=>e.kind==='installer'&&explored.has(e.x+','+e.y))&&!missionProgress.installer,
+    entities.some(e=>e.kind==='mmrtg'&&explored.has(e.x+','+e.y))&&!missionProgress.mmrtg,
+    entities.some(e=>e.kind==='unknown'&&explored.has(e.x+','+e.y))
+  ];
+  document.querySelectorAll('.task-tab').forEach((b,i)=>{b.hidden=!checks[i];});
+  if(document.querySelectorAll('.task-tab:not([hidden])').length===0)return;
+  const active=document.querySelector('.task-tab.active');
+  if(!active||active.hidden){const next=[...document.querySelectorAll('.task-tab')].findIndex(b=>!b.hidden);if(next>=0)selectTask(next);}
+}
     let selectedTask=0;
     function selectTask(index){
       selectedTask=Math.max(0,Math.min(taskData.length-1,index));
@@ -798,6 +811,7 @@ if(batPercent>=100){clearInterval(chargeTimer);chargeTimer=null;renderVitals();}
       }
 
       gridEl.replaceChildren(frag);
+updateMissionTabs();
 const marker=document.getElementById('unit-marker');if(marker){marker.style.left=((posX-viewX+.5)/VIEW_W*100)+'%';marker.style.top=((posY-viewY+.5)/VIEW_H*100)+'%';}
 const callout=document.getElementById('object-callout'),near=findNearbyInteractive(),unknown=entities.find(e=>e.kind==='unknown');if(callout){if(unknown&&explored.has(unknown.x+','+unknown.y))callout.textContent='UNKNOWN PLATFORM // COMBAT MODIFICATIONS SUSPECTED // DO NOT APPROACH';else callout.textContent=near?near.label+' // IN ACT RANGE':'HAULER // '+Math.ceil(batPercent)+'% BATTERY';}
     }
