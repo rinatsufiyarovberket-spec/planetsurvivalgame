@@ -268,7 +268,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const volts=batteryVoltage;
       const readout=document.getElementById('battery-visible');
       if(readout)readout.textContent=volts.toFixed(1)+' V';
-      const state=document.getElementById('battery-status');if(state)state.textContent=volts>=13.5?'FULL':volts>=11?'NORMAL':volts>=10?'LOW':volts>=9.7?'MINIMUM':'CRITICAL';
+      const state=document.getElementById('battery-status');if(state)state.textContent=volts>=13.5?'FULL':volts>11?'NORMAL':volts>10?'LOW':volts>9.7?'MINIMUM':'CRITICAL';
       const hidden=document.getElementById('rover-voltage');
       if(hidden)hidden.textContent=volts.toFixed(1)+'/14.0 V';
       updateEnergyReadout(); updateTaskStatus();
