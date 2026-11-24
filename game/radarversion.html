@@ -10,12 +10,12 @@
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"DejaVu Sans Mono","Liberation Mono",Consolas,monospace;touch-action:manipulation}
 body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 .app{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:clamp(5px,1vh,10px)}
-.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(155px,1fr) minmax(300px,min(58vh,560px)) minmax(155px,1fr);gap:clamp(48px,5vw,76px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(11px,.92vw,13px);line-height:1.48}.panel-heading{color:#fff;font-size:clamp(11px,.95vw,13px);letter-spacing:.1em;margin:0 0 6px}.telemetry{display:flex;flex-direction:column;gap:5px}.telemetry strong{display:block;color:#fff;font-size:clamp(16px,1.5vw,21px);font-weight:500}.battery-state{display:inline-block;margin-left:12px;vertical-align:baseline;color:var(--mid);font-size:clamp(9px,.72vw,10px);font-weight:400;letter-spacing:.045em;white-space:nowrap}.activity-heading{display:flex;align-items:center;gap:8px;margin-top:14px;margin-bottom:6px;min-width:0}.activity-heading .panel-heading{margin:0;white-space:nowrap}.activity-action{display:flex;align-items:center;justify-content:center;align-self:center;flex:1;min-width:0;max-width:100%;height:22px;min-height:22px;margin:0;padding:0 7px;overflow:hidden;white-space:nowrap;font-size:clamp(8px,.68vw,10px);line-height:1;letter-spacing:.04em}.metric{padding-bottom:2px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:4px}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(10px,.8vw,11px)}.task-item b{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px;color:#fff;font-weight:500}.task-status{color:var(--mid);font-size:.82em;font-weight:400;letter-spacing:.04em;white-space:nowrap}.control-help{margin-top:8px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
+.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(155px,1fr) minmax(300px,min(58vh,560px)) minmax(155px,1fr);gap:clamp(48px,5vw,76px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(11px,.92vw,13px);line-height:1.48}.panel-heading{color:#fff;font-size:clamp(11px,.95vw,13px);letter-spacing:.1em;margin:0 0 6px}.telemetry{display:flex;flex-direction:column;gap:5px}.telemetry strong{display:block;color:#fff;font-size:clamp(16px,1.5vw,21px);font-weight:500}.battery-state{display:inline-block;margin-left:12px;vertical-align:baseline;color:var(--mid);font-size:clamp(9px,.72vw,10px);font-weight:400;letter-spacing:.045em;white-space:nowrap}.activity-heading{display:flex;align-items:center;gap:8px;margin-top:14px;margin-bottom:6px;min-width:0}.activity-heading .panel-heading{margin:0;white-space:nowrap}.activity-action{display:flex;align-items:center;justify-content:center;align-self:center;flex:1;min-width:0;max-width:100%;height:22px;min-height:22px;margin:0;padding:0 7px;overflow:hidden;white-space:nowrap;font-size:clamp(8px,.68vw,10px);line-height:1;letter-spacing:.04em}.metric{padding-bottom:2px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:4px}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(10px,.8vw,11px)}.task-item b{display:flex;flex-wrap:nowrap;align-items:baseline;justify-content:space-between;gap:5px;color:#fff;font-weight:500;white-space:nowrap;overflow:hidden}.task-status{color:var(--mid);font-size:.82em;font-weight:400;letter-spacing:.04em;white-space:nowrap;flex-shrink:0}.control-help{margin-top:8px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
 .scope{position:relative;width:min(min(58vh,58vw),560px);height:auto;aspect-ratio:1;border-radius:50%;overflow:visible;background:radial-gradient(circle,rgba(255,255,255,.035),rgba(255,255,255,.012) 68%,transparent 69%)}
 .map-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:1}
 .map-svg .scan-boundary{fill:none;stroke:transparent;stroke-width:0}
-.map-svg .tick{stroke:rgba(245,248,250,.48);stroke-width:1.5}
-.map-svg .tick.major{stroke:rgba(255,255,255,.9);stroke-width:2.4}
+.map-svg .tick{stroke:rgba(245,248,250,.62);stroke-width:3}
+.map-svg .tick.major{stroke:rgba(255,255,255,.95);stroke-width:4.5}
 .map-svg .terrain-point{fill:rgba(245,248,250,.48)}
 .map-svg .terrain-fine{fill:rgba(245,248,250,.26)}
 .map-svg .terrain-ridge{fill:none;stroke:rgba(245,248,250,.20);stroke-width:1.5}
@@ -151,17 +151,18 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       for(const e of entities){
         if(e.kind==='base'){occupied.push(e);continue;}
         const important=['solar','crate','assembler','broken','quest','transporter','cleaner','fire','capsule_wreck','engine_wreck'].includes(e.kind);
-        const minR=important?11:4,maxR=important?17:10;
         let placed=false;
-        for(let attempt=0;attempt<180&&!placed;attempt++){
-          const angle=worldRandom()*Math.PI*2,dist=minR+worldRandom()*(maxR-minR);
-          const x=Math.round(25+Math.cos(angle)*dist),y=Math.round(25+Math.sin(angle)*dist),w=e.w||1,h=e.h||1;
-          if(x<3||y<3||x+w>=MAP_W-3||y+h>=MAP_H-3)continue;
+        for(let attempt=0;attempt<1200&&!placed;attempt++){
+          const x=2+Math.floor(worldRandom()*(MAP_W-(e.w||1)-4)),y=2+Math.floor(worldRandom()*(MAP_H-(e.h||1)-4)),w=e.w||1,h=e.h||1;
+          if(important&&Math.hypot(x-25,y-25)<9)continue;
           const overlaps=occupied.some(o=>x<(o.x+(o.w||1)+1)&&x+w>o.x-1&&y<(o.y+(o.h||1)+1)&&y+h>o.y-1);
           if(overlaps)continue;
-          e.x=x;e.y=y;e.rotation=Math.round(worldRandom()*7)*45;occupied.push(e);placed=true;
+          const adjacentSame=occupied.filter(o=>o.kind===e.kind&&Math.abs((o.x||0)-x)<=2&&Math.abs((o.y||0)-y)<=2);
+          const usedAngles=new Set(adjacentSame.map(o=>o.rotation));
+          const candidates=[0,45,90,135,180,225,270,315].filter(a=>!usedAngles.has(a));
+          e.x=x;e.y=y;e.rotation=candidates.length?candidates[Math.floor(worldRandom()*candidates.length)]:Math.round(worldRandom()*7)*45;occupied.push(e);placed=true;
         }
-        if(!placed){e.x=25+(occupied.length%5)-2;e.y=29+Math.floor(occupied.length/5);e.rotation=Math.round(worldRandom()*7)*45;occupied.push(e);}
+        if(!placed)throw new Error('Unable to place map entity '+e.id);
       }
     }
     placeRandomEntities();
@@ -231,25 +232,24 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const missions=[];
       const add=(title,status,detail)=>missions.push('<div class="task-item"><b>'+title+' <span class="task-status">'+status+'</span></b>'+detail+'</div>');
       const surveyDone=[panel,container,cleaner,assembler].every(objectDetected);
-      add('01 / LOCATION SURVEY',surveyDone?'COMPLETED':'ACTIVE','Explore the area and identify nearby equipment');
-      let n=2;
-      if(panel&&objectDetected(panel)){
+      if(!surveyDone)add('01 / LOCATION SURVEY','IN PROGRESS','Explore and identify the equipment in this sector');
+      let n=surveyDone?1:2;
+      if(panel&&objectDetected(panel)&&!panel.connected){
         const dir=directionToEntity(panel);
-        add(String(n++).padStart(2,'0')+' / SOLAR ARRAY · '+dir,panel.connected?'COMPLETED':panel.cleaned?'CLEANED':'DETECTED',panel.connected?'Cable connected to the control module':panel.cleaned?'Connect the recovered cable to the station':'Remove dust and debris from the solar panel');
-        if(panel.cleaned&&!panel.connected)add(String(n++).padStart(2,'0')+' / SOLAR POWER LINK · '+dir,inventory.has('cable')?'READY':'AWAITING CABLE','Take the cable from the supply container and connect it at the station');
+        add(String(n++).padStart(2,'0')+' / SOLAR ARRAY · '+dir,panel.cleaned?'IN PROGRESS':'ACTIVE',panel.cleaned?'Connect the recovered cable at the control module':'Remove dust and debris from the solar panel');
       }
-      if(container&&objectDetected(container)){
+      if(container&&objectDetected(container)&&!container.opened){
         const dir=directionToEntity(container);
-        add(String(n++).padStart(2,'0')+' / SUPPLY CONTAINER · '+dir,container.opened?'OPENED':container.extracted?'EXTRACTED':'DETECTED',container.opened?'Cable and spare components collected':container.extracted?'Open the recovered container and collect its contents':'Extract the container from the debris');
-        if(container.opened)add(String(n++).padStart(2,'0')+' / CABLE & COMPONENTS',inventory.has('cable')||delivered.has('cable')?'RECOVERED':'COLLECTED','Recover the solar cable and spare components');
+        if(!container.extracted)add(String(n++).padStart(2,'0')+' / SUPPLY CONTAINER · '+dir,container.extracting?'IN PROGRESS':'ACTIVE','Extract the container from the surrounding debris');
+        else add(String(n++).padStart(2,'0')+' / OPEN SUPPLY CONTAINER · '+dir,'ACTIVE','Open it and recover the solar cable and spare components');
       }
-      if(cleaner&&objectDetected(cleaner)){
+      if(cleaner&&objectDetected(cleaner)&&!cleaner.active){
         const dir=directionToEntity(cleaner);
-        add(String(n++).padStart(2,'0')+' / CLEANER ROVER · '+dir,cleaner.active?'ONLINE':cleaner.cleared?'READY TO START':'DETECTED',cleaner.active?'Robot activated':'Clear small debris and start the robot');
+        add(String(n++).padStart(2,'0')+' / PREPARE CLEANER ROVER · '+dir,cleaner.busy?'IN PROGRESS':'ACTIVE',cleaner.cleared?'Start the prepared rover':'Clear small debris around the rover');
       }
-      if(assembler&&objectDetected(assembler)){
+      if(assembler&&objectDetected(assembler)&&!assembler.standby){
         const dir=directionToEntity(assembler);
-        add(String(n++).padStart(2,'0')+' / FIELD ASSEMBLER · '+dir,assembler.standby?'STANDBY':assembler.unpacked?'READY':'DETECTED',assembler.standby?'Assembler unpacked and in standby':'Unpack the assembler from its transport container and switch it to standby');
+        add(String(n++).padStart(2,'0')+' / UNPACK FIELD ASSEMBLER · '+dir,assembler.unpacked?'IN PROGRESS':'ACTIVE',assembler.unpacked?'Switch the assembler to standby':'Unpack the assembler from its transport casing');
       }
       const list=document.getElementById('mission-list');
       if(list)list.innerHTML=missions.join('');
@@ -299,9 +299,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     function setActionLabel(){
       const btn=document.getElementById('btn-act'); if(!btn)return;
       const ent=findNearbyInteractive();
-      if(!ent){btn.textContent='SCAN';btn.disabled=false;return;}
+      if(!ent){btn.textContent='ACT';btn.disabled=true;return;}
       const labels={base:inventory.size?'CONNECT / UPLOAD':'CHARGE',solar:ent.connected?'CONNECTED':ent.cleaned?'CONNECT CABLE':ent.cleaning?'CLEANING...':'CLEAN PANEL',transporter:ent.linked?'LINKED':ent.active?'AWAIT LINK':ent.busy?'CLEARING...':ent.cleared?'START ROVER':'CLEAR DEBRIS',cleaner:ent.active?'ONLINE':ent.busy?'WORKING...':ent.cleared?'START ROBOT':'CLEAR DEBRIS',crate:ent.opened?'COLLECTED':ent.extracting?'EXTRACTING...':ent.extracted?'OPEN CONTAINER':'EXTRACT CONTAINER',assembler:ent.standby?'STANDBY':ent.unpacked?'SET STANDBY':'UNPACK ASSEMBLER',broken:'OPEN CONTAINER'};
-      btn.textContent=labels[ent.kind]||'ACT';btn.disabled=false;
+      btn.textContent=labels[ent.kind]||'ACT';btn.disabled=!!(ent.busy||ent.cleaning||ent.extracting);
     }
     function structureGlyph(ent,x,y){
       const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y;
@@ -446,12 +446,10 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       parts.push('<defs><clipPath id="lidarClip"><circle cx="750" cy="750" r="730"/></clipPath><pattern id="fireHatch" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M 0 12 L 12 0" stroke="#fff" stroke-opacity=".45" stroke-width="2"/></pattern></defs>');
       // 48 short protractor graduations with clear gaps around the eight direction controls.
       const compass=['N','NE','E','SE','S','SW','W','NW'];
-      for(let d=0;d<8;d++){const a=d*45-90,rad=a*Math.PI/180,cx=750+Math.cos(rad)*670,cy=750+Math.sin(rad)*670;parts.push('<text x="'+cx.toFixed(1)+'" y="'+(cy+9).toFixed(1)+'" fill="rgba(255,255,255,.82)" font-size="27" font-family="monospace" text-anchor="middle">'+compass[d]+'</text>');}
+      for(let d=0;d<8;d++){const a=d*45-90,rad=a*Math.PI/180,cx=750+Math.cos(rad)*670,cy=750+Math.sin(rad)*670;parts.push('<text x="'+cx.toFixed(1)+'" y="'+(cy+9).toFixed(1)+'" fill="rgba(255,255,255,.82)" font-size="17" font-family="monospace" text-anchor="middle">'+compass[d]+'</text>');}
       for(let i=0;i<48;i++){
-        const a=i*7.5-90,nearest=Math.round(a/45)*45;
-        const delta=Math.abs(((a-nearest+180)%360+360)%360-180);
-        if(delta<8.2)continue;
-        const rad=a*Math.PI/180,major=i%4===0,r1=major?706:714,r2=754;
+        const a=i*7.5-90;
+        const rad=a*Math.PI/180,major=i%4===0,r1=700,r2=760;
         parts.push('<line class="tick '+(major?'major':'')+'" x1="'+(750+Math.cos(rad)*r1).toFixed(1)+'" y1="'+(750+Math.sin(rad)*r1).toFixed(1)+'" x2="'+(750+Math.cos(rad)*r2).toFixed(1)+'" y2="'+(750+Math.sin(rad)*r2).toFixed(1)+'"/>');
       }
       parts.push('<g clip-path="url(#lidarClip)">');
@@ -585,6 +583,8 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       posX = nextX;
       posY = nextY;
       const completedDirection = moveDirection;
+      const cleanerUnit=entities.find(e=>e.kind==='cleaner');
+      if(cleanerUnit){const heading={N:0,NE:45,E:90,SE:135,S:180,SW:225,W:270,NW:315};cleanerUnit.rotation=heading[completedDirection]??cleanerUnit.rotation;}
       moveDirection = null;
       document.querySelectorAll('.dir-btn').forEach((button) => button.classList.remove('is-active'));
       setMoveStateLabel('IDLE');
@@ -595,10 +595,11 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       keepUnitInView();
       renderVitals();
       renderMap();
-      const nearby=entities.find(e=>e.kind!=='debris'&&isAdjacentToEntity(posX,posY,e));
+      const nearby=entities.filter(e=>['base','solar','crate','assembler','broken','hull','transporter','cleaner','fire','capsule_wreck','engine_wreck','quest'].includes(e.kind)&&isAdjacentToEntity(posX,posY,e)).sort((a,b)=>Math.hypot(a.x+(a.w||1)/2-posX,a.y+(a.h||1)/2-posY)-Math.hypot(b.x+(b.w||1)/2-posX,b.y+(b.h||1)/2-posY))[0];
       if(nearby){
-        const names={base:'CONTROL MODULE',solar:'SOLAR ARRAY',crate:'SUPPLY CONTAINER',assembler:'FIELD ASSEMBLER',broken:'SUPPLY CONTAINER',transporter:'CARGO TRANSPORTER',cleaner:'CLEANER ROVER',rock:'ROCK FORMATION',quest:'UNKNOWN OBJECT'};
-        writeLog('OBJECT DETECTED // '+(names[nearby.kind]||'UNKNOWN EQUIPMENT')+' — APPROACH AND USE ACT');
+        const names={base:'CONTROL MODULE',solar:'SOLAR ARRAY',crate:'SUPPLY CONTAINER',assembler:'FIELD ASSEMBLER',broken:'METAL WRECKAGE',hull:'HULL SECTION',transporter:'CARGO TRANSPORTER',cleaner:'CLEANER ROVER',fire:'ENGINE FIRE',capsule_wreck:'LANDING CAPSULE',engine_wreck:'ENGINE SECTION',quest:'TASK BEACON'};
+        const dir=directionToEntity(nearby);
+        writeLog('OBJECT DETECTED // '+(names[nearby.kind]||'UNKNOWN EQUIPMENT')+' // '+dir+' — APPROACH AND USE ACT');
       }else{
         writeLog('SEARCHING // NO OBJECT DETECTED. CONTINUE SURVEY.');
       }
@@ -663,15 +664,15 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       }
 
       if(ent.kind==='cleaner'){
-        if(!ent.cleared&&!ent.busy){ent.busy=true;writeLog('CLEANER ROVER // REMOVING SMALL DEBRIS — 5 S');setTimeout(()=>{ent.busy=false;ent.cleared=true;renderMap();writeLog('CLEANER ROVER // DEBRIS REMOVED. PRESS ACT TO START');},5000);return;}
-        if(ent.cleared&&!ent.active&&!ent.busy){ent.busy=true;writeLog('CLEANER ROVER // STARTUP SEQUENCE — 1 S');setTimeout(()=>{ent.busy=false;ent.active=true;renderMap();writeLog('CLEANER ROVER ONLINE // AUTONOMOUS UNIT READY');},1000);return;}
+        if(!ent.cleared&&!ent.busy){ent.busy=true;writeLog('CLEANER ROVER // REMOVING SMALL DEBRIS — 5 S');renderMap();setTimeout(()=>{ent.busy=false;ent.cleared=true;renderMap();writeLog('CLEANER ROVER // PREPARED. PRESS ACT TO START');},5000);return;}
+        if(ent.cleared&&!ent.active&&!ent.busy){ent.busy=true;writeLog('CLEANER ROVER // STARTUP SEQUENCE — 1 S');renderMap();setTimeout(()=>{ent.busy=false;ent.active=true;renderMap();writeLog('CLEANER ROVER ONLINE // AUTONOMOUS UNIT READY');},1000);return;}
       }
       if(ent.kind==='solar'){
         if(!ent.cleaned&&!ent.cleaning){ent.cleaning=true;writeLog('SOLAR ARRAY // CLEARING DEBRIS AND CLEANING — 5 S');setTimeout(()=>{ent.cleaning=false;ent.cleaned=true;renderMap();writeLog('SOLAR ARRAY CLEANED // CABLE CONNECTION REQUIRED');},5000);return;}
         if(ent.cleaned&&!ent.connected){if(!inventory.has('cable')){writeLog('SOLAR ARRAY READY // CABLE REQUIRED — SEARCH SUPPLY CONTAINER');return;}writeLog('SOLAR ARRAY CLEANED // CABLE SECURED. RETURN TO STATION TO CONNECT');return;}
       }
 
-      if(ent.kind==='crate'&&!ent.extracted&&!ent.extracting){ent.extracting=true;writeLog('SUPPLY CONTAINER // EXTRACTING FROM DEBRIS — 5 S');setTimeout(()=>{ent.extracting=false;ent.extracted=true;renderMap();writeLog('SUPPLY CONTAINER // EXTRACTED. PRESS ACT TO OPEN');},5000);return;}
+      if(ent.kind==='crate'&&!ent.extracted&&!ent.extracting){ent.extracting=true;writeLog('SUPPLY CONTAINER // EXTRACTING FROM DEBRIS — 5 S');renderMap();setTimeout(()=>{ent.extracting=false;ent.extracted=true;renderMap();writeLog('SUPPLY CONTAINER // EXTRACTED. PRESS ACT TO OPEN');},5000);return;}
       if(ent.kind==='crate'&&ent.extracted&&!ent.opened){ent.opened=true;inventory.add('cable');inventory.add('spare_parts');renderVitals();renderMap();writeLog('SUPPLY CONTAINER OPENED // SOLAR CABLE AND SPARE COMPONENTS RECOVERED');return;}
 
       if(ent.kind==='assembler'&&!ent.unpacked){ent.unpacked=true;ent.cleared=true;renderMap();writeLog('FIELD ASSEMBLER // UNIT UNPACKED FROM TRANSPORT CASING');return;}
