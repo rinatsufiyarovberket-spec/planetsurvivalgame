@@ -104,7 +104,8 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     let tmp = 24;
     const maxTmp = 100;
 
-    let batCells = 4; // 80% [■■■■□]
+    let batCells = 4;
+    let batteryVoltage = 12.8;
     const maxBatCells = 5;
     let stepsSinceChargeLoss = 0;
 
@@ -195,7 +196,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     }
     function updateTaskStatus() {}
     function renderVitals() {
-      const volts=[8.8,9.0,10.2,11.1,11.8,12.8][batCells];
+      const volts=batteryVoltage;
       const readout=document.getElementById('battery-visible');
       if(readout)readout.textContent=volts.toFixed(1)+' V';
       const hidden=document.getElementById('rover-voltage');
@@ -220,7 +221,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       for(let y=posY-LIDAR_RADIUS;y<=posY+LIDAR_RADIUS;y++)for(let x=posX-LIDAR_RADIUS;x<=posX+LIDAR_RADIUS;x++)
         if((x-posX)**2+(y-posY)**2<=LIDAR_RADIUS**2&&x>=0&&y>=0&&x<MAP_W&&y<MAP_H)explored.add(x+','+y);
     }
-    function updateEnergyReadout(){const c=document.getElementById('consumption-visible');if(c)c.textContent=currentConsumptionW+' W';const b=document.getElementById('battery-visible');if(b){const v=[8.8,9.0,10.2,11.1,11.8,12.8][batCells];b.textContent=v.toFixed(1)+' V';}}
+    function updateEnergyReadout(){const c=document.getElementById('consumption-visible');if(c)c.textContent=currentConsumptionW+' W';const b=document.getElementById('battery-visible');if(b){const v=batteryVoltage;b.textContent=v.toFixed(1)+' V';}}
     function recordEnergy(powerW,durationMs){
       currentConsumptionW=30;updateEnergyReadout();
     }
@@ -265,7 +266,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     function findNearbyInteractive() {
       const baseEnt = entities.find((e) => e.kind === 'base');
       if (baseEnt && isAdjacentToEntity(posX,posY,baseEnt)) {
-        if (inventory.size > 0 || batCells < maxBatCells) {
+        if (inventory.size > 0 || batteryVoltage < 12.8) {
           return baseEnt;
         }
       }
@@ -310,21 +311,22 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const baseEnt = entities.find((e) => e.kind === 'base');
       const nearBase = baseEnt && isAdjacentToEntity(posX,posY,baseEnt);
 
-      if (nearBase && batCells < maxBatCells) {
+      if (nearBase && batteryVoltage < 12.8) {
         if (chargeTimer === null) {
           chargeTimer = setInterval(() => {
             const b = entities.find((e) => e.kind === 'base');
-            if (!b || !isAdjacentToEntity(posX,posY,b) || batCells >= maxBatCells) {
+            if (!b || !isAdjacentToEntity(posX,posY,b) || batteryVoltage >= 12.8) {
               clearInterval(chargeTimer);
               chargeTimer = null;
               renderVitals();
               if (moveTimer === null) setMoveStateLabel('IDLE');
               return;
             }
-            batCells = Math.min(maxBatCells, batCells + 1);
+            batteryVoltage=Math.min(12.8,batteryVoltage+0.6);
+            batCells=Math.min(maxBatCells,batCells+1);
             stepsSinceChargeLoss = 0;
             renderVitals();
-            if (batCells === maxBatCells) {
+            if (batteryVoltage >= 12.8) {batteryVoltage=12.8;batCells=maxBatCells;
               clearInterval(chargeTimer);
               chargeTimer = null;
               renderVitals();
@@ -382,7 +384,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         if(ent.kind==='base'){
           if(lx===0&&ly===0){
             const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;
-            parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+50)+')"><path class="station-shell" d="M '+(ex+8)+' '+(ey+18)+' L '+(ex+22)+' '+(ey+7)+' H '+(ex+178)+' L '+(ex+192)+' '+(ey+18)+' V '+(ey+82)+' L '+(ex+178)+' '+(ey+93)+' H '+(ex+22)+' L '+(ex+8)+' '+(ey+82)+' Z"/><path class="station-detail" d="M '+(ex+35)+' '+(ey+28)+' H '+(ex+165)+' M '+(ex+35)+' '+(ey+72)+' H '+(ex+165)+' M '+(ex+100)+' '+(ey+28)+' V '+(ey+72)+'"/><rect class="station-core" x="'+(ex+87)+'" y="'+(ey+39)+'" width="26" height="22"/></g>');
+            parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+50)+')"><path class="station-shell" d="M '+(ex+8)+' '+(ey+28)+' L '+(ex+22)+' '+(ey+20)+' H '+(ex+178)+' L '+(ex+192)+' '+(ey+28)+' V '+(ey+72)+' L '+(ex+178)+' '+(ey+80)+' H '+(ex+22)+' L '+(ex+8)+' '+(ey+72)+' Z"/><path class="station-detail" d="M '+(ex+35)+' '+(ey+34)+' H '+(ex+165)+' M '+(ex+35)+' '+(ey+66)+' H '+(ex+165)+' M '+(ex+100)+' '+(ey+34)+' V '+(ey+66)+'"/><rect class="station-core" x="'+(ex+87)+'" y="'+(ey+40)+'" width="26" height="20"/></g>');
           }
         }else if(ent.kind==='fire'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g><path d="M '+(ex+10)+' '+(ey+35)+' l 30 -25 l 40 18 l 35 -22 l 55 36 v 130 l -40 20 l -40 -18 l -45 22 l -35 -35 Z" fill="url(#fireHatch)" stroke="#fff" stroke-width="2"/><path class="object-line" d="M '+(ex+105)+' '+(ey+115)+' C '+(ex+65)+' '+(ey+75)+' '+(ex+125)+' '+(ey+55)+' '+(ex+110)+' '+(ey+25)+' C '+(ex+170)+' '+(ey+70)+' '+(ex+145)+' '+(ey+90)+' '+(ex+105)+' '+(ey+115)+' Z"/><text x="'+(ex+105)+'" y="'+(ey+145)+'" fill="#fff" font-size="24" text-anchor="middle">!</text></g>');
         }else if(ent.kind==='transporter'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="station-shell" d="M '+(ex+12)+' '+(ey+42)+' L '+(ex+55)+' '+(ey+12)+' H '+(ex+150)+' L '+(ex+188)+' '+(ey+48)+' V '+(ey+154)+' L '+(ex+145)+' '+(ey+188)+' H '+(ex+48)+' L '+(ex+12)+' '+(ey+150)+' Z"/><path class="station-detail" d="M '+(ex+45)+' '+(ey+50)+' H '+(ex+150)+' V '+(ey+145)+' H '+(ex+45)+' Z"/><circle class="station-core" cx="'+(ex+96)+'" cy="'+(ey+96)+'" r="15"/></g>');
@@ -469,7 +471,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 
     function stepInDirection() {
       if (!moveDirection) return;
-      if(missionEnded)return;if(batCells<=0){endMission();return;}
+      if(missionEnded)return;if(batteryVoltage<9){endMission();return;}
       const vectors = {N:[0,-1],NE:[1,-1],E:[1,0],SE:[1,1],S:[0,1],SW:[-1,1],W:[-1,0],NW:[-1,-1]};
       const [dx, dy] = vectors[moveDirection];
       const nextX = posX + dx;
@@ -481,7 +483,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         return;
       }
       const blocked = getEntityAt(nextX, nextY);
-      if (blocked && ['rock','base','solar','crate','assembler','broken','rubble'].includes(blocked.kind)) {
+      if (blocked && ['rock','base','solar','crate','assembler','broken','rubble','fire','transporter'].includes(blocked.kind)) {
         stopMovement('MOVEMENT BLOCKED BY STRUCTURE OR ROCK');
         return;
       }
@@ -493,11 +495,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       setMoveStateLabel('IDLE');
       const rough = entities.some(e=>['debris','rubble','shard','crater'].includes(e.kind)&&isAdjacentOrSame(nextX,nextY,e.x,e.y));
       recordEnergy(rough?95:80,STEP_MS);
+      batteryVoltage=Math.max(8.8,batteryVoltage-(rough?0.16:0.12));
       stepsSinceChargeLoss += 1;
-      if (stepsSinceChargeLoss >= STEPS_PER_CELL_CHARGE) {
-        stepsSinceChargeLoss = 0;
-        batCells = Math.max(0, batCells - 1);
-      }
+      if (stepsSinceChargeLoss >= STEPS_PER_CELL_CHARGE) {stepsSinceChargeLoss=0;batCells=Math.max(0,batCells-1);}
       keepUnitInView();
       renderVitals();
       renderMap();
@@ -508,7 +508,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       }else{
         writeLog('AREA SCANNED // NO EQUIPMENT DETECTED. CONTINUE SURVEY.');
       }
-      if(batCells<=0)endMission();
+      if(batteryVoltage<9)endMission();
     }
 
     function startDirectionalMovement(direction) {
@@ -556,7 +556,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
           } else {
             writeLog('DELIVERED: ' + added.join(', ') + ' (' + delivered.size + '/3)');
           }
-        } else if (batCells < maxBatCells) {
+        } else if (batteryVoltage < 12.8) {
           writeLog('CHARGING AT BASE: +20% EVERY 2S');
         } else {
           writeLog('BASE READY: BAT 100%, NO ITEMS TO DROP');
