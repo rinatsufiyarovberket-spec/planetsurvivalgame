@@ -293,7 +293,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         if((x-posX)**2+(y-posY)**2<=LIDAR_RADIUS**2&&x>=0&&y>=0&&x<MAP_W&&y<MAP_H)explored.add(x+','+y);
     }
     function updateEnergyReadout(){const b=document.getElementById('battery-visible');if(b)b.textContent=batteryVoltage.toFixed(1)+' V';}
-    function consumeBattery(rough){let remaining=1;const factor=rough?1.12:1;while(remaining>0&&batteryVoltage>8.8){const rate=batteryVoltage>12.5?.13:batteryVoltage>10.5?.10:.12;const floor=batteryVoltage>12.5?12.5:batteryVoltage>10.5?10.5:8.8;const steps=Math.min(remaining,(batteryVoltage-floor)/(rate*factor));batteryVoltage-=steps*rate*factor;remaining-=steps;}batteryVoltage=Math.max(8.8,batteryVoltage);}
+    function consumeBattery(rough){let remaining=1;const factor=rough?1.12:1;while(remaining>0&&batteryVoltage>8.8){const rate=batteryVoltage>12.5?.13:batteryVoltage>10.5?.097:.12;const floor=batteryVoltage>12.5?12.5:batteryVoltage>10.5?10.5:8.8;const steps=Math.min(remaining,(batteryVoltage-floor)/(rate*factor));batteryVoltage-=steps*rate*factor;remaining-=steps;}batteryVoltage=Math.max(8.8,batteryVoltage);}
     function recordEnergy(powerW,durationMs){
       currentConsumptionW=30;updateEnergyReadout();
     }
