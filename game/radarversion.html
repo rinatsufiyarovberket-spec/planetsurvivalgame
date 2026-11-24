@@ -135,7 +135,8 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       {id:'base',x:25,y:25,w:2,h:1,kind:'base',label:'CONTROL MODULE / BASE // 2.0 × 0.5 M',rotation:0},
       {id:'panel_1',kind:'solar',w:2,h:2,label:'SOLAR ARRAY',cleaned:false,connected:false,cleaning:false},
       {id:'crate_1',kind:'crate',w:2,h:2,label:'SEALED SUPPLY CONTAINER',taskItem:'container',extracted:false,extracting:false,opened:false},
-      {id:'transporter_1',kind:'transporter',w:2,h:2,label:'CLEANER ROVER // 2.0 × 1.5 M',rotation:0,found:false,cleared:false,active:false,busy:false,linked:false},
+      {id:'transporter_1',kind:'transporter',w:2,h:2,label:'CARGO TRANSPORT ROVER // 2.0 × 1.5 M',rotation:0,found:false,cleared:false,active:false,busy:false,linked:false},
+      {id:'cleaner_1',kind:'cleaner',w:2,h:2,label:'AUTONOMOUS CLEANER ROVER',rotation:0,cleared:false,active:false,busy:false},
       {id:'asm_1',kind:'assembler',w:3,h:2,label:'FIELD ASSEMBLER STATION',cleared:false,heavyDebris:false,unpacked:false,standby:false},
       {id:'broken_2',kind:'hull',w:2,h:2,label:'CRUSHED HULL SECTION'},
       {id:'fire_zone',kind:'fire',w:3,h:3,label:'BURN ZONE / ENGINE FIRE',rotation:0},
@@ -149,7 +150,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const occupied=[];
       for(const e of entities){
         if(e.kind==='base'){occupied.push(e);continue;}
-        const important=['solar','crate','assembler','broken','quest','transporter','fire','capsule_wreck','engine_wreck'].includes(e.kind);
+        const important=['solar','crate','assembler','broken','quest','transporter','cleaner','fire','capsule_wreck','engine_wreck'].includes(e.kind);
         const minR=important?11:4,maxR=important?17:10;
         let placed=false;
         for(let attempt=0;attempt<180&&!placed;attempt++){
@@ -226,10 +227,10 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       return ['N','NE','E','SE','S','SW','W','NW'][Math.round(angle/45)%8];
     }
     function updateTaskStatus(){
-      const panel=entities.find(e=>e.kind==='solar'),transport=entities.find(e=>e.kind==='transporter'),assembler=entities.find(e=>e.kind==='assembler'),container=entities.find(e=>e.kind==='crate');
+      const panel=entities.find(e=>e.kind==='solar'),cleaner=entities.find(e=>e.kind==='cleaner'),assembler=entities.find(e=>e.kind==='assembler'),container=entities.find(e=>e.kind==='crate');
       const missions=[];
       const add=(title,status,detail)=>missions.push('<div class="task-item"><b>'+title+' <span class="task-status">'+status+'</span></b>'+detail+'</div>');
-      const surveyDone=[panel,container,transport,assembler].every(objectDetected);
+      const surveyDone=[panel,container,cleaner,assembler].every(objectDetected);
       add('01 / LOCATION SURVEY',surveyDone?'COMPLETED':'ACTIVE','Explore the area and identify nearby equipment');
       let n=2;
       if(panel&&objectDetected(panel)){
@@ -242,9 +243,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         add(String(n++).padStart(2,'0')+' / SUPPLY CONTAINER · '+dir,container.opened?'OPENED':container.extracted?'EXTRACTED':'DETECTED',container.opened?'Cable and spare components collected':container.extracted?'Open the recovered container and collect its contents':'Extract the container from the debris');
         if(container.opened)add(String(n++).padStart(2,'0')+' / CABLE & COMPONENTS',inventory.has('cable')||delivered.has('cable')?'RECOVERED':'COLLECTED','Recover the solar cable and spare components');
       }
-      if(transport&&objectDetected(transport)){
-        const dir=directionToEntity(transport);
-        add(String(n++).padStart(2,'0')+' / CLEANER ROVER · '+dir,transport.active?'ONLINE':transport.cleared?'READY TO START':'DETECTED',transport.active?'Robot activated':'Clear small debris and start the robot');
+      if(cleaner&&objectDetected(cleaner)){
+        const dir=directionToEntity(cleaner);
+        add(String(n++).padStart(2,'0')+' / CLEANER ROVER · '+dir,cleaner.active?'ONLINE':cleaner.cleared?'READY TO START':'DETECTED',cleaner.active?'Robot activated':'Clear small debris and start the robot');
       }
       if(assembler&&objectDetected(assembler)){
         const dir=directionToEntity(assembler);
@@ -252,7 +253,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       }
       const list=document.getElementById('mission-list');
       if(list)list.innerHTML=missions.join('');
-      if(panel&&panel.connected&&transport&&transport.active&&assembler&&assembler.standby&&container&&container.opened&&!missionTransitionStarted){
+      if(panel&&panel.connected&&cleaner&&cleaner.active&&assembler&&assembler.standby&&container&&container.opened&&!missionTransitionStarted){
         missionTransitionStarted=true;
         writeLog('INITIAL OBJECTIVES COMPLETE // TRANSFERRING CONTROL TO CARGO LOADER');
         const act=document.getElementById('btn-act');
@@ -299,7 +300,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const btn=document.getElementById('btn-act'); if(!btn)return;
       const ent=findNearbyInteractive();
       if(!ent){btn.textContent='SCAN';btn.disabled=false;return;}
-      const labels={base:inventory.size?'CONNECT / UPLOAD':'CHARGE',solar:ent.connected?'CONNECTED':ent.cleaned?'CONNECT CABLE':ent.cleaning?'CLEANING...':'CLEAN PANEL',transporter:ent.active?'ONLINE':ent.busy?'WORKING...':ent.cleared?'START ROBOT':'CLEAR DEBRIS',crate:ent.opened?'COLLECTED':ent.extracting?'EXTRACTING...':ent.extracted?'OPEN CONTAINER':'EXTRACT CONTAINER',assembler:ent.standby?'STANDBY':ent.unpacked?'SET STANDBY':'UNPACK ASSEMBLER',broken:'OPEN CONTAINER'};
+      const labels={base:inventory.size?'CONNECT / UPLOAD':'CHARGE',solar:ent.connected?'CONNECTED':ent.cleaned?'CONNECT CABLE':ent.cleaning?'CLEANING...':'CLEAN PANEL',transporter:ent.linked?'LINKED':ent.active?'AWAIT LINK':ent.busy?'CLEARING...':ent.cleared?'START ROVER':'CLEAR DEBRIS',cleaner:ent.active?'ONLINE':ent.busy?'WORKING...':ent.cleared?'START ROBOT':'CLEAR DEBRIS',crate:ent.opened?'COLLECTED':ent.extracting?'EXTRACTING...':ent.extracted?'OPEN CONTAINER':'EXTRACT CONTAINER',assembler:ent.standby?'STANDBY':ent.unpacked?'SET STANDBY':'UNPACK ASSEMBLER',broken:'OPEN CONTAINER'};
       btn.textContent=labels[ent.kind]||'ACT';btn.disabled=false;
     }
     function structureGlyph(ent,x,y){
@@ -345,7 +346,8 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         if (!isAdjacentToEntity(posX,posY,ent)) continue;
 
         if (ent.kind === 'solar' && !ent.connected) return ent;
-        if (ent.kind === 'transporter' && !ent.active) return ent;
+        if (ent.kind === 'transporter' && !ent.linked) return ent;
+        if (ent.kind === 'cleaner' && !ent.active) return ent;
         if (ent.kind === 'crate' && !ent.opened) return ent;
         if (ent.kind === 'assembler' && !ent.standby) return ent;
         if (ent.kind === 'broken' && !ent.salvaged) return ent;
@@ -475,6 +477,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
           }
         }else if(ent.kind==='fire'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+150)+' '+(ey+150)+')"><path d="M '+(ex+10)+' '+(ey+35)+' l 30 -25 l 40 18 l 35 -22 l 55 36 v 130 l -40 20 l -40 -18 l -45 22 l -35 -35 Z" fill="url(#fireHatch)" stroke="#fff" stroke-width="2"/><path class="object-line" d="M '+(ex+105)+' '+(ey+115)+' C '+(ex+65)+' '+(ey+75)+' '+(ex+125)+' '+(ey+55)+' '+(ex+110)+' '+(ey+25)+' C '+(ex+170)+' '+(ey+70)+' '+(ex+145)+' '+(ey+90)+' '+(ex+105)+' '+(ey+115)+' Z"/><text x="'+(ex+105)+'" y="'+(ey+145)+'" fill="#fff" font-size="24" text-anchor="middle">!</text></g>');
         }else if(['capsule_wreck','engine_wreck'].includes(ent.kind)&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;const shape=ent.kind==='capsule_wreck'?'<path class="station-shell" d="M '+(ex+12)+' '+(ey+52)+' L '+(ex+45)+' '+(ey+12)+' L '+(ex+158)+' '+(ey+20)+' L '+(ex+188)+' '+(ey+92)+' L '+(ex+145)+' '+(ey+184)+' L '+(ex+38)+' '+(ey+168)+' Z"/><path class="station-detail" d="M '+(ex+48)+' '+(ey+55)+' L '+(ex+145)+' '+(ey+62)+' L '+(ex+155)+' '+(ey+125)+' L '+(ex+65)+' '+(ey+145)+' Z"/>':'<path class="station-shell" d="M '+(ex+8)+' '+(ey+35)+' L '+(ex+65)+' '+(ey+12)+' L '+(ex+112)+' '+(ey+42)+' L '+(ex+188)+' '+(ey+18)+' L '+(ex+178)+' '+(ey+162)+' L '+(ex+108)+' '+(ey+188)+' L '+(ex+18)+' '+(ey+145)+' Z"/><path class="station-detail" d="M '+(ex+38)+' '+(ey+55)+' L '+(ex+145)+' '+(ey+130)+' M '+(ex+78)+' '+(ey+30)+' L '+(ex+110)+' '+(ey+168)+'"/>';parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')">'+shape+'</g>');
+        }else if(ent.kind==='cleaner'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="station-shell" d="M '+(ex+25)+' '+(ey+35)+' H '+(ex+175)+' L '+(ex+185)+' '+(ey+135)+' H '+(ex+15)+' Z"/><path class="station-detail" d="M '+(ex+55)+' '+(ey+48)+' H '+(ex+145)+' V '+(ey+118)+' H '+(ex+55)+' Z"/><circle class="station-shell" cx="'+(ex+35)+'" cy="'+(ey+42)+'" r="14"/><circle class="station-shell" cx="'+(ex+165)+'" cy="'+(ey+42)+'" r="14"/><circle class="station-shell" cx="'+(ex+35)+'" cy="'+(ey+132)+'" r="14"/><circle class="station-shell" cx="'+(ex+165)+'" cy="'+(ey+132)+'" r="14"/><path class="object-line" d="M '+(ex+50)+' '+(ey+137)+' H '+(ex+150)+' M '+(ex+75)+' '+(ey+150)+' V '+(ey+165)+' M '+(ex+125)+' '+(ey+150)+' V '+(ey+165)+'"/>'+(ent.cleared?'':'<path d="M '+(ex+5)+' '+(ey+90)+' l 35 -35 l 35 28 l 45 -30 l 65 42 l -30 70 l -110 0 Z" fill="rgba(245,248,250,.3)" stroke="#fff" stroke-width="2"/>')+'</g>');
         }else if(ent.kind==='transporter'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="station-shell" d="M '+(ex+12)+' '+(ey+48)+' L '+(ex+42)+' '+(ey+22)+' H '+(ex+150)+' L '+(ex+188)+' '+(ey+52)+' V '+(ey+132)+' L '+(ex+145)+' '+(ey+158)+' H '+(ex+48)+' L '+(ex+12)+' '+(ey+130)+' Z"/><path class="station-detail" d="M '+(ex+45)+' '+(ey+50)+' H '+(ex+150)+' V '+(ey+145)+' H '+(ex+45)+' Z"/><circle class="station-core" cx="'+(ex+96)+'" cy="'+(ey+96)+'" r="15"/><circle class="station-shell" cx="'+(ex+35)+'" cy="'+(ey+40)+'" r="13"/><circle class="station-shell" cx="'+(ex+165)+'" cy="'+(ey+40)+'" r="13"/><circle class="station-shell" cx="'+(ex+35)+'" cy="'+(ey+140)+'" r="13"/><circle class="station-shell" cx="'+(ex+165)+'" cy="'+(ey+140)+'" r="13"/>'+(ent.found?'':'<path d="M '+(ex-10)+' '+(ey+65)+' l 65 -35 l 45 55 l 90 -10 l 25 70 l -65 35 l -110 -10 Z" fill="rgba(245,248,250,.3)" stroke="#fff" stroke-width="2"/><path d="M '+(ex+5)+' '+(ey+165)+' l 40 -35 l 55 25 l 60 -30 l 55 40" fill="none" stroke="#fff" stroke-width="3"/>')+'</g>');
         }else if(ent.kind==='rock'){
           const z=ent.w>1?30:19;
@@ -576,7 +579,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         return;
       }
       const blocked = getEntityAt(nextX, nextY);
-      if (blocked && ['rock','base','solar','crate','assembler','broken','rubble','fire','transporter','capsule_wreck','engine_wreck'].includes(blocked.kind)) {
+      if (blocked && ['rock','base','solar','crate','assembler','broken','rubble','fire','transporter','cleaner','capsule_wreck','engine_wreck'].includes(blocked.kind)) {
         stopMovement('MOVEMENT BLOCKED BY STRUCTURE OR ROCK');
         return;
       }
@@ -595,7 +598,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       renderMap();
       const nearby=entities.find(e=>e.kind!=='debris'&&isAdjacentToEntity(posX,posY,e));
       if(nearby){
-        const names={base:'CONTROL MODULE',solar:'SOLAR ARRAY',crate:'SUPPLY CONTAINER',assembler:'FIELD ASSEMBLER',broken:'SUPPLY CONTAINER',transporter:'CLEANER ROVER',rock:'ROCK FORMATION',quest:'UNKNOWN OBJECT'};
+        const names={base:'CONTROL MODULE',solar:'SOLAR ARRAY',crate:'SUPPLY CONTAINER',assembler:'FIELD ASSEMBLER',broken:'SUPPLY CONTAINER',transporter:'CARGO TRANSPORTER',cleaner:'CLEANER ROVER',rock:'ROCK FORMATION',quest:'UNKNOWN OBJECT'};
         writeLog('OBJECT DETECTED // '+(names[nearby.kind]||'UNKNOWN EQUIPMENT')+' — APPROACH AND USE ACT');
       }else{
         writeLog('SEARCHING // NO OBJECT DETECTED. CONTINUE SURVEY.');
@@ -660,7 +663,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         return;
       }
 
-      if(ent.kind==='transporter'){
+      if(ent.kind==='cleaner'){
         if(!ent.cleared&&!ent.busy){ent.busy=true;writeLog('CLEANER ROVER // REMOVING SMALL DEBRIS — 5 S');setTimeout(()=>{ent.busy=false;ent.cleared=true;renderMap();writeLog('CLEANER ROVER // DEBRIS REMOVED. PRESS ACT TO START');},5000);return;}
         if(ent.cleared&&!ent.active&&!ent.busy){ent.busy=true;writeLog('CLEANER ROVER // STARTUP SEQUENCE — 1 S');setTimeout(()=>{ent.busy=false;ent.active=true;renderMap();writeLog('CLEANER ROVER ONLINE // AUTONOMOUS UNIT READY');},1000);return;}
       }
