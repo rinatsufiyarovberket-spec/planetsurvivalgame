@@ -14,7 +14,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 .scope{position:relative;width:min(min(58vh,58vw),560px);height:auto;aspect-ratio:1;border-radius:50%;overflow:visible;background:radial-gradient(circle,rgba(255,255,255,.035),rgba(255,255,255,.012) 68%,transparent 69%)}
 .map-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:1}
 .map-svg .scan-boundary{fill:none;stroke:transparent;stroke-width:0}
-.map-svg .tick{stroke:rgba(245,248,250,.72);stroke-width:4}
+.map-svg .tick{stroke:rgba(245,248,250,.54);stroke-width:5}
 .map-svg .tick.major{stroke:rgba(255,255,255,.95);stroke-width:4.5}
 .map-svg .terrain-point{fill:rgba(245,248,250,.48)}
 .map-svg .terrain-fine{fill:rgba(245,248,250,.26)}
@@ -72,7 +72,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     <aside class="side-panel right-panel">
       <div class="panel-heading">MISSION OBJECTIVES</div>
       <div class="task-list" id="mission-list"><div class="task-item"><b>LOCATION SURVEY <span class="task-status">ACTIVE</span></b>Explore the area and identify nearby equipment</div></div>
-      <div class="control-help"><b>CONTROL</b><br>Use the eight arrows to move. Battery drains quickly while driving and working; monitor voltage and return to the station before it becomes critical. Leaving the communication range causes connection loss. Approach equipment and press ACT.</div>
+      <div class="control-help"><b>CONTROL</b><br>Use the eight arrows to move. Battery drains quickly while driving and working; monitor voltage and return to the station before it becomes critical. Leaving the communication range causes connection loss. Approach equipment and start its program by pressing ACT.</div>
     </aside>
     <div class="hidden-support">
       <div id="task-detail-title"></div><div id="task-detail-text"></div>
@@ -142,8 +142,8 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       {id:'capsule_wreck',kind:'capsule_wreck',w:2,h:2,label:'LANDING CAPSULE HULL SECTION'},
       {id:'engine_wreck',kind:'engine_wreck',w:2,h:2,label:'CRUSHED ENGINE / THRUSTER SECTION'},
       {id:'quest_1',kind:'quest',w:1,h:1,label:'TASK BEACON: SALVAGE SECTOR'},
-      ...Array.from({length:8},(_,i)=>({id:'rock_'+i,kind:'rock',w:i%3===0?2:1,h:i%3===0?2:1,label:i%3===0?'BOULDER FORMATION':'ROCK OUTCROP'})),
-      ...Array.from({length:52},(_,i)=>({id:'debris_'+i,kind:['rubble','shard','debris','hull','tank','nozzle','capsule','gravel','scrap','wire','stone'][i%12],w:1,h:1,label:['RUBBLE FIELD','BROKEN FRAGMENT','METAL DEBRIS','GROUND DEPRESSION','HULL PLATING','FUEL TANK REMNANT','ENGINE NOZZLE','CAPSULE STRUCTURE','LOOSE GRAVEL','METAL SCRAP','CABLE FRAGMENT','ROCK CHIPS'][i%12]}))
+      ...Array.from({length:16},(_,i)=>({id:'rock_'+i,kind:'rock',w:i%4===0?2:1,h:i%4===0?2:1,label:i%4===0?'BOULDER FORMATION':'ROCK OUTCROP'})),
+      ...Array.from({length:100},(_,i)=>({id:'debris_'+i,kind:['rubble','shard','debris','hull','tank','nozzle','capsule','gravel','scrap','wire','stone'][i%11],w:1,h:1,label:['RUBBLE FIELD','BROKEN FRAGMENT','METAL DEBRIS','HULL PLATING','FUEL TANK REMNANT','ENGINE NOZZLE','CAPSULE STRUCTURE','LOOSE GRAVEL','METAL SCRAP','CABLE FRAGMENT','ROCK CHIPS'][i%11]}))
     ];
     function placeRandomEntities(){
       const occupied=[];
@@ -153,7 +153,10 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         let placed=false;
         for(let attempt=0;attempt<1200&&!placed;attempt++){
           const x=2+Math.floor(worldRandom()*(MAP_W-(e.w||1)-4)),y=2+Math.floor(worldRandom()*(MAP_H-(e.h||1)-4)),w=e.w||1,h=e.h||1;
-          if(important&&Math.hypot(x-25,y-25)<9)continue;
+          const taskObjective=['solar','crate','assembler','quest','transporter'].includes(e.kind);
+          const distantHazard=['broken','fire','capsule_wreck','engine_wreck','hull','tank','nozzle','capsule'].includes(e.kind);
+          const minBaseDistance=taskObjective?7:distantHazard?12:0;
+          if(minBaseDistance&&Math.hypot(x-25,y-25)<minBaseDistance)continue;
           const overlaps=occupied.some(o=>x<(o.x+(o.w||1)+1)&&x+w>o.x-1&&y<(o.y+(o.h||1)+1)&&y+h>o.y-1);
           if(overlaps)continue;
           const visualDebrisType=k=>(k==='rubble'||k==='debris')?'loose-fragment':k;
@@ -390,10 +393,10 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const source=nearBase?baseEnt:nearSolar?solarEnt:null;
       if(nearBase&&baseEnt&&!baseEnt.serviceBusy){
         const steps=[];
-        if(solarEnt&&inventory.has('cable')&&!solarEnt.connected)steps.push({label:'INSTALLING CABLE',apply:()=>{solarEnt.connected=true;inventory.delete('cable');writeLog('SOLAR ARRAY CONNECTED // CABLE INSTALLED AUTOMATICALLY');}});
-        if(inventory.size)steps.push({label:'TRANSFERRING COMPONENTS',apply:()=>{const items=[...inventory];for(const item of items)if(!delivered.has(item))delivered.add(item);inventory.clear();renderVitals();writeLog('COMPONENTS TRANSFERRED AUTOMATICALLY // '+delivered.size+' SECURED');}});
+        if(solarEnt&&inventory.has('cable')&&!solarEnt.connected)steps.push({label:'INSTALLING CABLE',apply:()=>{solarEnt.connected=true;inventory.delete('cable');}});
+        if(inventory.size)steps.push({label:'TRANSFERRING COMPONENTS',apply:()=>{const items=[...inventory];for(const item of items)if(!delivered.has(item))delivered.add(item);inventory.clear();renderVitals();}});
         const transporter=entities.find(e=>e.kind==='transporter');
-        if(transporter&&transporter.standby&&!transporter.linked)steps.push({label:'LINKING CARGO TRANSPORTER',apply:()=>{transporter.linked=true;writeLog('CARGO TRANSPORTER LINKED TO CONTROL STATION');}});
+        if(transporter&&transporter.standby&&!transporter.linked)steps.push({label:'LINKING CARGO TRANSPORTER',apply:()=>{transporter.linked=true;}});
         if(steps.length){
           baseEnt.serviceBusy=true;let index=0;
           const advance=()=>{
@@ -421,7 +424,6 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
               batteryVoltage=MAX_BATTERY_VOLTAGE;clearInterval(chargeTimer);chargeTimer=null;
               source.charging=false;source.actionEndsAt=null;renderVitals();updateActButton();
               if(moveTimer===null)setMoveStateLabel('IDLE');
-              writeLog('BATTERY RECHARGED');
             }
           },CHARGE_MS);
           renderVitals();updateActButton();
@@ -614,11 +616,11 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       keepUnitInView();
       renderVitals();
       renderMap();
-      const nearby=entities.filter(e=>['base','solar','crate','assembler','broken','hull','transporter','fire','capsule_wreck','engine_wreck','quest'].includes(e.kind)&&isAdjacentToEntity(posX,posY,e)).sort((a,b)=>Math.hypot(a.x+(a.w||1)/2-posX,a.y+(a.h||1)/2-posY)-Math.hypot(b.x+(b.w||1)/2-posX,b.y+(b.h||1)/2-posY))[0];
+      const nearby=entities.filter(e=>['solar','crate','assembler','broken','hull','transporter','fire','capsule_wreck','engine_wreck','quest'].includes(e.kind)&&isAdjacentToEntity(posX,posY,e)).sort((a,b)=>Math.hypot(a.x+(a.w||1)/2-posX,a.y+(a.h||1)/2-posY)-Math.hypot(b.x+(b.w||1)/2-posX,b.y+(b.h||1)/2-posY))[0];
       if(nearby){
         const names={base:'CONTROL MODULE',solar:'SOLAR ARRAY',crate:'SUPPLY CONTAINER',assembler:'FIELD ASSEMBLER',broken:'METAL WRECKAGE',hull:'HULL SECTION',transporter:'CARGO TRANSPORTER',fire:'ENGINE FIRE',capsule_wreck:'LANDING CAPSULE',engine_wreck:'ENGINE SECTION',quest:'TASK BEACON'};
         const dir=directionToEntity(nearby);
-        writeLog('OBJECT DETECTED // '+(names[nearby.kind]||'UNKNOWN EQUIPMENT')+' // '+dir+' — APPROACH AND USE ACT');
+        writeLog('OBJECT DETECTED // '+(names[nearby.kind]||'UNKNOWN EQUIPMENT')+' // '+dir+' — START PROGRAM WITH ACT');
       }
       if(batteryVoltage<9)endMission();
     }
@@ -630,6 +632,12 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       if (moveTimer !== null) return;
       moveDirection = direction;
       const vec={N:[0,-1],NE:[1,-1],E:[1,0],SE:[1,1],S:[0,1],SW:[-1,1],W:[-1,0],NW:[-1,-1]}[direction];
+      const nextX=posX+vec[0],nextY=posY+vec[1];
+      if(nextX<0||nextY<0||nextX>=MAP_W||nextY>=MAP_H){stopMovement('MAP LIMIT REACHED');return;}
+      const base=entities.find(e=>e.kind==='base');
+      if(base){const rx=nextX+.5,ry=nextY+.5,nx=Math.max(base.x,Math.min(rx,base.x+(base.w||2))),ny=Math.max(base.y,Math.min(ry,base.y+(base.h||1)));if(Math.hypot(rx-nx,(ry-ny)*.5)>TX_RANGE_METERS){signalState='LOST';const signalNode=document.getElementById('signal-visible');if(signalNode)signalNode.textContent='TX LOST';stopMovement('TX LOST // ROVER OUT OF BASE COMMUNICATION RANGE');return;}}
+      const blocked=getEntityAt(nextX,nextY);
+      if(blocked&&['rock','base','solar','crate','assembler','broken','rubble','shard','debris','hull','tank','nozzle','capsule','gravel','scrap','wire','stone','fire','transporter','cleaner','capsule_wreck','engine_wreck'].includes(blocked.kind)){stopMovement('MOVEMENT BLOCKED BY STRUCTURE OR ROCK');return;}
       const rough=entities.some(e=>['debris','rubble','shard'].includes(e.kind)&&isAdjacentOrSame(posX+vec[0],posY+vec[1],e.x,e.y));
       currentConsumptionW=rough?95:80; updateEnergyReadout();
       document.querySelectorAll('.dir-btn').forEach((button) => {
