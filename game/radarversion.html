@@ -39,9 +39,10 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
 .dir-btn.northwest{left:-42px;top:-42px;transform:translate(-100%,-100%)}.dir-btn.northeast{right:-42px;top:-42px;transform:translate(100%,-100%)}.dir-btn.southwest{left:-42px;bottom:-42px;transform:translate(-100%,100%)}.dir-btn.southeast{right:-42px;bottom:-42px;transform:translate(100%,100%)}
 .dir-btn.act-center{display:none}
 .scope-caption{display:none}
-.log-area{min-height:48px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:start;padding-top:5px;color:var(--mid);font-size:clamp(9px,1.1vw,12px);line-height:1.45}
-.log-left{min-width:0;text-align:left;overflow:hidden}.log-label{color:var(--dim);letter-spacing:.1em;margin-bottom:3px}.mission-message{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.log-history{color:var(--dim);display:flex;flex-direction:column;gap:1px}.log-entry{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rover-battery{color:var(--ink);font-size:clamp(11px,1.25vw,14px);font-weight:700;white-space:nowrap;padding-top:15px}
+.log-area{min-height:66px;display:grid;grid-template-columns:minmax(0,1fr);gap:5px;align-items:start;padding-top:5px;color:var(--mid);font-size:clamp(9px,1.1vw,12px);line-height:1.45}
+.log-left{min-width:0;text-align:left;overflow:hidden}.log-label{color:var(--dim);letter-spacing:.1em;margin-bottom:3px}.mission-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.mission-message{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;flex:1}.log-history{color:var(--dim);display:flex;flex-direction:column;gap:1px}.log-entry{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.action-button{flex:none;border:1px solid var(--accent);background:transparent;color:var(--accent);font:700 11px monospace;letter-spacing:.08em;padding:7px 13px;cursor:pointer}.action-button:disabled{opacity:.28}
+.rover-battery{display:none}
 .hidden-support{display:none}
 @media(max-width:600px){body{padding:10px}.top-readout{min-height:48px}.top-readout .consumption{font-size:9px}.top-readout strong{font-size:17px}.top-readout .battery strong{font-size:23px}.scope{width:min(76vw,58vh)}.dir-btn{width:30px;height:30px;font-size:19px}.dir-btn.north{left:-34px}.dir-btn.south{right:-34px}.dir-btn.west{top:-34px}.dir-btn.east{bottom:-34px}.dir-btn.northwest{left:-28px;top:-28px}.dir-btn.northeast{right:-28px;top:-28px}.dir-btn.southwest{left:-28px;bottom:-28px}.dir-btn.southeast{right:-28px;bottom:-28px}.log-area{gap:6px}}
 </style>
@@ -60,7 +61,7 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
       <button class="dir-btn north" data-direction="N" aria-label="North">⌃</button>
       <button class="dir-btn northeast" data-direction="NE" aria-label="Northeast">↗</button>
       <button class="dir-btn west" data-direction="W" aria-label="West">‹</button>
-      <button class="dir-btn act-center" id="btn-act" disabled>ACT</button>
+      
       <button class="dir-btn east" data-direction="E" aria-label="East">›</button>
       <button class="dir-btn southwest" data-direction="SW" aria-label="Southwest">↙</button>
       <button class="dir-btn south" data-direction="S" aria-label="South">⌄</button>
@@ -241,11 +242,11 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
       const c=document.getElementById('consumption-visible');
       const e=document.getElementById('energy-used');
       if(c)c.textContent=currentConsumptionW+' W';
-      if(e)e.textContent='ENERGY USED '+energyUsedWh.toFixed(2)+' Wh / '+BATTERY_CAPACITY_WH+' Wh';
+      if(e)e.textContent='ENERGY USED '+energyUsedWh.toFixed(2)+' Wh / '+BATTERY_CAPACITY_WH+' Wh CAPACITY';
     }
     function recordEnergy(powerW,durationMs){
-      currentConsumptionW=powerW;
       energyUsedWh+=powerW*(durationMs/3600000);
+      currentConsumptionW=30;
       updateEnergyReadout();
     }
     function setActionLabel(){
@@ -530,6 +531,9 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
       if(!Object.prototype.hasOwnProperty.call(vectors,direction))return;
       if (moveTimer !== null) return;
       moveDirection = direction;
+      const vec={N:[0,-1],NE:[1,-1],E:[1,0],SE:[1,1],S:[0,1],SW:[-1,1],W:[-1,0],NW:[-1,-1]}[direction];
+      const rough=entities.some(e=>e.kind==='debris'&&isAdjacentOrSame(posX+vec[0],posY+vec[1],e.x,e.y));
+      currentConsumptionW=rough?95:80; updateEnergyReadout();
       document.querySelectorAll('.dir-btn').forEach((button) => {
         button.classList.toggle('is-active', button.dataset.direction === direction);
       });
