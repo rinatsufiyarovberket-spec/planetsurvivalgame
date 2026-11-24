@@ -637,7 +637,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const base=entities.find(e=>e.kind==='base');
       if(base){const rx=nextX+.5,ry=nextY+.5,nx=Math.max(base.x,Math.min(rx,base.x+(base.w||2))),ny=Math.max(base.y,Math.min(ry,base.y+(base.h||1)));if(Math.hypot(rx-nx,(ry-ny)*.5)>TX_RANGE_METERS){signalState='LOST';const signalNode=document.getElementById('signal-visible');if(signalNode)signalNode.textContent='TX LOST';stopMovement('TX LOST // ROVER OUT OF BASE COMMUNICATION RANGE');return;}}
       const blocked=getEntityAt(nextX,nextY);
-      if(blocked&&['rock','base','solar','crate','assembler','broken','rubble','shard','debris','hull','tank','nozzle','capsule','gravel','scrap','wire','stone','fire','transporter','cleaner','capsule_wreck','engine_wreck'].includes(blocked.kind)){stopMovement('MOVEMENT BLOCKED BY STRUCTURE OR ROCK');return;}
+      if(blocked&&['rock','base','solar','crate','assembler','broken','rubble','fire','transporter','cleaner','capsule_wreck','engine_wreck'].includes(blocked.kind)){stopMovement('MOVEMENT BLOCKED BY STRUCTURE OR ROCK');return;}
       const rough=entities.some(e=>['debris','rubble','shard'].includes(e.kind)&&isAdjacentOrSame(posX+vec[0],posY+vec[1],e.x,e.y));
       currentConsumptionW=rough?95:80; updateEnergyReadout();
       document.querySelectorAll('.dir-btn').forEach((button) => {
