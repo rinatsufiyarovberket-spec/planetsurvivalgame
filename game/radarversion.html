@@ -286,7 +286,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const btn=document.getElementById('btn-act'); if(!btn)return;
       const ent=findNearbyInteractive();
       const labels={base:inventory.size?'CONNECT':'CHARGE',solar:'PICK UP',crate:'OPEN',assembler:'SALVAGE',broken:'SALVAGE'};
-      btn.textContent=ent?(labels[ent.kind]||'ACT'):'SCAN'; btn.disabled=!ent;
+      btn.textContent=ent?(labels[ent.kind]||'ACT'):'SCAN'; btn.disabled=false;
     }
     function structureGlyph(ent,x,y){
       const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y;
@@ -435,9 +435,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         if(ent.kind==='base'){
           if(lx===0&&ly===0){
             const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;
-            parts.push('<path class="station-shell" d="M '+(ex+16)+' '+(ey+22)+' L '+(ex+72)+' '+(ey+4)+' L '+(ex+428)+' '+(ey+4)+' L '+(ex+484)+' '+(ey+22)+' L '+(ex+484)+' '+(ey+88)+' L '+(ex+438)+' '+(ey+72)+' L '+(ex+392)+' '+(ey+112)+' L '+(ex+92)+' '+(ey+112)+' L '+(ex+48)+' '+(ey+72)+' L '+(ex+16)+' '+(ey+88)+' Z"/>');
-            parts.push('<path class="station-detail" d="M '+(ex+85)+' '+(ey+26)+' H '+(ex+415)+' M '+(ex+85)+' '+(ey+88)+' H '+(ex+415)+' M '+(ex+250)+' '+(ey+26)+' V '+(ey+88)+' M '+(ex+35)+' '+(ey+54)+' H '+(ex+72)+' M '+(ex+428)+' '+(ey+54)+' H '+(ex+465)+'"/>');
-            parts.push('<rect class="station-core" x="'+(ex+220)+'" y="'+(ey+43)+'" width="60" height="27"/>');
+            parts.push('<path class="station-shell" d="M '+(ex+16)+' '+(ey+42)+' L '+(ex+72)+' '+(ey+12)+' L '+(ex+428)+' '+(ey+12)+' L '+(ex+484)+' '+(ey+42)+' L '+(ex+484)+' '+(ey+218)+' L '+(ex+438)+' '+(ey+188)+' L '+(ex+392)+' '+(ey+276)+' L '+(ex+92)+' '+(ey+276)+' L '+(ex+48)+' '+(ey+188)+' L '+(ex+16)+' '+(ey+218)+' Z"/>');
+            parts.push('<path class="station-detail" d="M '+(ex+85)+' '+(ey+55)+' H '+(ex+415)+' M '+(ex+85)+' '+(ey+218)+' H '+(ex+415)+' M '+(ex+250)+' '+(ey+55)+' V '+(ey+218)+' M '+(ex+35)+' '+(ey+128)+' H '+(ex+72)+' M '+(ex+428)+' '+(ey+128)+' H '+(ex+465)+'"/>');
+            parts.push('<rect class="station-core" x="'+(ex+220)+'" y="'+(ey+112)+'" width="60" height="44"/>');
           }
         }else if(ent.kind==='rock'){
           const z=ent.w>1?30:19;
