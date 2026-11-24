@@ -10,7 +10,7 @@
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"DejaVu Sans Mono","Liberation Mono",Consolas,monospace;touch-action:manipulation}
 body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 .app{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:clamp(5px,1vh,10px)}
-.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(155px,1fr) minmax(300px,min(58vh,560px)) minmax(155px,1fr);gap:clamp(48px,5vw,76px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(11px,.92vw,13px);line-height:1.48}.panel-heading{color:#fff;font-size:clamp(11px,.95vw,13px);letter-spacing:.1em;margin:0 0 6px}.telemetry{display:flex;flex-direction:column;gap:5px}.telemetry strong{display:block;color:#fff;font-size:clamp(16px,1.5vw,21px);font-weight:500}.metric{padding-bottom:2px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:4px}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(10px,.8vw,11px)}.task-item b{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px;color:#fff;font-weight:500}.task-status{color:var(--mid);font-size:.82em;font-weight:400;letter-spacing:.04em;white-space:nowrap}.control-help{margin-top:8px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
+.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(155px,1fr) minmax(300px,min(58vh,560px)) minmax(155px,1fr);gap:clamp(48px,5vw,76px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(11px,.92vw,13px);line-height:1.48}.panel-heading{color:#fff;font-size:clamp(11px,.95vw,13px);letter-spacing:.1em;margin:0 0 6px}.telemetry{display:flex;flex-direction:column;gap:5px}.telemetry strong{display:block;color:#fff;font-size:clamp(16px,1.5vw,21px);font-weight:500}.battery-state{display:inline-block;margin-left:12px;vertical-align:baseline;color:var(--mid);font-size:clamp(9px,.72vw,10px);font-weight:400;letter-spacing:.045em;white-space:nowrap}.activity-heading{display:flex;align-items:center;gap:8px;margin-top:14px;margin-bottom:6px}.activity-heading .panel-heading{margin:0;white-space:nowrap}.activity-action{flex:1;min-width:0;height:24px;padding:2px 8px;font-size:10px;line-height:1;letter-spacing:.08em}.metric{padding-bottom:2px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:4px}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(10px,.8vw,11px)}.task-item b{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px;color:#fff;font-weight:500}.task-status{color:var(--mid);font-size:.82em;font-weight:400;letter-spacing:.04em;white-space:nowrap}.control-help{margin-top:8px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
 .scope{position:relative;width:min(min(58vh,58vw),560px);height:auto;aspect-ratio:1;border-radius:50%;overflow:visible;background:radial-gradient(circle,rgba(255,255,255,.035),rgba(255,255,255,.012) 68%,transparent 69%)}
 .map-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:1}
 .map-svg .scan-boundary{fill:none;stroke:transparent;stroke-width:0}
@@ -55,7 +55,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         <div class="metric">ANTENNA DISTANCE<strong id="distance-visible">0.0 M</strong></div>
         <div class="metric">SIGNAL<strong id="signal-visible">TX: STABLE</strong></div>
       </div>
-      <div class="panel-heading" style="margin-top:14px">ACTIVITY / EVENT LOG</div>
+      <div class="activity-heading"><div class="panel-heading">ACTIVITY / EVENT LOG</div><button class="action-button activity-action" id="btn-act">SCAN</button></div>
       <div class="status-list" id="status-messages"></div>
       <div class="outgoing-list" id="log-history"><div class="log-entry">&gt; SEARCHING // LOCAL TERRAIN SCAN ACTIVE</div></div>
     </aside>
@@ -78,8 +78,6 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         <div class="task-item"><b>03 / ASSEMBLER STATION <span class="task-status" id="task-status-assembler">SEARCHING</span></b>Clear surrounding rubble; wait for the loader rover to remove heavy debris</div>
         <div class="task-item"><b>04 / SUPPLY CONTAINER <span class="task-status" id="task-status-upgrade">SEARCHING</span></b>Find the container holding the solar cable and spare components</div>
       </div>
-      <div class="panel-heading" style="margin-top:14px">ROVER ACTIVITY</div>
-      <button class="action-button" id="btn-act">SCAN</button>
       <div class="control-help"><b>CONTROL</b><br>Use the eight arrows to move. Approach an object and press ACT. Return to the station to recharge and connect recovered equipment.</div>
     </aside>
     <div class="hidden-support">
@@ -214,6 +212,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       {title:'04 // RECOVER PARTS',text:'Locate salvageable components, wiring, tools and structural fragments. Move close to an object and use ACT to collect or recover it, then return to the control module.'}
     ];
     let selectedTask=0;
+    let missionTransitionStarted=false;
     function selectTask(index){
       selectedTask=Math.max(0,Math.min(taskData.length-1,index));
       document.querySelectorAll('.task-tab').forEach((button,i)=>button.classList.toggle('active',i===selectedTask));
@@ -228,6 +227,8 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const t=document.getElementById('task-status-transporter');if(t)t.textContent=transport?(transport.linked?'COMPLETED':transport.active?'STANDBY // AWAITING LINK':transport.cleared?'READY TO START':transport.found?'DEBRIS CLEARANCE':detected(transport)?'DETECTED':'SEARCHING'):'SEARCHING';
       const as=document.getElementById('task-status-assembler');if(as)as.textContent=assembler?(assembler.cleared?(assembler.heavyDebris?'AWAITING LOADER':'CLEARED'):detected(assembler)?'DETECTED':'SEARCHING'):'SEARCHING';
       const c=document.getElementById('task-status-upgrade');if(c)c.textContent=container?(container.opened?'CABLE SECURED':detected(container)?'DETECTED':'SEARCHING'):'SEARCHING';
+      const complete=!!(panel&&panel.connected&&transport&&transport.linked&&assembler&&assembler.cleared&&!assembler.heavyDebris&&container&&container.opened);
+      if(complete&&!missionTransitionStarted){missionTransitionStarted=true;writeLog('ALL OBJECTIVES COMPLETE // TRANSFERRING CONTROL TO CARGO TRANSPORTER');const act=document.getElementById('btn-act');if(act){act.disabled=true;act.textContent='MISSION COMPLETE';}setTimeout(()=>{window.location.href='index.html';},2500);}
     }
     function renderVitals() {
       const volts=batteryVoltage;
@@ -267,8 +268,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     function setActionLabel(){
       const btn=document.getElementById('btn-act'); if(!btn)return;
       const ent=findNearbyInteractive();
+      if(!ent){btn.textContent='SCAN';btn.disabled=false;return;}
       const labels={base:inventory.size?'CONNECT / UPLOAD':'CHARGE',solar:ent.connected?'CONNECTED':ent.cleaned?'CONNECT CABLE':ent.cleaning?'CLEANING...':'CLEAR & CLEAN PANEL',transporter:ent.linked?'LINKED':ent.active?'AWAIT LINK':ent.busy?'CLEARING...':ent.cleared?'START ROVER':'CLEAR DEBRIS',crate:'OPEN CONTAINER',assembler:ent.cleared?'WAIT FOR LOADER':'CLEAR DEBRIS',broken:'OPEN CONTAINER'};
-      btn.textContent=ent?(labels[ent.kind]||'ACT'):'SCAN'; btn.disabled=false;
+      btn.textContent=labels[ent.kind]||'ACT';btn.disabled=false;
     }
     function structureGlyph(ent,x,y){
       const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y;
