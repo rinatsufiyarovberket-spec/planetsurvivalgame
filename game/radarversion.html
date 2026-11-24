@@ -134,7 +134,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     const entities = [
       {id:'base',x:25,y:25,w:2,h:1,kind:'base',label:'CONTROL MODULE / BASE // 2.0 × 0.5 M',rotation:0},
       {id:'panel_1',kind:'solar',w:2,h:2,label:'SOLAR ARRAY',cleaned:false,connected:false,cleaning:false},
-      {id:'crate_1',kind:'crate',w:2,h:2,label:'SEALED SUPPLY CONTAINER',taskItem:'container',opened:false},
+      {id:'crate_1',kind:'crate',w:2,h:2,label:'SEALED SUPPLY CONTAINER',taskItem:'container',extracted:false,extracting:false,opened:false},
       {id:'transporter_1',kind:'transporter',w:2,h:2,label:'CLEANER ROVER // 2.0 × 1.5 M',rotation:0,found:false,cleared:false,active:false,busy:false,linked:false},
       {id:'asm_1',kind:'assembler',w:3,h:2,label:'FIELD ASSEMBLER STATION',cleared:false,heavyDebris:false,unpacked:false,standby:false},
       {id:'broken_2',kind:'hull',w:2,h:2,label:'CRUSHED HULL SECTION'},
@@ -239,7 +239,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       }
       if(container&&objectDetected(container)){
         const dir=directionToEntity(container);
-        add(String(n++).padStart(2,'0')+' / SUPPLY CONTAINER · '+dir,container.opened?'OPENED':'DETECTED',container.opened?'Container recovered; cable and components collected':'Extract the container from the debris');
+        add(String(n++).padStart(2,'0')+' / SUPPLY CONTAINER · '+dir,container.opened?'OPENED':container.extracted?'EXTRACTED':'DETECTED',container.opened?'Cable and spare components collected':container.extracted?'Open the recovered container and collect its contents':'Extract the container from the debris');
         if(container.opened)add(String(n++).padStart(2,'0')+' / CABLE & COMPONENTS',inventory.has('cable')||delivered.has('cable')?'RECOVERED':'COLLECTED','Recover the solar cable and spare components');
       }
       if(transport&&objectDetected(transport)){
@@ -299,7 +299,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const btn=document.getElementById('btn-act'); if(!btn)return;
       const ent=findNearbyInteractive();
       if(!ent){btn.textContent='SCAN';btn.disabled=false;return;}
-      const labels={base:inventory.size?'CONNECT / UPLOAD':'CHARGE',solar:ent.connected?'CONNECTED':ent.cleaned?'CONNECT CABLE':ent.cleaning?'CLEANING...':'CLEAN PANEL',transporter:ent.active?'ONLINE':ent.busy?'WORKING...':ent.cleared?'START ROBOT':'CLEAR DEBRIS',crate:'RECOVER CONTAINER',assembler:ent.standby?'STANDBY':ent.unpacked?'SET STANDBY':'UNPACK ASSEMBLER',broken:'OPEN CONTAINER'};
+      const labels={base:inventory.size?'CONNECT / UPLOAD':'CHARGE',solar:ent.connected?'CONNECTED':ent.cleaned?'CONNECT CABLE':ent.cleaning?'CLEANING...':'CLEAN PANEL',transporter:ent.active?'ONLINE':ent.busy?'WORKING...':ent.cleared?'START ROBOT':'CLEAR DEBRIS',crate:ent.opened?'COLLECTED':ent.extracting?'EXTRACTING...':ent.extracted?'OPEN CONTAINER':'EXTRACT CONTAINER',assembler:ent.standby?'STANDBY':ent.unpacked?'SET STANDBY':'UNPACK ASSEMBLER',broken:'OPEN CONTAINER'};
       btn.textContent=labels[ent.kind]||'ACT';btn.disabled=false;
     }
     function structureGlyph(ent,x,y){
@@ -669,9 +669,8 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         if(ent.cleaned&&!ent.connected){if(!inventory.has('cable')){writeLog('SOLAR ARRAY READY // CABLE REQUIRED — SEARCH SUPPLY CONTAINER');return;}writeLog('SOLAR ARRAY CLEANED // CABLE SECURED. RETURN TO STATION TO CONNECT');return;}
       }
 
-      if (ent.kind === 'crate' && !ent.opened) {
-        ent.opened=true;inventory.add('cable');inventory.add('spare_parts');renderVitals();renderMap();writeLog('SUPPLY CONTAINER OPENED // SOLAR CABLE AND SPARE COMPONENTS RECOVERED');return;
-      }
+      if(ent.kind==='crate'&&!ent.extracted&&!ent.extracting){ent.extracting=true;writeLog('SUPPLY CONTAINER // EXTRACTING FROM DEBRIS — 5 S');setTimeout(()=>{ent.extracting=false;ent.extracted=true;renderMap();writeLog('SUPPLY CONTAINER // EXTRACTED. PRESS ACT TO OPEN');},5000);return;}
+      if(ent.kind==='crate'&&ent.extracted&&!ent.opened){ent.opened=true;inventory.add('cable');inventory.add('spare_parts');renderVitals();renderMap();writeLog('SUPPLY CONTAINER OPENED // SOLAR CABLE AND SPARE COMPONENTS RECOVERED');return;}
 
       if(ent.kind==='assembler'&&!ent.unpacked){ent.unpacked=true;ent.cleared=true;renderMap();writeLog('FIELD ASSEMBLER // UNIT UNPACKED FROM TRANSPORT CASING');return;}
       if(ent.kind==='assembler'&&ent.unpacked&&!ent.standby){ent.standby=true;renderMap();writeLog('FIELD ASSEMBLER // STANDBY MODE ACTIVE');return;}
