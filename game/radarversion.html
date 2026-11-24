@@ -315,7 +315,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       if (ent.kind === 'base') return '\u2B1F';      // ⬟
       if (ent.kind === 'rock') return '\u25B2';      // ▲
       if (ent.kind === 'solar') return ent.taken ? '' : '\u25A4';
-      if (ent.kind === 'transporter') return ent.found ? '' : '\u25A0'; // ▤
+      if (ent.kind === 'transporter') return ent.found ? '' : '\u25B0'; // ▰ cargo loader marker
       if (ent.kind === 'crate') return ent.opened ? '\u25A1' : '\u25A3'; // □ / ▣
       if (ent.kind === 'assembler') return ent.salvaged ? '\u2591' : '\u2699'; // ⚙ / ░
       // ⌘ is reserved for a future aerial drone / multicopter unit.
