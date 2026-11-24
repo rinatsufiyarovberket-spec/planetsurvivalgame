@@ -10,7 +10,7 @@
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"DejaVu Sans Mono","Liberation Mono",Consolas,monospace;touch-action:manipulation}
 body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 .app{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:clamp(5px,1vh,10px)}
-.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(145px,1fr) minmax(300px,min(58vh,560px)) minmax(175px,1fr);gap:clamp(12px,2vw,28px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(13px,1.15vw,15px);line-height:1.7}.panel-heading{color:#fff;font-size:clamp(13px,1.15vw,16px);letter-spacing:.12em;margin:0 0 9px}.telemetry{display:flex;flex-direction:column;gap:8px}.telemetry strong{display:block;color:#fff;font-size:clamp(20px,2vw,27px);font-weight:500}.metric{padding-bottom:6px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:6px}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(12px,1vw,13px)}.task-item b{display:block;color:#fff;font-weight:500}.control-help{margin-top:18px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
+.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(155px,1fr) minmax(300px,min(58vh,560px)) minmax(155px,1fr);gap:clamp(12px,1.7vw,24px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(11px,.92vw,13px);line-height:1.48}.panel-heading{color:#fff;font-size:clamp(11px,.95vw,13px);letter-spacing:.1em;margin:0 0 6px}.telemetry{display:flex;flex-direction:column;gap:5px}.telemetry strong{display:block;color:#fff;font-size:clamp(16px,1.5vw,21px);font-weight:500}.metric{padding-bottom:2px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:4px}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(10px,.8vw,11px)}.task-item b{display:block;color:#fff;font-weight:500}.control-help{margin-top:8px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
 .scope{position:relative;width:min(min(58vh,58vw),560px);height:auto;aspect-ratio:1;border-radius:50%;overflow:visible;background:radial-gradient(circle,rgba(255,255,255,.035),rgba(255,255,255,.012) 68%,transparent 69%)}
 .map-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:1}
 .map-svg .scan-boundary{fill:none;stroke:transparent;stroke-width:0}
@@ -40,26 +40,48 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 .dir-btn.southwest{left:14%;bottom:14%;transform:translate(-100%,100%) rotate(135deg)}
 .dir-btn.southeast{right:14%;bottom:14%;transform:translate(100%,100%) rotate(45deg)}
 .dir-btn.act-center,.scope-caption,.rover-battery,.hidden-support{display:none}
-.log-area{display:none}.action-button{border:1px solid rgba(245,248,250,.72);background:rgba(255,255,255,.035);color:#fff;font:600 12px monospace;letter-spacing:.1em;padding:8px 13px;cursor:pointer;margin-top:12px}.action-button:disabled{opacity:.28}.mission-failed{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.94);display:none;place-items:center;text-align:center;padding:24px;color:#fff}.mission-failed.active{display:grid}.mission-failed strong{display:block;font-size:clamp(28px,6vw,64px);letter-spacing:.12em}.mission-failed span{display:block;margin-top:12px;color:#aaa}
-@media(max-width:900px){body{padding:9px}.radar-stage{grid-template-columns:minmax(105px,.8fr) minmax(250px,min(54vh,52vw)) minmax(125px,.9fr);gap:8px}.scope{width:100%}.side-panel{font-size:11px}.telemetry strong{font-size:17px}.panel-heading{font-size:11px}.dir-btn{width:22px;height:22px;font-size:22px}}@media(max-width:620px){.radar-stage{grid-template-columns:1fr 1fr;grid-template-rows:auto minmax(0,1fr);gap:8px}.scope{grid-column:1 / -1;grid-row:2;width:min(76vw,54vh);justify-self:center}.left-panel{grid-column:1;grid-row:1}.right-panel{grid-column:2;grid-row:1}.outgoing-list{display:none}.control-help{margin-top:6px}.task-list{gap:5px}}@media(max-height:560px){.scope{width:min(50vh,50vw)}}
+.log-area{display:none}.action-button{border:1px solid rgba(245,248,250,.72);background:rgba(255,255,255,.035);color:#fff;font:600 11px monospace;letter-spacing:.08em;padding:7px 11px;cursor:pointer;margin-top:5px}.action-button:disabled{opacity:.28}.mission-failed{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.94);display:none;place-items:center;text-align:center;padding:24px;color:#fff}.mission-failed.active{display:grid}.mission-failed strong{display:block;font-size:clamp(28px,6vw,64px);letter-spacing:.12em}.mission-failed span{display:block;margin-top:12px;color:#aaa}
+@media(max-width:900px){body{padding:9px}.radar-stage{grid-template-columns:minmax(120px,.9fr) minmax(250px,min(54vh,52vw)) minmax(120px,.9fr);gap:8px}.scope{width:100%}.side-panel{font-size:10px}.telemetry strong{font-size:16px}.panel-heading{font-size:10px}.dir-btn{width:22px;height:22px;font-size:22px}}@media(max-width:620px){.radar-stage{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:8px}.scope{grid-column:1 / -1;grid-row:2;width:min(76vw,54vh);justify-self:center}.left-panel{grid-column:1;grid-row:1}.right-panel{grid-column:2;grid-row:1}.outgoing-list{display:flex}.control-help{margin-top:6px}.task-list{gap:5px}}@media(max-height:560px){.scope{width:min(50vh,50vw)}}
 </style>
 </head>
 <body>
 <div class="app">
   
-  <main class="radar-stage"><aside class="side-panel left-panel"><div class="panel-heading">ROVER STATUS</div><div class="telemetry"><div class="metric">BATTERY<strong id="battery-visible">12.8 V</strong></div><div class="metric">DRIVE LOAD<strong id="consumption-visible">30 W</strong></div><div class="status-list"><div class="status-item">LINK: CONNECTED</div><div class="status-item">LIDAR: ACTIVE 360°</div><div class="status-item">MODE: SEARCH</div></div></div><div class="panel-heading" style="margin-top:18px">STATUS / ALERTS</div><div class="status-list" id="status-messages"><div class="status-item">MISSION INITIALIZED</div><div class="status-item">ROVER ONLINE</div></div><div class="panel-heading" style="margin-top:18px">OUTGOING LOG</div><div class="outgoing-list" id="log-history"></div></aside><div class="scope aria-label="360 degree rover lidar radar">
+  <main class="radar-stage">
+    <aside class="side-panel left-panel">
+      <div class="panel-heading">MISSION OBJECTIVES</div>
+      <div class="task-list">
+        <div class="task-item"><b>01 / SOLAR ARRAY</b>Locate one solar panel</div>
+        <div class="task-item"><b>02 / TRANSPORT ROVER</b>Find the cargo transporter</div>
+        <div class="task-item"><b>03 / ASSEMBLER STATION</b>Locate the field assembler</div>
+        <div class="task-item"><b>04 / UPGRADE CACHE</b>Recover parts and schematics for base and rovers</div>
+      </div>
+      <div class="panel-heading" style="margin-top:12px">ROVER TELEMETRY</div>
+      <div class="telemetry">
+        <div class="metric">BATTERY VOLTAGE<strong id="battery-visible">12.8 V</strong></div>
+        <div class="metric">DISTANCE FROM BASE<strong id="distance-visible">0.0 M</strong></div>
+        <div class="metric">SIGNAL<strong id="signal-visible">TX: STABLE</strong></div>
+        <button class="action-button" id="btn-act">SCAN</button>
+      </div>
+      <div class="control-help"><b>CONTROL</b><br>Use eight arrows to move. Approach an object and press the action button. Keep battery above 9 V. Return to base to recharge and unload recovered equipment.</div>
+    </aside>
+    <div class="scope" aria-label="360 degree rover lidar radar">
       <svg class="map-svg" id="map-svg" viewBox="0 0 1500 1500" role="img" aria-label="LIDAR terrain map"></svg>
       <button class="dir-btn northwest" data-direction="NW" aria-label="Northwest">></button>
       <button class="dir-btn north" data-direction="N" aria-label="North">></button>
       <button class="dir-btn northeast" data-direction="NE" aria-label="Northeast">></button>
       <button class="dir-btn west" data-direction="W" aria-label="West">&lt;</button>
-      
       <button class="dir-btn east" data-direction="E" aria-label="East">></button>
       <button class="dir-btn southwest" data-direction="SW" aria-label="Southwest">></button>
       <button class="dir-btn south" data-direction="S" aria-label="South">></button>
       <button class="dir-btn southeast" data-direction="SE" aria-label="Southeast">></button>
     </div>
-    <aside class="side-panel right-panel"><div class="panel-heading">MISSION OBJECTIVES</div><div class="task-list"><div class="task-item"><b>01 / SOLAR ARRAY</b>Locate one solar panel</div><div class="task-item"><b>02 / TRANSPORT ROVER</b>Find the cargo transporter</div><div class="task-item"><b>03 / ASSEMBLER STATION</b>Locate the field assembler</div><div class="task-item"><b>04 / UPGRADE CACHE</b>Recover parts and schematics for base and rovers</div></div><div class="control-help"><b>ROVER CONTROL</b><br>Use the eight directional arrows to drive. Press SCAN / ACT near an object to inspect or recover it.<br><br><b>POWER WARNING</b><br>Monitor voltage. Below 9 V the rover shuts down and the mission ends. Cleaner rover signal range is limited to 9 map cells. Return to base before power runs out.</div><button class="action-button" id="btn-act">SCAN</button></aside><div class="hidden-support">
+    <aside class="side-panel right-panel">
+      <div class="panel-heading">ACTIVITY / EVENT LOG</div>
+      <div class="status-list" id="status-messages"></div>
+      <div class="outgoing-list" id="log-history"><div class="log-entry">> SEARCHING // LOCAL TERRAIN SCAN ACTIVE</div></div>
+    </aside>
+    <div class="hidden-support">
       <div id="task-detail-title"></div><div id="task-detail-text"></div>
       <div id="rover-voltage"></div>
       <button class="task-tab" data-task="0"></button><button class="task-tab" data-task="1"></button><button class="task-tab" data-task="2"></button><button class="task-tab" data-task="3"></button>
@@ -104,6 +126,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     const maxTmp = 100;
 
     let batteryVoltage = 12.8;
+    let signalState = 'STABLE';
+    const TX_RANGE_METERS = 9;
+    const TX_LOW_METERS = 7.5;
 
     const explored = new Set();
     const inventory = new Set(); // recovered panel, supplies, assembler and upgrade cache
@@ -154,6 +179,8 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     function toImportantMessage(text){
       const value=String(text).toUpperCase();
       if(value.includes('BLOCKED BY STRUCTURE')||value.includes('ROCK'))return 'OBSTACLE AHEAD // ROCK FORMATION OR STRUCTURE';
+      if(value.includes('TX LOST'))return 'TX LOST // CONNECTION WITH ROVER LOST';
+      if(value.includes('LOW TX'))return 'LOW TX // SIGNAL MARGIN REDUCED';
       if(value.includes('MAP LIMIT'))return 'MAP LIMIT // NO FURTHER TERRAIN IN THIS DIRECTION';
       if(value.includes('NO INTERACTIVE OBJECT'))return 'NO OBJECT IN RANGE // MOVE CLOSER AND USE ACT';
       if(value.includes('PICKED UP SOLAR'))return 'ITEM RECOVERED // SOLAR PANEL — RETURN TO CONTROL MODULE';
@@ -219,7 +246,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       for(let y=posY-LIDAR_RADIUS;y<=posY+LIDAR_RADIUS;y++)for(let x=posX-LIDAR_RADIUS;x<=posX+LIDAR_RADIUS;x++)
         if((x-posX)**2+(y-posY)**2<=LIDAR_RADIUS**2&&x>=0&&y>=0&&x<MAP_W&&y<MAP_H)explored.add(x+','+y);
     }
-    function updateEnergyReadout(){const c=document.getElementById('consumption-visible');if(c)c.textContent=currentConsumptionW+' W';const b=document.getElementById('battery-visible');if(b){const v=batteryVoltage;b.textContent=v.toFixed(1)+' V';}}
+    function updateEnergyReadout(){const b=document.getElementById('battery-visible');if(b)b.textContent=batteryVoltage.toFixed(1)+' V';}
     function recordEnergy(powerW,durationMs){
       currentConsumptionW=30;updateEnergyReadout();
     }
@@ -346,8 +373,24 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       }
     }
 
-    function updateReadout() {
-      // Coordinates are shown in the telemetry line once the dedicated nav header is introduced.
+    function distanceFromBaseMeters(){
+      const base=entities.find(e=>e.kind==='base');
+      if(!base)return 0;
+      const dx=(posX+.5)-(base.x+(base.w||2)/2);
+      const dy=((posY+.5)-(base.y+(base.h||1)/2))*.5;
+      return Math.hypot(dx,dy);
+    }
+    function updateReadout(){
+      const distance=distanceFromBaseMeters();
+      const distanceNode=document.getElementById('distance-visible');
+      const signalNode=document.getElementById('signal-visible');
+      if(distanceNode)distanceNode.textContent=distance.toFixed(1)+' M';
+      let nextState=distance>=TX_LOW_METERS?'LOW TX':'STABLE';
+      if(signalState!=='LOST'&&nextState!==signalState){
+        signalState=nextState;
+        if(signalNode)signalNode.textContent=signalState==='LOW TX'?'LOW TX // APPROACHING LIMIT':'TX: STABLE';
+        if(signalState==='LOW TX')writeLog('LOW TX // SIGNAL MARGIN REDUCED. RETURN TOWARD BASE.');
+      }else if(signalNode&&signalState!=='LOST')signalNode.textContent=signalState==='LOW TX'?'LOW TX // APPROACHING LIMIT':'TX: STABLE';
     }
 
     function renderMap() {
@@ -475,7 +518,11 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const nextX = posX + dx;
       const nextY = posY + dy;
       const base=entities.find(e=>e.kind==='base');
-      if(base&&Math.hypot(nextX-(base.x+.5),nextY-(base.y+.5))>9){stopMovement('SIGNAL RANGE LIMIT // CLEANER ROVER ANTENNA WEAK');return;}
+      if(base){
+        const dx=(nextX+.5)-(base.x+(base.w||2)/2);
+        const dy=((nextY+.5)-(base.y+(base.h||1)/2))*.5;
+        if(Math.hypot(dx,dy)>TX_RANGE_METERS){signalState='LOST';const signalNode=document.getElementById('signal-visible');if(signalNode)signalNode.textContent='TX LOST';stopMovement('TX LOST // ROVER OUT OF BASE COMMUNICATION RANGE');return;}
+      }
       if (nextX < 0 || nextY < 0 || nextX >= MAP_W || nextY >= MAP_H) {
         stopMovement('MAP LIMIT REACHED');
         return;
@@ -503,7 +550,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         const names={base:'CONTROL MODULE',solar:'SOLAR PANEL',crate:'SUPPLY CRATE',assembler:'ASSEMBLER',broken:'DAMAGED MODULE',rock:'ROCK FORMATION',quest:'UNKNOWN OBJECT'};
         writeLog('OBJECT DETECTED // '+(names[nearby.kind]||'UNKNOWN EQUIPMENT')+' — APPROACH AND USE ACT');
       }else{
-        writeLog('AREA SCANNED // NO EQUIPMENT DETECTED. CONTINUE SURVEY.');
+        writeLog('SEARCHING // NO OBJECT DETECTED. CONTINUE SURVEY.');
       }
       if(batteryVoltage<9)endMission();
     }
