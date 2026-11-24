@@ -120,16 +120,17 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       {id:'crate_1',kind:'crate',w:2,h:2,label:'SUPPLY POD',taskItem:'crate',opened:false},
       {id:'transporter_1',kind:'transporter',w:2,h:2,label:'CARGO TRANSPORT ROVER',rotation:0,found:false},
       {id:'asm_1',kind:'assembler',w:3,h:2,label:'FIELD ASSEMBLER STATION',taskItem:'assembler',salvaged:false},
-      {id:'broken_2',kind:'broken',w:2,h:2,label:'DAMAGED MODULE',salvaged:false},
+      {id:'broken_2',kind:'broken',w:2,h:2,label:'UPGRADE CACHE / PARTS & SCHEMATICS',salvaged:false},
+      {id:'fire_zone',kind:'fire',w:3,h:3,label:'BURN ZONE / ENGINE FIRE',rotation:0},
       {id:'quest_1',kind:'quest',w:1,h:1,label:'TASK BEACON: SALVAGE SECTOR'},
       ...Array.from({length:8},(_,i)=>({id:'rock_'+i,kind:'rock',w:i%3===0?2:1,h:i%3===0?2:1,label:i%3===0?'BOULDER FORMATION':'ROCK OUTCROP'})),
-      ...Array.from({length:22},(_,i)=>({id:'debris_'+i,kind:['rubble','shard','debris','crater'][i%4],w:1,h:1,label:['RUBBLE FIELD','BROKEN FRAGMENT','METAL DEBRIS','GROUND DEPRESSION'][i%4]}))
+      ...Array.from({length:30},(_,i)=>({id:'debris_'+i,kind:['rubble','shard','debris','crater','hull','tank','nozzle','capsule'][i%8],w:1,h:1,label:['RUBBLE FIELD','BROKEN FRAGMENT','METAL DEBRIS','GROUND DEPRESSION','HULL PLATING','FUEL TANK REMNANT','ENGINE NOZZLE','CAPSULE STRUCTURE'][i%8]}))
     ];
     function placeRandomEntities(){
       const occupied=[];
       for(const e of entities){
         if(e.kind==='base'){occupied.push(e);continue;}
-        const important=['solar','crate','assembler','broken','quest'].includes(e.kind);
+        const important=['solar','crate','assembler','broken','quest','transporter','fire'].includes(e.kind);
         const minR=important?3:4,maxR=important?6:10;
         let placed=false;
         for(let attempt=0;attempt<180&&!placed;attempt++){
@@ -224,7 +225,6 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       currentConsumptionW=30;updateEnergyReadout();
     }
     function recordManipulatorEnergy(){
-      energyUsedWh+=60*(2000/3600000);
       currentConsumptionW=60; updateEnergyReadout();
       setTimeout(()=>{currentConsumptionW=30;updateEnergyReadout();},2000);
     }
@@ -324,7 +324,6 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
             batCells = Math.min(maxBatCells, batCells + 1);
             stepsSinceChargeLoss = 0;
             renderVitals();
-            writeLog('BASE CHARGING');
             if (batCells === maxBatCells) {
               clearInterval(chargeTimer);
               chargeTimer = null;
@@ -356,7 +355,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const svg=document.getElementById('map-svg');
       updateReadout(); updateActButton(); updateBaseCharging(); updateMapNav(); revealAroundUnit();
       const parts=[];
-      parts.push('<defs><clipPath id="lidarClip"><circle cx="750" cy="750" r="730"/></clipPath></defs>');
+      parts.push('<defs><clipPath id="lidarClip"><circle cx="750" cy="750" r="730"/></clipPath><pattern id="fireHatch" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M 0 12 L 12 0" stroke="#fff" stroke-opacity=".45" stroke-width="2"/></pattern></defs>');
       // 48 short protractor graduations with clear gaps around the eight direction controls.
       for(let i=0;i<48;i++){
         const a=i*7.5-90,nearest=Math.round(a/45)*45;
@@ -383,25 +382,28 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         if(ent.kind==='base'){
           if(lx===0&&ly===0){
             const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;
-            parts.push('<path class="station-shell" d="M '+(ex+16)+' '+(ey+42)+' L '+(ex+72)+' '+(ey+12)+' L '+(ex+428)+' '+(ey+12)+' L '+(ex+484)+' '+(ey+42)+' L '+(ex+484)+' '+(ey+218)+' L '+(ex+438)+' '+(ey+188)+' L '+(ex+392)+' '+(ey+276)+' L '+(ex+92)+' '+(ey+276)+' L '+(ex+48)+' '+(ey+188)+' L '+(ex+16)+' '+(ey+218)+' Z"/>');
-            parts.push('<path class="station-detail" d="M '+(ex+85)+' '+(ey+55)+' H '+(ex+415)+' M '+(ex+85)+' '+(ey+218)+' H '+(ex+415)+' M '+(ex+250)+' '+(ey+55)+' V '+(ey+218)+' M '+(ex+35)+' '+(ey+128)+' H '+(ex+72)+' M '+(ex+428)+' '+(ey+128)+' H '+(ex+465)+'"/>');
-            parts.push('<rect class="station-core" x="'+(ex+220)+'" y="'+(ey+112)+'" width="60" height="44"/>');
+            parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+50)+')"><path class="station-shell" d="M '+(ex+8)+' '+(ey+18)+' L '+(ex+22)+' '+(ey+7)+' H '+(ex+178)+' L '+(ex+192)+' '+(ey+18)+' V '+(ey+82)+' L '+(ex+178)+' '+(ey+93)+' H '+(ex+22)+' L '+(ex+8)+' '+(ey+82)+' Z"/><path class="station-detail" d="M '+(ex+35)+' '+(ey+28)+' H '+(ex+165)+' M '+(ex+35)+' '+(ey+72)+' H '+(ex+165)+' M '+(ex+100)+' '+(ey+28)+' V '+(ey+72)+'"/><rect class="station-core" x="'+(ex+87)+'" y="'+(ey+39)+'" width="26" height="22"/></g>');
           }
+        }else if(ent.kind==='fire'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g><path d="M '+(ex+10)+' '+(ey+35)+' l 30 -25 l 40 18 l 35 -22 l 55 36 v 130 l -40 20 l -40 -18 l -45 22 l -35 -35 Z" fill="url(#fireHatch)" stroke="#fff" stroke-width="2"/><path class="object-line" d="M '+(ex+105)+' '+(ey+115)+' C '+(ex+65)+' '+(ey+75)+' '+(ex+125)+' '+(ey+55)+' '+(ex+110)+' '+(ey+25)+' C '+(ex+170)+' '+(ey+70)+' '+(ex+145)+' '+(ey+90)+' '+(ex+105)+' '+(ey+115)+' Z"/><text x="'+(ex+105)+'" y="'+(ey+145)+'" fill="#fff" font-size="24" text-anchor="middle">!</text></g>');
         }else if(ent.kind==='transporter'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="station-shell" d="M '+(ex+12)+' '+(ey+42)+' L '+(ex+55)+' '+(ey+12)+' H '+(ex+150)+' L '+(ex+188)+' '+(ey+48)+' V '+(ey+154)+' L '+(ex+145)+' '+(ey+188)+' H '+(ex+48)+' L '+(ex+12)+' '+(ey+150)+' Z"/><path class="station-detail" d="M '+(ex+45)+' '+(ey+50)+' H '+(ex+150)+' V '+(ey+145)+' H '+(ex+45)+' Z"/><circle class="station-core" cx="'+(ex+96)+'" cy="'+(ey+96)+'" r="15"/></g>');
         }else if(ent.kind==='rock'){
           const z=ent.w>1?30:19;
           parts.push('<path class="object-fill" d="M '+(px-z)+' '+(py+z*.55)+' L '+(px-z*.65)+' '+(py-z*.25)+' L '+(px-z*.1)+' '+(py-z)+' L '+(px+z*.55)+' '+(py-z*.5)+' L '+(px+z)+' '+(py+z*.4)+' L '+(px+z*.45)+' '+(py+z*.7)+' Z"/>');
-        }else if(['rubble','shard','debris','crater'].includes(ent.kind)){
+        }else if(['rubble','shard','debris','crater','hull','tank','nozzle','capsule'].includes(ent.kind)){
           if(ent.kind==='crater')parts.push('<ellipse class="terrain-shadow" cx="'+px+'" cy="'+py+'" rx="25" ry="13"/><ellipse class="terrain-ridge" cx="'+px+'" cy="'+py+'" rx="25" ry="13"/>');
           else if(ent.kind==='shard')parts.push('<path class="object-line" d="M '+(px-16)+' '+(py+10)+' L '+(px-3)+' '+(py-15)+' L '+(px+13)+' '+(py+5)+' Z"/>');
+          else if(ent.kind==='hull')parts.push('<path class="object-fill" d="M '+(px-24)+' '+(py-8)+' L '+(px-5)+' '+(py-20)+' L '+(px+22)+' '+(py-9)+' L '+(px+13)+' '+(py+16)+' L '+(px-18)+' '+(py+20)+' Z"/>');
+          else if(ent.kind==='tank')parts.push('<path class="object-fill" d="M '+(px-10)+' '+(py-22)+' Q '+(px-22)+' '+py+' '+(px-10)+' '+(py+22)+' H '+(px+10)+' Q '+(px+22)+' '+py+' '+(px+10)+' '+(py-22)+' Z"/>');
+          else if(ent.kind==='nozzle')parts.push('<path class="object-line" d="M '+(px-22)+' '+(py-8)+' H '+(px-5)+' L '+(px+5)+' '+(py-18)+' L '+(px+22)+' '+(py-18)+' M '+(px-5)+' '+(py+8)+' L '+(px+5)+' '+(py+18)+' H '+(px+22)+'"/>');
+          else if(ent.kind==='capsule')parts.push('<path class="object-fill" d="M '+(px-18)+' '+(py-18)+' L '+(px+18)+' '+(py-18)+' L '+(px+23)+' '+(py+10)+' L '+px+' '+(py+23)+' L '+(px-23)+' '+(py+10)+' Z"/>');
           else parts.push('<path class="object-line" d="M '+(px-14)+' '+(py-6)+' l 10 -8 l 7 13 l 12 -4 M '+(px-8)+' '+(py+10)+' l 17 -5"/>');
         }else if(ent.kind==='quest'){
           parts.push('<path class="object-line" d="M '+px+' '+(py-15)+' L '+(px+15)+' '+py+' L '+px+' '+(py+15)+' L '+(px-15)+' '+py+' Z"/>');
         }else if(w>1&&h>1&&lx===0&&ly===0){
           const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;
-          if(ent.kind==='solar')parts.push('<path class="object-fill" d="M '+(ex+8)+' '+(ey+18)+' L '+(ex+190)+' '+(ey+18)+' L '+(ex+190)+' '+(ey+182)+' L '+(ex+8)+' '+(ey+182)+' Z M '+(ex+100)+' '+(ey+18)+' V '+(ey+182)+' M '+(ex+8)+' '+(ey+100)+' H '+(ex+190)+'"/>');
-          else if(ent.kind==='assembler')parts.push('<path class="station-shell" d="M '+(ex+12)+' '+(ey+18)+' H '+(ex+280)+' V '+(ey+178)+' H '+(ex+210)+' L '+(ex+180)+' '+(ey+145)+' H '+(ex+72)+' L '+(ex+42)+' '+(ey+178)+' H '+(ex+12)+' Z"/><path class="station-detail" d="M '+(ex+38)+' '+(ey+44)+' H '+(ex+250)+' M '+(ex+38)+' '+(ey+145)+' H '+(ex+250)+'"/>');
-          else parts.push('<path class="object-fill" d="M '+(ex+18)+' '+(ey+18)+' H '+(ex+182)+' V '+(ey+182)+' H '+(ex+18)+' Z"/><path class="station-detail" d="M '+(ex+18)+' '+(ey+72)+' H '+(ex+182)+' M '+(ex+72)+' '+(ey+18)+' V '+(ey+182)+'"/>');
+          if(ent.kind==='solar')parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="object-fill" d="M '+(ex+12)+' '+(ey+28)+' L '+(ex+175)+' '+(ey+8)+' L '+(ex+190)+' '+(ey+172)+' L '+(ex+30)+' '+(ey+190)+' Z M '+(ex+95)+' '+(ey+18)+' L '+(ex+110)+' '+(ey+181)+' M '+(ex+20)+' '+(ey+105)+' L '+(ex+182)+' '+(ey+88)+'"/></g>');
+          else if(ent.kind==='assembler')parts.push('<g transform="rotate('+ent.rotation+' '+(ex+150)+' '+(ey+100)+')"><path class="station-shell" d="M '+(ex+12)+' '+(ey+55)+' L '+(ex+38)+' '+(ey+18)+' H '+(ex+250)+' L '+(ex+285)+' '+(ey+50)+' V '+(ey+148)+' L '+(ex+250)+' '+(ey+182)+' H '+(ex+45)+' L '+(ex+12)+' '+(ey+145)+' Z"/><path class="station-detail" d="M '+(ex+55)+' '+(ey+55)+' H '+(ex+245)+' V '+(ey+145)+' H '+(ex+55)+' Z M '+(ex+150)+' '+(ey+55)+' V '+(ey+145)+'"/></g>');
+          else parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="object-fill" d="M '+(ex+18)+' '+(ey+42)+' L '+(ex+70)+' '+(ey+10)+' L '+(ex+185)+' '+(ey+35)+' L '+(ex+168)+' '+(ey+160)+' L '+(ex+95)+' '+(ey+190)+' L '+(ex+15)+' '+(ey+135)+' Z"/><path class="station-detail" d="M '+(ex+42)+' '+(ey+65)+' L '+(ex+145)+' '+(ey+45)+' L '+(ex+150)+' '+(ey+130)+' L '+(ex+75)+' '+(ey+155)+' Z"/></g>');
         }else{
           parts.push('<rect class="object-line" x="'+(px-14)+'" y="'+(py-14)+'" width="28" height="28"/><circle class="object-dot" cx="'+px+'" cy="'+py+'" r="4"/>');
         }
@@ -472,6 +474,8 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const [dx, dy] = vectors[moveDirection];
       const nextX = posX + dx;
       const nextY = posY + dy;
+      const base=entities.find(e=>e.kind==='base');
+      if(base&&Math.hypot(nextX-(base.x+.5),nextY-(base.y+.5))>9){stopMovement('SIGNAL RANGE LIMIT // CLEANER ROVER ANTENNA WEAK');return;}
       if (nextX < 0 || nextY < 0 || nextX >= MAP_W || nextY >= MAP_H) {
         stopMovement('MAP LIMIT REACHED');
         return;
