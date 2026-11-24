@@ -157,7 +157,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
           if(important&&Math.hypot(x-25,y-25)<9)continue;
           const overlaps=occupied.some(o=>x<(o.x+(o.w||1)+1)&&x+w>o.x-1&&y<(o.y+(o.h||1)+1)&&y+h>o.y-1);
           if(overlaps)continue;
-          const adjacentSame=occupied.filter(o=>o.kind===e.kind&&Math.abs((o.x||0)-x)<=2&&Math.abs((o.y||0)-y)<=2);
+          const visualDebrisType=k=>(k==='rubble'||k==='debris')?'loose-fragment':k;
+          const adjacentSame=occupied.filter(o=>visualDebrisType(o.kind)===visualDebrisType(e.kind)&&Math.abs((o.x||0)-x)<=2&&Math.abs((o.y||0)-y)<=2);
+          if(['rubble','shard','debris','crater','hull','tank','nozzle','capsule','gravel','scrap','wire','stone'].includes(e.kind)&&adjacentSame.length)continue;
           const usedAngles=new Set(adjacentSame.map(o=>o.rotation));
           const candidates=[0,45,90,135,180,225,270,315].filter(a=>!usedAngles.has(a));
           e.x=x;e.y=y;e.rotation=candidates.length?candidates[Math.floor(worldRandom()*candidates.length)]:Math.round(worldRandom()*7)*45;occupied.push(e);placed=true;
