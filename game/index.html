@@ -6,7 +6,7 @@
 <title>EDGE FRAME // TERMINAL</title>
 <style>
   :root {
-    --bg:         #060b07;
+    --bg:         #090A0B;
     --grn-main:   #b8bec0;
     --grn-bright: #e3e6e6;
     --grn-mid:    #9ba3a5;
@@ -158,7 +158,7 @@
     width: 30px;
     height: 30px;
     border: 1px solid var(--grn-main);
-    background: rgba(6, 11, 7, 0.92);
+    background: rgba(9, 10, 11, 0.94);
     color: var(--grn-bright);
     font: bold 17px monospace;
     cursor: pointer;
@@ -176,10 +176,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: clamp(10px, 2.2vmin, 18px);
+    font-size: clamp(12px, 2.8vmin, 22px);
     line-height: 1;
     cursor: pointer;
     color: var(--grn-main);
+    overflow: visible;
   }
 
   .map-cell:hover {
@@ -234,10 +235,10 @@
   .telemetry-right {flex:0 0 auto;text-align:right;white-space:nowrap;color:var(--grn-bright)}
   .quest-board {gap:7px}
   .important-message {
-    min-height:38px;padding:7px 9px;border:1px solid var(--grn-dim);
+    min-height:30px;padding:6px 8px;border:1px solid var(--grn-dim);
     color:var(--grn-bright);background:rgba(220,226,228,.045);
-    font-size:clamp(10px,1.15vw,13px);line-height:1.35;
-    overflow:hidden;
+    font-size:clamp(9px,1.05vw,12px);line-height:1.25;
+    white-space:nowrap;text-overflow:ellipsis;overflow:hidden;
   }
   .task-tabs {display:flex;gap:6px;width:100%;flex-shrink:0}
   .task-tab {
@@ -250,7 +251,7 @@
   .task-detail-panel {min-height:0;flex:1;border-left:2px solid var(--grn-mid);padding:5px 9px;background:var(--grn-bg);overflow:auto}
   .task-detail-title {color:var(--grn-bright);font-weight:bold;font-size:clamp(11px,1.25vw,13px);margin-bottom:5px}
   .task-detail-text {color:var(--grn-main);font-size:clamp(10px,1.15vw,13px);line-height:1.4}
-  .map-cell.structure {font-weight:700;text-shadow:0 0 1px currentColor}
+  .map-cell.structure {font-weight:900;font-size:clamp(17px,3.8vmin,29px);line-height:1;text-shadow:0 0 1px currentColor;z-index:1;overflow:visible}
   .map-cell.obj-base,.map-cell.obj-item {color:var(--grn-bright)}
   .map-cell.sector {color:var(--grn-muted);font-size:clamp(10px,1.8vmin,15px);font-weight:800}
   
@@ -470,17 +471,17 @@
   .ctrl-btn:disabled {
     color: var(--grn-dim);
     border-color: var(--grn-dim);
-    background-color: rgba(27, 94, 48, 0.08);
+    background-color: rgba(220, 226, 228, 0.055);
     cursor: not-allowed;
   }
   .map-cell.unexplored{background:#000;color:#000;cursor:default}
   .map-cell.structure{color:var(--grn-main);font-weight:bold}
   .map-cell.structure.core{color:var(--grn-bright)}
   .map-cell.sector{color:var(--grn-dim)}
-  .telemetry{display:flex;align-items:center;justify-content:space-between;gap:clamp(5px,1vw,12px);font-size:clamp(7px,1vw,11px);white-space:nowrap;min-height:22px;overflow:hidden}
-  .telemetry-left{display:flex;align-items:center;gap:clamp(5px,.9vw,12px);min-width:0;white-space:nowrap}
-  .telemetry-center{flex:0 0 auto;text-align:center;white-space:nowrap;display:flex;gap:clamp(4px,.8vw,10px)}
-  .telemetry-right{flex:0 0 auto;text-align:right;color:var(--grn-bright);white-space:nowrap}
+  .telemetry{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:clamp(5px,1vw,12px);font-size:clamp(7px,1vw,11px);white-space:nowrap;min-height:22px;overflow:hidden}
+  .telemetry-left{display:flex;align-items:center;justify-content:flex-start;gap:clamp(5px,.9vw,12px);min-width:0;white-space:nowrap}
+  .telemetry-center{justify-self:center;display:flex;align-items:center;gap:clamp(4px,.8vw,10px);text-align:center;white-space:nowrap}
+  .telemetry-right{justify-self:end;text-align:right;color:var(--grn-bright);white-space:nowrap;min-width:0}
   .dock-panel{grid-template-columns:minmax(0,1fr) minmax(190px,23%)}
   .log-unified{display:block;min-width:0;min-height:0;overflow:hidden}
   .quest-row.active{padding:5px 7px;border-left:2px solid var(--grn-bright);background:var(--grn-bg)}
@@ -517,12 +518,12 @@
       <section class="panel dock-panel">
         <div class="log-unified">
           <div class="quest-board">
-            <div class="quest-heading">IMPORTANT MESSAGES // CONTROL MODULE</div>
-            <div class="important-message" id="mission-message">ENERGY RECONNAISSANCE REQUIRED. PROCEED WITH ROVER TO SURVEY NEARBY TERRAIN.</div>
+            <div class="quest-heading important-message" id="mission-message">IMPORTANT // PROCEED WITH ROVER TO SURVEY NEARBY TERRAIN.</div>
             <div class="task-tabs" role="group" aria-label="Mission tasks">
-              <button class="task-tab active" data-task="0">FIND ENERGY</button>
-              <button class="task-tab" data-task="1">FIND UNITS</button>
-              <button class="task-tab" data-task="2">RECOVER PARTS</button>
+              <button class="task-tab active" data-task="0">SURVEY</button>
+              <button class="task-tab" data-task="1">FIND ENERGY</button>
+              <button class="task-tab" data-task="2">FIND UNITS</button>
+              <button class="task-tab" data-task="3">RECOVER PARTS</button>
             </div>
             <div class="task-detail-panel">
               <div class="task-detail-title" id="task-detail-title">01 // FIND ENERGY</div>
@@ -611,7 +612,24 @@
 
     function writeLog(text) {
       const message=document.getElementById('mission-message');
-      if(message){message.dataset.manual='true';message.textContent=text;}
+      if(message){message.dataset.manual='true';message.textContent=toImportantMessage(text);}
+    }
+
+    function toImportantMessage(text){
+      const value=String(text).toUpperCase();
+      if(value.includes('BLOCKED BY STRUCTURE')||value.includes('ROCK'))return 'OBSTACLE AHEAD // ROCK FORMATION OR STRUCTURE';
+      if(value.includes('MAP LIMIT'))return 'MAP LIMIT // NO FURTHER TERRAIN IN THIS DIRECTION';
+      if(value.includes('NO INTERACTIVE OBJECT'))return 'NO OBJECT IN RANGE // MOVE CLOSER AND USE ACT';
+      if(value.includes('PICKED UP SOLAR'))return 'ITEM RECOVERED // SOLAR PANEL — RETURN TO CONTROL MODULE';
+      if(value.includes('OPENED CRATE'))return 'OBJECT OPENED // SUPPLIES AND COMPONENTS RECOVERED';
+      if(value.includes('SALVAGED ASSEMBLER'))return 'OBJECT RECOVERED // ASSEMBLER COMPONENTS — RETURN TO BASE';
+      if(value.includes('BASE CHARGING')||value.includes('CHARGING AT BASE'))return 'ROVER CHARGING // REMAIN NEAR CONTROL MODULE';
+      if(value.includes('BATTERY')||value.includes('BAT '))return value;
+      if(value.includes('DELIVERED'))return 'SUPPLIES DELIVERED // '+value;
+      if(value.includes('QUEST COMPLETE'))return 'MISSION OBJECTIVE COMPLETE // '+value;
+      if(value.includes('DRIVE '))return 'ROVER MOVED // CONTINUE SURVEYING TERRAIN';
+      if(value.includes('UNEXPLORED'))return 'UNEXPLORED TERRAIN // MOVE ROVER TO SCAN AREA';
+      return value;
     }
 
     function setMoveStateLabel(label) {
@@ -625,9 +643,10 @@
     }
 
     const taskData=[
-      {title:'01 // FIND ENERGY',text:'Survey nearby terrain. Locate solar panels, battery banks, generators and RTG units. Minimum infrastructure: one solar panel and one battery bank. Approach an object and use ACT to interact.'},
-      {title:'02 // FIND UNITS',text:'Search the surrounding area for other rovers, autonomous robots, communication stations and processing modules. Approach discovered equipment to inspect it.'},
-      {title:'03 // RECOVER PARTS',text:'Locate salvageable components, wiring, tools and structural fragments. Move close to an object and use ACT to collect or recover it, then return to the control module.'}
+      {title:'01 // SURVEY',text:'Use the directional controls to move the rover one cell at a time. Explore nearby terrain, inspect detected objects and obstacles, and press ACT when close to equipment.'},
+      {title:'02 // FIND ENERGY',text:'Locate solar panels, battery banks, generators and RTG units. Minimum infrastructure: one solar panel and one battery bank. Approach equipment and use ACT to interact.'},
+      {title:'03 // FIND UNITS',text:'Search for other rovers, autonomous robots, communication stations and processing modules. Approach discovered equipment to inspect it.'},
+      {title:'04 // RECOVER PARTS',text:'Locate salvageable components, wiring, tools and structural fragments. Move close to an object and use ACT to collect or recover it, then return to the control module.'}
     ];
     let selectedTask=0;
     function selectTask(index){
@@ -644,7 +663,7 @@
       else if(batCells<=1)message.textContent='CRITICAL BATTERY: RETURN TO CONTROL MODULE IMMEDIATELY. ROVER POWER IS ALMOST DEPLETED.';
       else if(batCells<=2)message.textContent='LOW BATTERY: RETURN TO CONTROL MODULE FOR RECHARGING BEFORE CONTINUING THE SURVEY.';
       else if(batCells<=3)message.textContent='BATTERY WARNING: PLAN A RETURN TO THE CONTROL MODULE FOR RECHARGING.';
-      else if(!message.dataset.manual)message.textContent='PROCEED WITH ROVER TO SURVEY NEARBY TERRAIN. APPROACH EQUIPMENT AND USE ACT TO INTERACT.';
+      else if(!message.dataset.manual)message.textContent='IMPORTANT // PROCEED WITH ROVER TO SURVEY NEARBY TERRAIN. APPROACH OBJECTS AND USE ACT.';
     }
 
     function renderVitals() {
@@ -687,9 +706,9 @@
     function structureGlyph(ent,x,y){
       const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y;
       if(w===1&&h===1)return getEntitySymbol(ent);
-      if(lx===0&&ly===0)return '┌'; if(lx===w-1&&ly===0)return '┐';
-      if(lx===0&&ly===h-1)return '└'; if(lx===w-1&&ly===h-1)return '┘';
-      if(ly===0||ly===h-1)return '─'; if(lx===0||lx===w-1)return '│';
+      if(lx===0&&ly===0)return '┏'; if(lx===w-1&&ly===0)return '┓';
+      if(lx===0&&ly===h-1)return '┗'; if(lx===w-1&&ly===h-1)return '┛';
+      if(ly===0||ly===h-1)return '━'; if(lx===0||lx===w-1)return '┃';
       if(lx===Math.floor(w/2)&&ly===Math.floor(h/2))return getEntitySymbol(ent);
       return ' ';
     }
@@ -936,7 +955,13 @@
       keepUnitInView();
       renderVitals();
       renderMap();
-      writeLog('DRIVE ' + completedDirection + ' // POS [' + pad2(posX) + ',' + pad2(posY) + ']');
+      const nearby=entities.find(e=>e.kind!=='debris'&&isAdjacentToEntity(posX,posY,e));
+      if(nearby){
+        const names={base:'CONTROL MODULE',solar:'SOLAR PANEL',crate:'SUPPLY CRATE',assembler:'ASSEMBLER',broken:'DAMAGED MODULE',rock:'ROCK FORMATION',quest:'UNKNOWN OBJECT'};
+        writeLog('OBJECT DETECTED // '+(names[nearby.kind]||'UNKNOWN EQUIPMENT')+' — APPROACH AND USE ACT');
+      }else{
+        writeLog('AREA SCANNED // NO EQUIPMENT DETECTED. CONTINUE SURVEY.');
+      }
       if (batCells <= 0) stopMovement('ROBOT BATTERY DEPLETED — RETURN TO A POWER SOURCE');
     }
 
