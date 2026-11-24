@@ -59,7 +59,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       <button class="dir-btn south" data-direction="S" aria-label="South">></button>
       <button class="dir-btn southeast" data-direction="SE" aria-label="Southeast">></button>
     </div>
-    <aside class="side-panel right-panel"><div class="panel-heading">MISSION OBJECTIVES</div><div class="task-list"><div class="task-item"><b>01 / SOLAR ARRAY</b>Locate one solar panel</div><div class="task-item"><b>02 / TRANSPORT ROVER</b>Find the cargo transporter</div><div class="task-item"><b>03 / ASSEMBLER STATION</b>Locate the field assembler</div><div class="task-item"><b>04 / UPGRADE CACHE</b>Recover parts and schematics for base and rovers</div></div><div class="control-help"><b>ROVER CONTROL</b><br>Use the eight directional arrows to drive. Press SCAN / ACT near an object to inspect or recover it.<br><br><b>POWER WARNING</b><br>Monitor voltage. Below 9 V the rover shuts down and the mission ends. Return to base before power runs out.</div><button class="action-button" id="btn-act">SCAN</button></aside><div class="hidden-support">
+    <aside class="side-panel right-panel"><div class="panel-heading">MISSION OBJECTIVES</div><div class="task-list"><div class="task-item"><b>01 / SOLAR ARRAY</b>Locate one solar panel</div><div class="task-item"><b>02 / TRANSPORT ROVER</b>Find the cargo transporter</div><div class="task-item"><b>03 / ASSEMBLER STATION</b>Locate the field assembler</div><div class="task-item"><b>04 / UPGRADE CACHE</b>Recover parts and schematics for base and rovers</div></div><div class="control-help"><b>ROVER CONTROL</b><br>Use the eight directional arrows to drive. Press SCAN / ACT near an object to inspect or recover it.<br><br><b>POWER WARNING</b><br>Monitor voltage. Below 9 V the rover shuts down and the mission ends. Cleaner rover signal range is limited to 9 map cells. Return to base before power runs out.</div><button class="action-button" id="btn-act">SCAN</button></aside><div class="hidden-support">
       <div id="task-detail-title"></div><div id="task-detail-text"></div>
       <div id="rover-voltage"></div>
       <button class="task-tab" data-task="0"></button><button class="task-tab" data-task="1"></button><button class="task-tab" data-task="2"></button><button class="task-tab" data-task="3"></button>
@@ -104,10 +104,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     let tmp = 24;
     const maxTmp = 100;
 
-    let batCells = 4;
     let batteryVoltage = 12.8;
-    const maxBatCells = 5;
-    let stepsSinceChargeLoss = 0;
 
     const explored = new Set();
     const inventory = new Set(); // 'panel', 'crate', 'assembler'
@@ -162,7 +159,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       if(value.includes('OPENED CRATE'))return 'OBJECT OPENED // SUPPLIES AND COMPONENTS RECOVERED';
       if(value.includes('SALVAGED ASSEMBLER'))return 'OBJECT RECOVERED // ASSEMBLER COMPONENTS — RETURN TO BASE';
       if(value.includes('BASE CHARGING')||value.includes('CHARGING AT BASE'))return 'BATTERY RECHARGING';if(value.includes('BATTERY FULL'))return 'BATTERY RECHARGED';
-      if(value.includes('BATTERY')||value.includes('BAT '))return value;
+      if(value.includes('BATTERY')||value.includes('BAT '))return value.replace(/\s*\[[^\]]*\]/g,'');
       if(value.includes('DELIVERED'))return 'SUPPLIES DELIVERED // '+value;
       if(value.includes('QUEST COMPLETE'))return 'MISSION OBJECTIVE COMPLETE // '+value;
       if(value.includes('DRIVE '))return 'ROVER MOVED // CONTINUE SURVEYING TERRAIN';
@@ -323,10 +320,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
               return;
             }
             batteryVoltage=Math.min(12.8,batteryVoltage+0.6);
-            batCells=Math.min(maxBatCells,batCells+1);
-            stepsSinceChargeLoss = 0;
+
             renderVitals();
-            if (batteryVoltage >= 12.8) {batteryVoltage=12.8;batCells=maxBatCells;
+            if (batteryVoltage >= 12.8) {batteryVoltage=12.8;
               clearInterval(chargeTimer);
               chargeTimer = null;
               renderVitals();
@@ -420,7 +416,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const coord = '[' + pad2(x) + ',' + pad2(y) + ']';
       if(!explored.has(x+','+y))return coord+' UNEXPLORED';
       if (x === posX && y === posY) {
-        return coord + ' UNIT @ POS (BAT ' + (batCells * 20) + '%)';
+        return coord + ' UNIT @ POS // CLEANER ROVER';
       }
       if (!ent) {
         return coord + ' OPEN GROUND';
@@ -496,8 +492,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const rough = entities.some(e=>['debris','rubble','shard','crater'].includes(e.kind)&&isAdjacentOrSame(nextX,nextY,e.x,e.y));
       recordEnergy(rough?95:80,STEP_MS);
       batteryVoltage=Math.max(8.8,batteryVoltage-(rough?0.16:0.12));
-      stepsSinceChargeLoss += 1;
-      if (stepsSinceChargeLoss >= STEPS_PER_CELL_CHARGE) {stepsSinceChargeLoss=0;batCells=Math.max(0,batCells-1);}
+
       keepUnitInView();
       renderVitals();
       renderMap();
@@ -559,7 +554,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         } else if (batteryVoltage < 12.8) {
           writeLog('CHARGING AT BASE: +20% EVERY 2S');
         } else {
-          writeLog('BASE READY: BAT 100%, NO ITEMS TO DROP');
+          writeLog('BASE READY // NO ITEMS TO DROP');
         }
         renderMap();
         return;
