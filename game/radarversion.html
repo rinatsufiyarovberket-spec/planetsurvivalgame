@@ -301,7 +301,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     function findNearbyInteractive() {
       const baseEnt = entities.find((e) => e.kind === 'base');
       if (baseEnt && isAdjacentToEntity(posX,posY,baseEnt)) {
-        if (inventory.size > 0 || batteryVoltage < MAX_BATTERY_VOLTAGE) {
+        const awaitingLink=entities.some(e=>e.kind==='transporter'&&e.active&&!e.linked);\n        const loaderNeeded=entities.some(e=>e.kind==='assembler'&&e.cleared&&e.heavyDebris);\n        if (inventory.size > 0 || batteryVoltage < MAX_BATTERY_VOLTAGE || awaitingLink || loaderNeeded) {
           return baseEnt;
         }
       }
@@ -346,7 +346,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const baseEnt = entities.find((e) => e.kind === 'base');
       const nearBase = baseEnt && isAdjacentToEntity(posX,posY,baseEnt);
 
-      if (nearBase && batteryVoltage < 12.8) {
+      if (nearBase && batteryVoltage < MAX_BATTERY_VOLTAGE) {
         if (chargeTimer === null) {
           chargeTimer = setInterval(() => {
             const b = entities.find((e) => e.kind === 'base');
@@ -632,7 +632,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       }
       if(ent.kind==='solar'){
         if(!ent.cleaned&&!ent.cleaning){ent.cleaning=true;writeLog('SOLAR ARRAY // CLEARING DEBRIS AND CLEANING — 5 S');setTimeout(()=>{ent.cleaning=false;ent.cleaned=true;renderMap();writeLog('SOLAR ARRAY CLEANED // CABLE CONNECTION REQUIRED');},5000);return;}
-        if(ent.cleaned&&!ent.connected){if(!inventory.has('cable')){writeLog('SOLAR ARRAY READY // CABLE REQUIRED — SEARCH SUPPLY CONTAINER');return;}ent.connected=true;inventory.delete('cable');renderMap();renderVitals();writeLog('SOLAR ARRAY CONNECTED TO CONTROL STATION // COMPLETE');return;}
+        if(ent.cleaned&&!ent.connected){if(!inventory.has('cable')){writeLog('SOLAR ARRAY READY // CABLE REQUIRED — SEARCH SUPPLY CONTAINER');return;}writeLog('SOLAR ARRAY CLEANED // CABLE SECURED. RETURN TO STATION TO CONNECT');return;}
       }
 
       if (ent.kind === 'crate' && !ent.opened) {
