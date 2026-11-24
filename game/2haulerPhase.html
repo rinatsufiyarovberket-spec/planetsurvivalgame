@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EDGE FRAME // TERMINAL</title>
+<style>
+  :root {
+    --bg:         #090A0B;
+    --grn-main:   #b8bec0;
+    --grn-bright: #e3e6e6;
+    --grn-mid:    #9ba3a5;
+    --grn-dim:    #626b6e;
+    --grn-muted:  #858e91;
+    --grn-bg:     rgba(220, 226, 228, 0.035);
+    --grn-active: rgba(220, 226, 228, 0.16);
+    --crim:       #d73019;
+    --pad:        2%;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--bg);
+    color: var(--grn-bright);
+    font-family: 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier New', monospace;
+    touch-action: manipulation;
+  }
+
+  body {
+    padding: var(--pad);
+    display: flex;
+  }
+
+  .edge-frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--grn-main);
+    padding: 1.6% 2%;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .edge-frame::before,
+  .edge-frame::after {
+    content: "";
+    position: absolute;
+    width: 3%;
+    height: 3%;
+    min-width: 14px;
+    min-height: 14px;
+    max-width: 24px;
+    max-height: 24px;
+    border-color: var(--grn-bright);
+    border-style: solid;
+    pointer-events: none;
+  }
+
+  .edge-frame::before {
+    top: -2px;
+    left: -2px;
+    border-width: 4px 0 0 4px;
+  }
+
+  .edge-frame::after {
+    bottom: -2px;
+    right: -2px;
+    border-width: 0 4px 4px 0;
+  }
+
+  .status-line {
+    font-size: clamp(10px, 1.45vw, 13px);
+    letter-spacing: 1.5px;
+    color: var(--grn-main);
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-dim {
+    color: var(--grn-muted);
+  }
+
+  .layout-grid {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) minmax(190px, 29%);
+    gap: 1.2%;
+  }
+
+  .panel {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border: 1px solid var(--grn-main);
+    background-color: var(--grn-bg);
+    padding: 1.4% 1.8%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-title {
+    font-size: clamp(10px, 1.35vw, 12px);
+    letter-spacing: 1.5px;
+    color: var(--grn-bright);
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--grn-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .map-panel {
+    padding: 1.2% 1.5%;
+  }
+
+  .map-viewport {
+    position: relative;
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+  }
+
+  .map-grid {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(15, minmax(0, 1fr));
+    grid-template-rows: repeat(9, minmax(0, 1fr));
+  }
+
+  .map-nav {
+    position: absolute;
+    z-index: 2;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--grn-main);
+    background: rgba(9, 10, 11, 0.94);
+    color: var(--grn-bright);
+    font: bold 17px monospace;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+  .map-nav:active { background: var(--grn-active); }
+  .map-nav:disabled { opacity: .25; cursor: not-allowed; }
+  .map-nav.north { top: 5px; left: 50%; transform: translateX(-50%); }
+  .map-nav.south { bottom: 5px; left: 50%; transform: translateX(-50%); }
+  .map-nav.west { left: 5px; top: 50%; transform: translateY(-50%); }
+  .map-nav.east { right: 5px; top: 50%; transform: translateY(-50%); }
+
+  .map-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(12px, 2.8vmin, 22px);
+    line-height: 1;
+    cursor: pointer;
+    color: var(--grn-main);
+    overflow: visible;
+  }
+
+  .map-cell:hover {
+    background-color: rgba(220, 226, 228, 0.08);
+  }
+
+  .map-cell.corner {
+    color: var(--grn-muted);
+    font-size: clamp(10px, 1.9vmin, 15px);
+  }
+
+  .map-cell.obj-base {
+    color: var(--grn-bright);
+    font-weight: bold;
+  }
+
+  .map-cell.obj-hazard {
+    color: var(--grn-main);
+  }
+
+  .map-cell.obj-item {
+    color: var(--grn-bright);
+  }
+
+  .map-cell.target {
+    color: #ffffff;
+  }
+
+   .map-cell.marker {
+    color: var(--grn-bright);
+    font-size: clamp(14px, 3vmin, 23px);
+    font-weight: 900;
+    text-shadow: 0 0 4px rgba(227,230,230,.55);
+  }
+  .map-cell.sector {
+    color: var(--grn-muted);
+    font-size: clamp(10px, 2vmin, 16px);
+    font-weight: 700;
+  }
+  .telemetry {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:clamp(5px,1vw,12px);
+    white-space:nowrap;
+    overflow:hidden;
+    font-size:clamp(7px,1vw,11px);
+    letter-spacing:clamp(.1px,.12vw,.8px);
+  }
+  .telemetry-left {display:flex;align-items:center;gap:clamp(5px,.9vw,12px);min-width:0;white-space:nowrap}
+  .telemetry-center {flex:0 0 auto;text-align:center;white-space:nowrap}
+  .telemetry-right {flex:0 0 auto;text-align:right;white-space:nowrap;color:var(--grn-bright)}
+  .quest-board {gap:7px}
+  .important-message {
+    min-height:30px;padding:6px 8px;border:1px solid var(--grn-dim);
+    color:var(--grn-bright);background:rgba(220,226,228,.045);
+    font-size:clamp(9px,1.05vw,12px);line-height:1.25;
+    white-space:nowrap;text-overflow:ellipsis;overflow:hidden;
+  }
+  .task-tabs {display:flex;gap:6px;width:100%;flex-shrink:0}
+  .task-tab {
+    flex:1;min-width:0;padding:8px 4px;border:1px solid var(--grn-dim);
+    background:rgba(220,226,228,.08);color:var(--grn-main);
+    font: bold clamp(9px,1.15vw,12px) 'DejaVu Sans Mono',monospace;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .task-tab.active {background:var(--grn-bright);border-color:var(--grn-bright);color:#101416}
+  .task-detail-panel {min-height:0;flex:1;border-left:2px solid var(--grn-mid);padding:5px 9px;background:var(--grn-bg);overflow:auto}
+  .task-detail-title {color:var(--grn-bright);font-weight:bold;font-size:clamp(11px,1.25vw,13px);margin-bottom:5px}
+  .task-detail-text {color:var(--grn-main);font-size:clamp(10px,1.15vw,13px);line-height:1.4}
+  .map-cell.structure {font-weight:900;font-size:clamp(17px,3.8vmin,29px);line-height:1;text-shadow:0 0 1px currentColor;z-index:1;overflow:visible}
+  .map-cell.obj-base,.map-cell.obj-item {color:var(--grn-bright)}
+  .map-cell.sector {color:var(--grn-muted);font-size:clamp(10px,1.8vmin,15px);font-weight:800}
+  
+
+  .dock-panel {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(170px, 18%);
+    gap: 1.2%;
+  }
+
+  .log-unified {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 8px;
+    overflow: hidden;
+  }
+
+  .quest-board {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    overflow: auto;
+    padding-right: 4px;
+  }
+  .quest-heading {
+    color: var(--grn-bright);
+    font-size: clamp(12px, 1.45vw, 14px);
+    letter-spacing: 1.3px;
+    border-bottom: 1px solid var(--grn-dim);
+    padding-bottom: 4px;
+  }
+  .quest-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: start;
+    font-size: clamp(12px, 1.35vw, 14px);
+    line-height: 1.42;
+  }
+  .quest-name { color: var(--grn-bright); font-weight: bold; }
+  .quest-detail { color: var(--grn-main); }
+  .quest-state { color: var(--grn-bright); white-space: nowrap; }
+  .quest-row.locked .quest-name,
+  .quest-row.locked .quest-detail,
+  .quest-row.locked .quest-state { color: var(--grn-dim); }
+
+  .log-body {
+    flex: 0 0 auto;
+    min-height: 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    padding-top: 5px;
+    border-top: 1px solid var(--grn-dim);
+    font-size: clamp(9px, 1.05vw, 11px);
+    line-height: 1.2;
+    overflow: hidden;
+  }
+
+  .vitals-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--grn-dim);
+    font-size: clamp(9px, 1.25vw, 11.5px);
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .stat-inline-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .stat-lbl {
+    color: var(--grn-bright);
+    font-weight: bold;
+  }
+
+  .stat-val {
+    color: var(--grn-main);
+  }
+
+  .stat-bar {
+    color: var(--grn-main);
+  }
+
+  .stat-bar.hp-bar {
+    color: var(--grn-bright);
+  }
+
+  .stat-bar.tmp-bar.hot {
+    color: var(--crim);
+  }
+
+  .stat-bar.bat-bar.low {
+    color: var(--crim);
+  }
+
+  .move-badge {
+    color: var(--grn-muted);
+    font-size: clamp(9px, 1.15vw, 11px);
+    letter-spacing: 0.8px;
+    flex-shrink: 0;
+  }
+
+  .log-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    padding-top: 3px;
+    font-size: clamp(10px, 1.35vw, 12.5px);
+    line-height: 1.2;
+    overflow: hidden;
+  }
+
+  .log-line {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .log-line.dim {
+    color: var(--grn-muted);
+  }
+
+  .control-column {
+    min-width: 0;
+    min-height: 0;
+    border-left: 1px solid var(--grn-dim);
+    padding-left: 8px;
+    display: grid;
+    grid-template-rows: auto minmax(100px, 1fr) auto;
+    gap: 10px;
+  }
+  .direction-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, minmax(46px, 1fr));
+    gap: 8px;
+    min-height: 100px;
+  }
+  .dir-btn {
+    min-width: 0;
+    min-height: 46px;
+    border: 1px solid var(--grn-main);
+    background: var(--bg);
+    color: var(--grn-bright);
+    font: bold 15px monospace;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .dir-btn:active, .dir-btn.is-active {
+    background: var(--grn-active);
+    border-color: var(--grn-bright);
+    color: #fff;
+  }
+  .dir-btn.north { grid-column: 2; grid-row: 1; }
+  .dir-btn.west { grid-column: 1; grid-row: 2; }
+  .dir-btn.south { grid-column: 2; grid-row: 2; }
+  .dir-btn.east { grid-column: 3; grid-row: 2; }
+  .power-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 6px 8px;
+    border: 1px solid var(--grn-main);
+    background: rgba(220, 226, 228, 0.045);
+    color: var(--grn-bright);
+    font-size: clamp(13px, 1.65vw, 17px);
+    font-weight: 800;
+    letter-spacing: .8px;
+    white-space: nowrap;
+  }
+
+  .ctrl-btn {
+    width: 100%;
+    height: auto;
+    min-height: 34px;
+    background-color: var(--bg);
+    color: var(--grn-bright);
+    border: 1px solid var(--grn-main);
+    font-family: 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier New', monospace;
+    font-size: clamp(10px, 1.4vw, 12.5px);
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+
+  .ctrl-btn:active:not(:disabled),
+  .ctrl-btn.is-active {
+    background-color: var(--grn-active);
+    border-color: var(--grn-bright);
+    color: #ffffff;
+  }
+
+  .ctrl-btn:disabled {
+    color: var(--grn-dim);
+    border-color: var(--grn-dim);
+    background-color: rgba(220, 226, 228, 0.055);
+    cursor: not-allowed;
+  }
+  .map-cell.unexplored{background:#000;color:#000;cursor:default}
+  .map-cell.structure{color:var(--grn-main);font-weight:bold}
+  .map-cell.structure.core{color:var(--grn-bright)}
+  .map-cell.structure.edge-top{border-top:1px solid var(--grn-main)}
+  .map-cell.structure.edge-bottom{border-bottom:1px solid var(--grn-main)}
+  .map-cell.structure.edge-left{border-left:1px solid var(--grn-main)}
+  .map-cell.structure.edge-right{border-right:1px solid var(--grn-main)}
+  .map-cell.sector{color:var(--grn-dim)}
+  .telemetry{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:clamp(5px,1vw,12px);font-size:clamp(7px,1vw,11px);white-space:nowrap;min-height:22px;overflow:hidden}
+  .telemetry-left{display:flex;align-items:center;justify-content:flex-start;gap:clamp(5px,.9vw,12px);min-width:0;white-space:nowrap}
+  .telemetry-center{justify-self:center;display:flex;align-items:center;gap:clamp(4px,.8vw,10px);text-align:center;white-space:nowrap}
+  .telemetry-right{justify-self:end;text-align:right;color:var(--grn-bright);white-space:nowrap;min-width:0}
+  .dock-panel{grid-template-columns:minmax(0,1fr) minmax(190px,23%)}
+  .log-unified{display:block;min-width:0;min-height:0;overflow:hidden}
+  .quest-row.active{padding:5px 7px;border-left:2px solid var(--grn-bright);background:var(--grn-bg)}
+  .control-column{grid-template-rows:auto minmax(150px,1fr);gap:8px}
+  .direction-pad{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(42px,1fr));gap:6px;min-height:150px}
+  .dir-btn{min-height:42px;font-size:clamp(16px,2.2vw,22px)}
+  .dir-btn.north{grid-column:2;grid-row:1}.dir-btn.northeast{grid-column:3;grid-row:1}
+  .dir-btn.west{grid-column:1;grid-row:2}.dir-btn.south{grid-column:2;grid-row:3}.dir-btn.east{grid-column:3;grid-row:2}
+  .dir-btn.northwest{grid-column:1;grid-row:1}.dir-btn.southwest{grid-column:1;grid-row:3}.dir-btn.southeast{grid-column:3;grid-row:3}
+  .dir-btn.act-center{grid-column:2;grid-row:2;font-size:12px}
+</style>
+</head>
+<body>
+  <div class="edge-frame">
+    <div class="layout-grid">
+      <section class="panel map-panel">
+        <div class="panel-title telemetry">
+          <div class="telemetry-left">
+            <span id="tx-peak">TX PEAK 15/15 W</span>
+            <span>THERMAL 30/70 W</span>
+          </div>
+          <div class="telemetry-center"><span>12.0/14 V</span><span id="avg-load"> &nbsp; AVG 50/90 W</span></div>
+          <div class="telemetry-right" id="rover-charging"></div>
+        </div>
+        <div class="map-viewport">
+          <div class="map-grid" id="map-grid"></div>
+          <button class="map-nav north" id="map-north" type="button" aria-label="Прокрутить карту на север">↑</button>
+          <button class="map-nav south" id="map-south" type="button" aria-label="Прокрутить карту на юг">↓</button>
+          <button class="map-nav west" id="map-west" type="button" aria-label="Прокрутить карту на запад">←</button>
+          <button class="map-nav east" id="map-east" type="button" aria-label="Прокрутить карту на восток">→</button>
+        </div>
+      </section>
+
+      <section class="panel dock-panel">
+        <div class="log-unified">
+          <div class="quest-board">
+            <div class="quest-heading important-message" id="mission-message">IMPORTANT // PROCEED WITH ROVER TO SURVEY NEARBY TERRAIN.</div>
+            <div class="task-tabs" role="group" aria-label="Mission tasks">
+              <button class="task-tab active" data-task="0">SURVEY</button>
+              <button class="task-tab" data-task="1">FIND ENERGY</button>
+              <button class="task-tab" data-task="2">FIND UNITS</button>
+              <button class="task-tab" data-task="3">RECOVER PARTS</button>
+            </div>
+            <div class="task-detail-panel">
+              <div class="task-detail-title" id="task-detail-title">01 // FIND ENERGY</div>
+              <div class="task-detail-text" id="task-detail-text">Survey nearby terrain. Locate solar panels, battery banks, generators and RTG units. Minimum infrastructure: one solar panel and one battery bank. Approach an object and use ACT to interact.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-column">
+          <div class="power-status">
+            <div id="rover-voltage">BAT 12.8/14.0 V</div>
+          </div>
+          <div class="direction-pad" aria-label="Eight direction controls">
+            <button class="dir-btn northwest" data-direction="NW">↖</button><button class="dir-btn north" data-direction="N">↑</button><button class="dir-btn northeast" data-direction="NE">↗</button>
+            <button class="dir-btn west" data-direction="W">←</button><button class="dir-btn act-center" id="btn-act" disabled>ACT</button><button class="dir-btn east" data-direction="E">→</button>
+            <button class="dir-btn southwest" data-direction="SW">↙</button><button class="dir-btn south" data-direction="S">↓</button><button class="dir-btn southeast" data-direction="SE">↘</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+
+  <script>
+    const MAP_W = 50;
+    const MAP_H = 50;
+    const VIEW_W = 15;
+    const VIEW_H = 9;
+    const SCROLL_STEP = 5;
+    let viewX = 0;
+    let viewY = 0;
+    const STEP_MS = 750;
+    const CHARGE_MS = 2000;
+    const STEPS_PER_CELL_CHARGE = 5;
+
+    const MARKER_CHAR = '\u25CF'; // Solid rover marker
+    const TARGET_CHAR = '\u25CB'; // Selected point
+    // Fine navigation grid: plus markers at every second cell intersection.
+    const SECTOR_SIZE = 2;
+
+    // Базовый модуль находится в центре карты; робот стартует на соседней клетке.
+    let posX = 24;
+    let posY = 25;
+    let targetX = null;
+    let targetY = null;
+    let moveDirection = null;
+    let moveTimer = null;
+    let chargeTimer = null;
+
+    let hp = 20;
+    const maxHp = 20;
+    let tmp = 24;
+    const maxTmp = 100;
+
+    let batCells = 4; // 80% [■■■■□]
+    const maxBatCells = 5;
+    let stepsSinceChargeLoss = 0;
+
+    const explored = new Set();
+    const inventory = new Set(); // 'panel', 'crate', 'assembler'
+    const delivered = new Set(); // 'panel', 'crate', 'assembler'
+
+    // Объекты на карте:
+    // base: ⬟, rock: ▲, crate: ▣ (полный) / □ (пустой), solar: ▤, assembler: ⌘, broken: ⧅ -> ░, quest: ◇
+    const entities = [
+      {id:'base',x:25,y:25,w:5,h:3,kind:'base',label:'CONTROL MODULE / BASE'},
+      {id:'panel_1',x:19,y:20,w:3,h:3,kind:'solar',label:'SOLAR PANEL',taskItem:'panel',taken:false},
+      {id:'crate_1',x:32,y:30,w:3,h:3,kind:'crate',label:'CRATE [WIRING / PARTS / COMP]',taskItem:'crate',opened:false},
+      {id:'asm_1',x:35,y:19,w:3,h:3,kind:'assembler',label:'ASSEMBLER FABRICATOR UNIT',taskItem:'assembler',salvaged:false},
+      {id:'broken_2',x:20,y:32,w:3,h:3,kind:'broken',label:'BROKEN MODULE [SCRAP]',salvaged:false},
+      {id:'quest_1',x:31,y:24,w:1,h:1,kind:'quest',label:'TASK BEACON: SALVAGE SECTOR'},
+      {id:'rock_1',x:28,y:21,w:1,h:1,kind:'rock',label:'IMPASSABLE ROCK TERRAIN'},
+      {id:'rock_2',x:28,y:22,w:1,h:1,kind:'rock',label:'IMPASSABLE ROCK TERRAIN'},
+      {id:'rock_3',x:28,y:23,w:1,h:1,kind:'rock',label:'IMPASSABLE ROCK TERRAIN'},
+      {id:'debris_1',x:16,y:27,w:1,h:1,kind:'debris',label:'METAL DEBRIS'},
+      {id:'debris_2',x:22,y:34,w:1,h:1,kind:'debris',label:'CERAMIC FRAGMENT'},
+      {id:'debris_3',x:38,y:28,w:1,h:1,kind:'debris',label:'CABLE SCRAP'},
+      {id:'debris_4',x:40,y:21,w:1,h:1,kind:'debris',label:'STRUCTURAL FRAGMENT'},
+      {id:'debris_5',x:14,y:33,w:1,h:1,kind:'debris',label:'METAL DEBRIS'}
+    ];
+
+    function pad2(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function writeLog(text) {
+      const message=document.getElementById('mission-message');
+      if(message){message.dataset.manual='true';message.textContent=toImportantMessage(text);}
+    }
+
+    function toImportantMessage(text){
+      const value=String(text).toUpperCase();
+      if(value.includes('BLOCKED BY STRUCTURE')||value.includes('ROCK'))return 'OBSTACLE AHEAD // ROCK FORMATION OR STRUCTURE';
+      if(value.includes('MAP LIMIT'))return 'MAP LIMIT // NO FURTHER TERRAIN IN THIS DIRECTION';
+      if(value.includes('NO INTERACTIVE OBJECT'))return 'NO OBJECT IN RANGE // MOVE CLOSER AND USE ACT';
+      if(value.includes('PICKED UP SOLAR'))return 'ITEM RECOVERED // SOLAR PANEL — RETURN TO CONTROL MODULE';
+      if(value.includes('OPENED CRATE'))return 'OBJECT OPENED // SUPPLIES AND COMPONENTS RECOVERED';
+      if(value.includes('SALVAGED ASSEMBLER'))return 'OBJECT RECOVERED // ASSEMBLER COMPONENTS — RETURN TO BASE';
+      if(value.includes('BASE CHARGING')||value.includes('CHARGING AT BASE'))return 'ROVER CHARGING // REMAIN NEAR CONTROL MODULE';
+      if(value.includes('BATTERY')||value.includes('BAT '))return value;
+      if(value.includes('DELIVERED'))return 'SUPPLIES DELIVERED // '+value;
+      if(value.includes('QUEST COMPLETE'))return 'MISSION OBJECTIVE COMPLETE // '+value;
+      if(value.includes('DRIVE '))return 'ROVER MOVED // CONTINUE SURVEYING TERRAIN';
+      if(value.includes('UNEXPLORED'))return 'UNEXPLORED TERRAIN // MOVE ROVER TO SCAN AREA';
+      return value;
+    }
+
+    function setMoveStateLabel(label) {
+      // Movement state is communicated through mission messages, not the battery readout.
+    }
+
+    function makeAsciiBar(val, maxVal, width, fillChar, emptyChar) {
+      const clamped = Math.max(0, Math.min(maxVal, val));
+      const filled = maxVal > 0 ? Math.round((clamped / maxVal) * width) : 0;
+      return '[' + fillChar.repeat(filled) + emptyChar.repeat(width - filled) + ']';
+    }
+
+    const taskData=[
+      {title:'01 // SURVEY',text:'Use the directional controls to move the rover one cell at a time. Explore nearby terrain, inspect detected objects and obstacles, and press ACT when close to equipment.'},
+      {title:'02 // FIND ENERGY',text:'Locate solar panels, battery banks, generators and RTG units. Minimum infrastructure: one solar panel and one battery bank. Approach equipment and use ACT to interact.'},
+      {title:'03 // FIND UNITS',text:'Search for other rovers, autonomous robots, communication stations and processing modules. Approach discovered equipment to inspect it.'},
+      {title:'04 // RECOVER PARTS',text:'Locate salvageable components, wiring, tools and structural fragments. Move close to an object and use ACT to collect or recover it, then return to the control module.'}
+    ];
+    let selectedTask=0;
+    function selectTask(index){
+      selectedTask=Math.max(0,Math.min(taskData.length-1,index));
+      document.querySelectorAll('.task-tab').forEach((button,i)=>button.classList.toggle('active',i===selectedTask));
+      document.getElementById('task-detail-title').textContent=taskData[selectedTask].title;
+      document.getElementById('task-detail-text').textContent=taskData[selectedTask].text;
+      updateTaskStatus();
+    }
+    function updateTaskStatus() {
+      const message=document.getElementById('mission-message');
+      if(!message)return;
+      if(chargeTimer!==null)message.textContent='ROVER IS CONNECTED TO THE CONTROL MODULE AND CHARGING. WAIT UNTIL BATTERY RECOVERY IS COMPLETE.';
+      else if(batCells<=1)message.textContent='CRITICAL BATTERY: RETURN TO CONTROL MODULE IMMEDIATELY. ROVER POWER IS ALMOST DEPLETED.';
+      else if(batCells<=2)message.textContent='LOW BATTERY: RETURN TO CONTROL MODULE FOR RECHARGING BEFORE CONTINUING THE SURVEY.';
+      else if(batCells<=3)message.textContent='BATTERY WARNING: PLAN A RETURN TO THE CONTROL MODULE FOR RECHARGING.';
+      else if(!message.dataset.manual)message.textContent='IMPORTANT // PROCEED WITH ROVER TO SURVEY NEARBY TERRAIN. APPROACH OBJECTS AND USE ACT.';
+    }
+
+    function renderVitals() {
+      const volts=[9.0,10.2,11.1,11.8,12.8,14.0][batCells];
+      const readout=document.getElementById('rover-voltage');
+      readout.textContent='BAT '+volts.toFixed(1)+'/14.0 V';
+      readout.style.color=batCells<=1?'var(--crim)':'var(--grn-main)';
+      const charging=chargeTimer!==null;
+      document.getElementById('rover-charging').textContent=charging?'ROVER CHARGING 40 W':'';
+      document.getElementById('tx-peak').textContent='TX PEAK 15/15 W';
+      document.getElementById('avg-load').textContent='AVG '+(charging?90:50)+'/90 W';
+
+      updateTaskStatus();
+    }
+
+    function isSectorEdge(x, y) {
+      return x % SECTOR_SIZE === 0 && y % SECTOR_SIZE === 0;
+    }
+
+    function scrollMap(dx, dy) {
+      viewX = Math.max(0, Math.min(MAP_W - VIEW_W, viewX + dx));
+      viewY = Math.max(0, Math.min(MAP_H - VIEW_H, viewY + dy));
+      renderMap();
+    }
+
+    function updateMapNav() {
+      document.getElementById('map-north').disabled = viewY <= 0;
+      document.getElementById('map-south').disabled = viewY >= MAP_H - VIEW_H;
+      document.getElementById('map-west').disabled = viewX <= 0;
+      document.getElementById('map-east').disabled = viewX >= MAP_W - VIEW_W;
+    }
+
+    function getEntityAt(x,y) {
+      return entities.find(e=>x>=e.x&&x<e.x+(e.w||1)&&y>=e.y&&y<e.y+(e.h||1))||null;
+    }
+    function revealAroundUnit(){
+      for(let y=posY-2;y<=posY+2;y++)for(let x=posX-2;x<=posX+2;x++)
+        if(x>=0&&y>=0&&x<MAP_W&&y<MAP_H)explored.add(x+','+y);
+    }
+    function structureGlyph(ent,x,y){
+      const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y;
+      if(w===1&&h===1)return getEntitySymbol(ent);
+      if(lx===Math.floor(w/2)&&ly===Math.floor(h/2))return getEntitySymbol(ent);
+      return '';
+    }
+
+    function getEntitySymbol(ent) {
+      if (!ent) return '';
+      if (ent.kind === 'base') return '\u2B1F';      // ⬟
+      if (ent.kind === 'rock') return '\u25B2';      // ▲
+      if (ent.kind === 'solar') return ent.taken ? '' : '\u25A4'; // ▤
+      if (ent.kind === 'crate') return ent.opened ? '\u25A1' : '\u25A3'; // □ / ▣
+      if (ent.kind === 'assembler') return ent.salvaged ? '\u2591' : '\u2699'; // ⚙ / ░
+      // ⌘ is reserved for a future aerial drone / multicopter unit.
+      if (ent.kind === 'broken') return ent.salvaged ? '\u2591' : '\u29C5'; // ⧅ / ░
+      if (ent.kind === 'quest') return '\u25C7';     // ◇
+      if (ent.kind === 'debris') return '\u00B7';
+      return '';
+    }
+
+    function isAdjacentOrSame(x1,y1,x2,y2){return Math.abs(x1-x2)<=1&&Math.abs(y1-y2)<=1;}
+    function isAdjacentToEntity(x,y,ent){
+      const right=ent.x+(ent.w||1)-1,bottom=ent.y+(ent.h||1)-1;
+      return x>=ent.x-1&&x<=right+1&&y>=ent.y-1&&y<=bottom+1;
+    }
+
+    function findNearbyInteractive() {
+      const baseEnt = entities.find((e) => e.kind === 'base');
+      if (baseEnt && isAdjacentToEntity(posX,posY,baseEnt)) {
+        if (inventory.size > 0 || batCells < maxBatCells) {
+          return baseEnt;
+        }
+      }
+
+      for (const ent of entities) {
+        if (ent.kind === 'rock' || ent.kind === 'base' || ent.kind === 'quest') continue;
+        if (!isAdjacentToEntity(posX,posY,ent)) continue;
+
+        if (ent.kind === 'solar' && !ent.taken) return ent;
+        if (ent.kind === 'crate' && !ent.opened) return ent;
+        if (ent.kind === 'assembler' && !ent.salvaged) return ent;
+        if (ent.kind === 'broken' && !ent.salvaged) return ent;
+      }
+
+      if (baseEnt && isAdjacentToEntity(posX,posY,baseEnt)) {
+        return baseEnt;
+      }
+
+      return null;
+    }
+
+    function updateActButton() {
+      const btnAct = document.getElementById('btn-act');
+      const near = findNearbyInteractive();
+      btnAct.disabled = !near;
+    }
+
+    function stopMovement(reasonText) {
+      if (moveTimer !== null) {
+        clearTimeout(moveTimer);
+        moveTimer = null;
+      }
+      moveDirection = null;
+      document.querySelectorAll('.dir-btn').forEach((button) => button.classList.remove('is-active'));
+      if (!chargeTimer) setMoveStateLabel('IDLE');
+      if (reasonText) {
+        setMoveStateLabel(reasonText.includes('BLOCKED')||reasonText.includes('LIMIT')?'BLOCKED':'IDLE');
+        writeLog(reasonText);
+      }
+    }
+
+    function updateBaseCharging() {
+      const baseEnt = entities.find((e) => e.kind === 'base');
+      const nearBase = baseEnt && isAdjacentToEntity(posX,posY,baseEnt);
+
+      if (nearBase && batCells < maxBatCells) {
+        if (chargeTimer === null) {
+          chargeTimer = setInterval(() => {
+            const b = entities.find((e) => e.kind === 'base');
+            if (!b || !isAdjacentToEntity(posX,posY,b) || batCells >= maxBatCells) {
+              clearInterval(chargeTimer);
+              chargeTimer = null;
+              renderVitals();
+              if (moveTimer === null) setMoveStateLabel('IDLE');
+              return;
+            }
+            batCells = Math.min(maxBatCells, batCells + 1);
+            stepsSinceChargeLoss = 0;
+            renderVitals();
+            writeLog('BASE CHARGING: BAT ' + (batCells * 20) + '%');
+            if (batCells === maxBatCells) {
+              clearInterval(chargeTimer);
+              chargeTimer = null;
+              renderVitals();
+              if (moveTimer === null) setMoveStateLabel('IDLE');
+              writeLog('BATTERY FULL [100%]');
+            }
+          }, CHARGE_MS);
+          renderVitals();
+        }
+        if (moveTimer === null) {
+          setMoveStateLabel('CHARGING');
+        }
+      } else if (chargeTimer !== null) {
+        clearInterval(chargeTimer);
+        chargeTimer = null;
+        renderVitals();
+        if (moveTimer === null) {
+          setMoveStateLabel('IDLE');
+        }
+      }
+    }
+
+    function updateReadout() {
+      // Coordinates are shown in the telemetry line once the dedicated nav header is introduced.
+    }
+
+    function renderMap() {
+      const gridEl = document.getElementById('map-grid');
+      updateReadout();
+      updateActButton();
+      updateBaseCharging();
+
+      updateMapNav();
+      revealAroundUnit();
+      const frag = document.createDocumentFragment();
+
+      for (let sy = 0; sy < VIEW_H; sy++) {
+        for (let sx = 0; sx < VIEW_W; sx++) {
+          const x = viewX + sx;
+          const y = viewY + sy;
+          const cell = document.createElement('div');
+          cell.className = 'map-cell';
+          cell.addEventListener('click',()=>onCellClick(x,y));
+
+          const known=explored.has(x+','+y),ent=known?getEntityAt(x,y):null;
+          if(!known){
+            cell.classList.add('unexplored');
+            if(isSectorEdge(x,y)){cell.classList.add('corner','sector');cell.textContent='+';}
+          }
+          else if(x===posX&&y===posY){cell.classList.add('marker');cell.textContent='●';}
+          else if(ent){
+            cell.classList.add('structure');
+            if(ent.kind==='base')cell.classList.add('obj-base');
+            else if(ent.kind==='rock')cell.classList.add('obj-hazard');
+            else if(!['debris','quest'].includes(ent.kind))cell.classList.add('obj-item');
+            const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y;
+            if(w>1&&h>1){
+              if(ly===0)cell.classList.add('edge-top');
+              if(ly===h-1)cell.classList.add('edge-bottom');
+              if(lx===0)cell.classList.add('edge-left');
+              if(lx===w-1)cell.classList.add('edge-right');
+            }
+            const glyph=structureGlyph(ent,x,y);if(glyph)cell.textContent=glyph;
+            if(x===ent.x+Math.floor((ent.w||1)/2)&&y===ent.y+Math.floor((ent.h||1)/2))cell.classList.add('core');
+          } else if(isSectorEdge(x,y)){cell.classList.add('corner','sector');cell.textContent='+';}
+
+          frag.appendChild(cell);
+        }
+      }
+
+      gridEl.replaceChildren(frag);
+    }
+
+    function describeCell(x, y) {
+      const ent = getEntityAt(x, y);
+      const coord = '[' + pad2(x) + ',' + pad2(y) + ']';
+      if(!explored.has(x+','+y))return coord+' UNEXPLORED';
+      if (x === posX && y === posY) {
+        return coord + ' UNIT @ POS (BAT ' + (batCells * 20) + '%)';
+      }
+      if (!ent) {
+        return coord + ' OPEN GROUND';
+      }
+      if (ent.kind === 'base') {
+        return coord + ' BASE [⬟] CHARGE + QUEST DROP-OFF';
+      }
+      if (ent.kind === 'rock') {
+        return coord + ' ROCKS [▲] IMPASSABLE';
+      }
+      if (ent.kind === 'solar') {
+        return coord + (ent.taken ? ' SOLAR MOUNT [EMPTY]' : ' SOLAR PANEL [▤] QUEST ITEM');
+      }
+      if (ent.kind === 'crate') {
+        return coord + (ent.opened ? ' CRATE [□] EMPTY' : ' CRATE [▣] WIRING/PARTS/COMP');
+      }
+      if (ent.kind === 'assembler') {
+        return coord + (ent.salvaged ? ' ASSEMBLER [░] SALVAGED' : ' ASSEMBLER FABRICATOR [⚙] QUEST ITEM');
+      }
+      if (ent.kind === 'broken') {
+        return coord + (ent.salvaged ? ' WRECK [░] SALVAGED' : ' BROKEN MODULE [⧅] SCRAP');
+      }
+      if (ent.kind === 'quest') {
+        return coord + ' QUEST BEACON [◇] ' + delivered.size + '/3 DONE';
+      }
+      return coord + ' ' + ent.label;
+    }
+
+    function onCellClick(x,y){if(explored.has(x+','+y))writeLog(describeCell(x,y));}
+
+    function getStepVector() {
+      const dx = posX === targetX ? 0 : (posX < targetX ? 1 : -1);
+      const dy = posY === targetY ? 0 : (posY < targetY ? 1 : -1);
+
+      let dir = '';
+      if (dy < 0) dir += 'N';
+      else if (dy > 0) dir += 'S';
+      if (dx > 0) dir += 'E';
+      else if (dx < 0) dir += 'W';
+
+      return { dx, dy, dir };
+    }
+
+    function keepUnitInView() {
+      if (posX < viewX) viewX = posX;
+      if (posX >= viewX + VIEW_W) viewX = posX - VIEW_W + 1;
+      if (posY < viewY) viewY = posY;
+      if (posY >= viewY + VIEW_H) viewY = posY - VIEW_H + 1;
+      viewX = Math.max(0, Math.min(MAP_W - VIEW_W, viewX));
+      viewY = Math.max(0, Math.min(MAP_H - VIEW_H, viewY));
+    }
+
+    function stepInDirection() {
+      if (!moveDirection) return;
+      if (batCells <= 0) {
+        stopMovement('ROBOT BATTERY DEPLETED — RETURN TO A POWER SOURCE');
+        return;
+      }
+      const vectors = {N:[0,-1],NE:[1,-1],E:[1,0],SE:[1,1],S:[0,1],SW:[-1,1],W:[-1,0],NW:[-1,-1]};
+      const [dx, dy] = vectors[moveDirection];
+      const nextX = posX + dx;
+      const nextY = posY + dy;
+      if (nextX < 0 || nextY < 0 || nextX >= MAP_W || nextY >= MAP_H) {
+        stopMovement('MAP LIMIT REACHED');
+        return;
+      }
+      const blocked = getEntityAt(nextX, nextY);
+      if (blocked && ['rock','base','solar','crate','assembler','broken'].includes(blocked.kind)) {
+        stopMovement('MOVEMENT BLOCKED BY STRUCTURE OR ROCK');
+        return;
+      }
+      posX = nextX;
+      posY = nextY;
+      const completedDirection = moveDirection;
+      moveDirection = null;
+      document.querySelectorAll('.dir-btn').forEach((button) => button.classList.remove('is-active'));
+      setMoveStateLabel('IDLE');
+      stepsSinceChargeLoss += 1;
+      if (stepsSinceChargeLoss >= STEPS_PER_CELL_CHARGE) {
+        stepsSinceChargeLoss = 0;
+        batCells = Math.max(0, batCells - 1);
+      }
+      keepUnitInView();
+      renderVitals();
+      renderMap();
+      const nearby=entities.find(e=>e.kind!=='debris'&&isAdjacentToEntity(posX,posY,e));
+      if(nearby){
+        const names={base:'CONTROL MODULE',solar:'SOLAR PANEL',crate:'SUPPLY CRATE',assembler:'ASSEMBLER',broken:'DAMAGED MODULE',rock:'ROCK FORMATION',quest:'UNKNOWN OBJECT'};
+        writeLog('OBJECT DETECTED // '+(names[nearby.kind]||'UNKNOWN EQUIPMENT')+' — APPROACH AND USE ACT');
+      }else{
+        writeLog('AREA SCANNED // NO EQUIPMENT DETECTED. CONTINUE SURVEY.');
+      }
+      if (batCells <= 0) stopMovement('ROBOT BATTERY DEPLETED — RETURN TO A POWER SOURCE');
+    }
+
+    function startDirectionalMovement(direction) {
+      if (batCells <= 0) {
+        setMoveStateLabel('BATTERY EMPTY');
+        writeLog('ROBOT BATTERY DEPLETED — MOVEMENT LOCKED');
+        return;
+      }
+      const vectors={N:[0,-1],NE:[1,-1],E:[1,0],SE:[1,1],S:[0,1],SW:[-1,1],W:[-1,0],NW:[-1,-1]};
+      if(!Object.prototype.hasOwnProperty.call(vectors,direction))return;
+      if (moveTimer !== null) return;
+      moveDirection = direction;
+      document.querySelectorAll('.dir-btn').forEach((button) => {
+        button.classList.toggle('is-active', button.dataset.direction === direction);
+      });
+      setMoveStateLabel('MOVING ' + direction);
+      moveTimer = setTimeout(() => {
+        moveTimer = null;
+        stepInDirection();
+      }, STEP_MS);
+      writeLog('MANUAL DRIVE ' + direction + ' // STEP IN ' + (STEP_MS / 1000).toFixed(2) + ' S');
+    }
+
+    function performInteract() {
+      const ent = findNearbyInteractive();
+      if (!ent) {
+        writeLog('NO INTERACTIVE OBJECT NEARBY');
+        return;
+      }
+
+      if (ent.kind === 'base') {
+        if (inventory.size > 0) {
+          const added = [];
+          for (const item of inventory) {
+            if (!delivered.has(item)) {
+              delivered.add(item);
+              added.push(item.toUpperCase());
+            }
+          }
+          inventory.clear();
+          renderVitals();
+          if (delivered.size >= 3) {
+            writeLog('QUEST COMPLETE! 3/3 DELIVERED TO BASE');
+          } else {
+            writeLog('DELIVERED: ' + added.join(', ') + ' (' + delivered.size + '/3)');
+          }
+        } else if (batCells < maxBatCells) {
+          writeLog('CHARGING AT BASE: +20% EVERY 2S');
+        } else {
+          writeLog('BASE READY: BAT 100%, NO ITEMS TO DROP');
+        }
+        renderMap();
+        return;
+      }
+
+      if (ent.kind === 'solar' && !ent.taken) {
+        ent.taken = true;
+        inventory.add('panel');
+        renderVitals();
+        renderMap();
+        writeLog('PICKED UP SOLAR PANEL [▤] -> BRING TO BASE');
+        return;
+      }
+
+      if (ent.kind === 'crate' && !ent.opened) {
+        ent.opened = true;
+        if (ent.taskItem) inventory.add(ent.taskItem);
+        renderVitals();
+        renderMap();
+        writeLog('OPENED CRATE [▣->□]: LOOTED WIRING/PARTS/COMP');
+        return;
+      }
+
+      if (ent.kind === 'assembler' && !ent.salvaged) {
+        ent.salvaged = true;
+        if (ent.taskItem) inventory.add(ent.taskItem);
+        renderVitals();
+        renderMap();
+        writeLog('SALVAGED ASSEMBLER [⚙] -> BRING TO BASE');
+        return;
+      }
+
+      if (ent.kind === 'broken' && !ent.salvaged) {
+        ent.salvaged = true;
+        tmp = Math.min(maxTmp, tmp + 4);
+        renderVitals();
+        renderMap();
+        writeLog('SALVAGED BROKEN MODULE [⧅->░] [+4 TMP]');
+      }
+    }
+
+    document.querySelectorAll('.dir-btn[data-direction]').forEach(button=>button.addEventListener('click',()=>startDirectionalMovement(button.dataset.direction)));
+    document.querySelectorAll('.task-tab').forEach(button=>button.addEventListener('click',()=>{document.getElementById('mission-message').dataset.manual='';selectTask(Number(button.dataset.task));}));
+    document.getElementById('btn-act').addEventListener('click', performInteract);
+    selectTask(0);
+
+    document.getElementById('map-north').addEventListener('click', () => scrollMap(0, -SCROLL_STEP));
+    document.getElementById('map-south').addEventListener('click', () => scrollMap(0, SCROLL_STEP));
+    document.getElementById('map-west').addEventListener('click', () => scrollMap(-SCROLL_STEP, 0));
+    document.getElementById('map-east').addEventListener('click', () => scrollMap(SCROLL_STEP, 0));
+    // Начальная область просмотра центрирована на базовом модуле.
+    viewX = 18;
+    viewY = 21;
+    revealAroundUnit();
+    renderVitals();
+    renderMap();
+  </script>
+</body>
+</html>
