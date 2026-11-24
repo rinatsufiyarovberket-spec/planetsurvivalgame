@@ -10,7 +10,7 @@
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"DejaVu Sans Mono","Liberation Mono",Consolas,monospace;touch-action:manipulation}
 body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 .app{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:clamp(5px,1vh,10px)}
-.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(155px,1fr) minmax(300px,min(58vh,560px)) minmax(155px,1fr);gap:clamp(48px,5vw,76px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(11px,.92vw,13px);line-height:1.48}.panel-heading{color:#fff;font-size:clamp(11px,.95vw,13px);letter-spacing:.1em;margin:0 0 6px}.telemetry{display:flex;flex-direction:column;gap:5px}.telemetry strong{display:block;color:#fff;font-size:clamp(16px,1.5vw,21px);font-weight:500}.battery-state{display:inline-block;margin-left:12px;vertical-align:baseline;color:var(--mid);font-size:clamp(9px,.72vw,10px);font-weight:400;letter-spacing:.045em;white-space:nowrap}.activity-heading{display:flex;align-items:center;gap:8px;margin-top:14px;margin-bottom:6px;min-width:0}.activity-heading .panel-heading{margin:0;white-space:nowrap}.activity-action{display:flex;align-items:center;justify-content:center;align-self:center;flex:1;min-width:0;max-width:100%;height:22px;min-height:22px;margin:0;padding:0 7px;overflow:hidden;white-space:nowrap;font-size:clamp(8px,.68vw,10px);line-height:1;letter-spacing:.04em}.metric{padding-bottom:2px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:4px}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(10px,.8vw,11px)}.task-item b{display:flex;flex-wrap:nowrap;align-items:baseline;justify-content:space-between;gap:5px;color:#fff;font-weight:500;white-space:nowrap;overflow:hidden}.task-status{color:var(--mid);font-size:.82em;font-weight:400;letter-spacing:.04em;white-space:nowrap;flex-shrink:0}.control-help{margin-top:8px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
+.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(155px,1fr) minmax(300px,min(58vh,560px)) minmax(155px,1fr);gap:clamp(48px,5vw,76px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(11px,.92vw,13px);line-height:1.48}.panel-heading{color:#fff;font-size:clamp(11px,.95vw,13px);letter-spacing:.1em;margin:0 0 6px}.telemetry{display:flex;flex-direction:column;gap:5px}.telemetry strong{display:block;color:#fff;font-size:clamp(16px,1.5vw,21px);font-weight:500}.battery-state{display:inline-block;margin-left:12px;vertical-align:baseline;color:var(--mid);font-size:inherit;font-weight:500;letter-spacing:.045em;white-space:nowrap}.activity-heading{display:flex;align-items:center;gap:0;margin-top:14px;margin-bottom:6px;min-width:0}.activity-heading .panel-heading{display:none}.activity-action{display:flex;align-items:center;justify-content:center;align-self:center;flex:1;min-width:0;max-width:100%;height:22px;min-height:22px;margin:0;padding:0 7px;overflow:hidden;white-space:nowrap;font-size:clamp(10px,.8vw,12px);line-height:1;letter-spacing:.06em}.metric{padding-bottom:2px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:4px}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(10px,.8vw,11px)}.task-item b{display:flex;flex-wrap:nowrap;align-items:baseline;justify-content:space-between;gap:5px;color:#fff;font-weight:500;white-space:nowrap;overflow:hidden}.task-status{color:var(--mid);font-size:.82em;font-weight:400;letter-spacing:.04em;white-space:nowrap;flex-shrink:0}.control-help{margin-top:8px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
 .scope{position:relative;width:min(min(58vh,58vw),560px);height:auto;aspect-ratio:1;border-radius:50%;overflow:visible;background:radial-gradient(circle,rgba(255,255,255,.035),rgba(255,255,255,.012) 68%,transparent 69%)}
 .map-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:1}
 .map-svg .scan-boundary{fill:none;stroke:transparent;stroke-width:0}
@@ -55,7 +55,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         <div class="metric">ANTENNA DISTANCE<strong id="distance-visible">0.0 M</strong></div>
         <div class="metric">SIGNAL<strong id="signal-visible">TX: STABLE</strong></div>
       </div>
-      <div class="activity-heading"><div class="panel-heading">EVENT LOG</div><button class="action-button activity-action" id="btn-act">SCAN</button></div>
+      <div class="activity-heading"><button class="action-button activity-action" id="btn-act">ACT</button></div>
       <div class="status-list" id="status-messages"></div>
       <div class="outgoing-list" id="log-history"><div class="log-entry">&gt; SEARCHING // LOCAL TERRAIN SCAN ACTIVE</div></div>
     </aside>
@@ -72,7 +72,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     </div>
     <aside class="side-panel right-panel">
       <div class="panel-heading">MISSION OBJECTIVES</div>
-      <div class="task-list" id="mission-list"><div class="task-item"><b>01 / LOCATION SURVEY <span class="task-status">ACTIVE</span></b>Explore the area and identify nearby equipment</div></div>
+      <div class="task-list" id="mission-list"><div class="task-item"><b>LOCATION SURVEY <span class="task-status">ACTIVE</span></b>Explore the area and identify nearby equipment</div></div>
       <div class="control-help"><b>CONTROL</b><br>Use the eight arrows to move. Approach an object and press ACT. Return to the station to recharge and connect recovered equipment.</div>
     </aside>
     <div class="hidden-support">
@@ -144,7 +144,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       {id:'engine_wreck',kind:'engine_wreck',w:2,h:2,label:'CRUSHED ENGINE / THRUSTER SECTION'},
       {id:'quest_1',kind:'quest',w:1,h:1,label:'TASK BEACON: SALVAGE SECTOR'},
       ...Array.from({length:8},(_,i)=>({id:'rock_'+i,kind:'rock',w:i%3===0?2:1,h:i%3===0?2:1,label:i%3===0?'BOULDER FORMATION':'ROCK OUTCROP'})),
-      ...Array.from({length:30},(_,i)=>({id:'debris_'+i,kind:['rubble','shard','debris','crater','hull','tank','nozzle','capsule'][i%8],w:1,h:1,label:['RUBBLE FIELD','BROKEN FRAGMENT','METAL DEBRIS','GROUND DEPRESSION','HULL PLATING','FUEL TANK REMNANT','ENGINE NOZZLE','CAPSULE STRUCTURE'][i%8]}))
+      ...Array.from({length:52},(_,i)=>({id:'debris_'+i,kind:['rubble','shard','debris','crater','hull','tank','nozzle','capsule','gravel','scrap','wire','stone'][i%12],w:1,h:1,label:['RUBBLE FIELD','BROKEN FRAGMENT','METAL DEBRIS','GROUND DEPRESSION','HULL PLATING','FUEL TANK REMNANT','ENGINE NOZZLE','CAPSULE STRUCTURE','LOOSE GRAVEL','METAL SCRAP','CABLE FRAGMENT','ROCK CHIPS'][i%12]}))
     ];
     function placeRandomEntities(){
       const occupied=[];
@@ -228,32 +228,34 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       return ['N','NE','E','SE','S','SW','W','NW'][Math.round(angle/45)%8];
     }
     function updateTaskStatus(){
-      const panel=entities.find(e=>e.kind==='solar'),cleaner=entities.find(e=>e.kind==='cleaner'),assembler=entities.find(e=>e.kind==='assembler'),container=entities.find(e=>e.kind==='crate');
+      const panel=entities.find(e=>e.kind==='solar'),cleaner=entities.find(e=>e.kind==='cleaner'),assembler=entities.find(e=>e.kind==='assembler'),container=entities.find(e=>e.kind==='crate'),transporter=entities.find(e=>e.kind==='transporter'),capsule=entities.find(e=>e.kind==='capsule_wreck');
       const missions=[];
       const add=(title,status,detail)=>missions.push('<div class="task-item"><b>'+title+' <span class="task-status">'+status+'</span></b>'+detail+'</div>');
       const surveyDone=[panel,container,cleaner,assembler].every(objectDetected);
-      if(!surveyDone)add('01 / LOCATION SURVEY','IN PROGRESS','Explore and identify the equipment in this sector');
-      let n=surveyDone?1:2;
+      if(!surveyDone)add('LOCATION SURVEY','IN PROGRESS','Explore and identify the equipment in this sector');
+      let n=0;
       if(panel&&objectDetected(panel)&&!panel.connected){
         const dir=directionToEntity(panel);
-        add(String(n++).padStart(2,'0')+' / SOLAR ARRAY · '+dir,panel.cleaned?'IN PROGRESS':'ACTIVE',panel.cleaned?'Connect the recovered cable at the control module':'Remove dust and debris from the solar panel');
+        add('SOLAR ARRAY · '+dir,panel.cleaned?'IN PROGRESS':'ACTIVE',panel.cleaned?'Connect the recovered cable at the control module':'Remove dust and debris from the solar panel');
       }
       if(container&&objectDetected(container)&&!container.opened){
         const dir=directionToEntity(container);
-        if(!container.extracted)add(String(n++).padStart(2,'0')+' / SUPPLY CONTAINER · '+dir,container.extracting?'IN PROGRESS':'ACTIVE','Extract the container from the surrounding debris');
-        else add(String(n++).padStart(2,'0')+' / OPEN SUPPLY CONTAINER · '+dir,'ACTIVE','Open it and recover the solar cable and spare components');
+        if(!container.extracted)add('SUPPLY CONTAINER · '+dir,container.extracting?'IN PROGRESS':'ACTIVE','Extract the container from the surrounding debris');
+        else add('OPEN SUPPLY CONTAINER · '+dir,'ACTIVE','Open it and recover the solar cable and spare components');
       }
       if(cleaner&&objectDetected(cleaner)&&!cleaner.active){
         const dir=directionToEntity(cleaner);
-        add(String(n++).padStart(2,'0')+' / PREPARE CLEANER ROVER · '+dir,cleaner.busy?'IN PROGRESS':'ACTIVE',cleaner.cleared?'Start the prepared rover':'Clear small debris around the rover');
+        add('ACTIVATE CLEANER ROVER · '+dir,cleaner.busy?'IN PROGRESS':'ACTIVE',cleaner.cleared?'Start the prepared rover':'Clear small debris around the rover');
       }
+      if(transporter&&objectDetected(transporter)&&!transporter.linked){const dir=directionToEntity(transporter);add('ACTIVATE CARGO TRANSPORTER · '+dir,transporter.busy?'IN PROGRESS':'ACTIVE',transporter.active?'Return to the control module and link the rover':'Clear debris and start the cargo transporter');}
+      if(capsule&&objectDetected(capsule)&&!capsule.resolved){const dir=directionToEntity(capsule);add('RESCUE CREW MEMBER · '+dir,'ACTIVE','Inspect the damaged landing capsule');}
       if(assembler&&objectDetected(assembler)&&!assembler.standby){
         const dir=directionToEntity(assembler);
-        add(String(n++).padStart(2,'0')+' / UNPACK FIELD ASSEMBLER · '+dir,assembler.unpacked?'IN PROGRESS':'ACTIVE',assembler.unpacked?'Switch the assembler to standby':'Unpack the assembler from its transport casing');
+        add('UNPACK FIELD ASSEMBLER · '+dir,assembler.unpacked?'IN PROGRESS':'ACTIVE',assembler.unpacked?'Switch the assembler to standby':'Unpack the assembler from its transport casing');
       }
       const list=document.getElementById('mission-list');
       if(list)list.innerHTML=missions.join('');
-      if(panel&&panel.connected&&cleaner&&cleaner.active&&assembler&&assembler.standby&&container&&container.opened&&!missionTransitionStarted){
+      if(panel&&panel.connected&&cleaner&&cleaner.active&&assembler&&assembler.standby&&container&&container.opened&&transporter&&transporter.linked&&!missionTransitionStarted){
         missionTransitionStarted=true;
         writeLog('INITIAL OBJECTIVES COMPLETE // TRANSFERRING CONTROL TO CARGO LOADER');
         const act=document.getElementById('btn-act');
@@ -265,7 +267,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const volts=batteryVoltage;
       const readout=document.getElementById('battery-visible');
       if(readout)readout.textContent=volts.toFixed(1)+' V';
-      const state=document.getElementById('battery-status');if(state)state.textContent=volts>=13.8?'FULL CHARGED':volts>=12.5?'CHARGED':volts>=11?'LOW':volts>=9.5?'MINIMUM':'CRITICAL';
+      const state=document.getElementById('battery-status');if(state)state.textContent=volts>=13.8?'FULL CHARGED':volts>=12.5?'CHARGED':volts>=10.5?'LOW':volts>=9.5?'MINIMUM':'CRITICAL';
       const hidden=document.getElementById('rover-voltage');
       if(hidden)hidden.textContent=volts.toFixed(1)+'/14.0 V';
       updateEnergyReadout(); updateTaskStatus();
@@ -289,6 +291,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         if((x-posX)**2+(y-posY)**2<=LIDAR_RADIUS**2&&x>=0&&y>=0&&x<MAP_W&&y<MAP_H)explored.add(x+','+y);
     }
     function updateEnergyReadout(){const b=document.getElementById('battery-visible');if(b)b.textContent=batteryVoltage.toFixed(1)+' V';}
+    function consumeBattery(rough){let remaining=1;const factor=rough?1.12:1;while(remaining>0&&batteryVoltage>8.8){const rate=batteryVoltage>12.5?.13:batteryVoltage>10.5?.10:.12;const floor=batteryVoltage>12.5?12.5:batteryVoltage>10.5?10.5:8.8;const steps=Math.min(remaining,(batteryVoltage-floor)/(rate*factor));batteryVoltage-=steps*rate*factor;remaining-=steps;}batteryVoltage=Math.max(8.8,batteryVoltage);}
     function recordEnergy(powerW,durationMs){
       currentConsumptionW=30;updateEnergyReadout();
     }
@@ -296,11 +299,13 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       currentConsumptionW=60; updateEnergyReadout();
       setTimeout(()=>{currentConsumptionW=30;updateEnergyReadout();},2000);
     }
+    function runTimedAction(ent,duration,done){ent.actionEndsAt=Date.now()+duration;renderMap();const timer=setInterval(()=>{updateActButton();if(Date.now()>=ent.actionEndsAt){clearInterval(timer);ent.actionEndsAt=null;done();renderMap();}},200);}
     function setActionLabel(){
       const btn=document.getElementById('btn-act'); if(!btn)return;
       const ent=findNearbyInteractive();
       if(!ent){btn.textContent='ACT';btn.disabled=true;return;}
-      const labels={base:inventory.size?'CONNECT / UPLOAD':'CHARGE',solar:ent.connected?'CONNECTED':ent.cleaned?'CONNECT CABLE':ent.cleaning?'CLEANING...':'CLEAN PANEL',transporter:ent.linked?'LINKED':ent.active?'AWAIT LINK':ent.busy?'CLEARING...':ent.cleared?'START ROVER':'CLEAR DEBRIS',cleaner:ent.active?'ONLINE':ent.busy?'WORKING...':ent.cleared?'START ROBOT':'CLEAR DEBRIS',crate:ent.opened?'COLLECTED':ent.extracting?'EXTRACTING...':ent.extracted?'OPEN CONTAINER':'EXTRACT CONTAINER',assembler:ent.standby?'STANDBY':ent.unpacked?'SET STANDBY':'UNPACK ASSEMBLER',broken:'OPEN CONTAINER'};
+      const secondsLeft=ent.actionEndsAt?Math.max(0,Math.ceil((ent.actionEndsAt-Date.now())/1000)):0;
+      const labels={base:ent.charging?'CHARGING '+secondsLeft+'S':inventory.size?'UPLOAD / CONNECT':'CHARGING',solar:ent.connected?'CONNECTED':ent.cleaned?'CHARGE / CONNECT':ent.cleaning?'CLEANING '+secondsLeft+'S':'CLEAN PANEL',transporter:ent.linked?'LINKED':ent.active?'RETURN TO BASE':ent.busy?'CLEARING '+secondsLeft+'S':ent.cleared?'ACTIVATE CARGO ROVER':'CLEAR DEBRIS',cleaner:ent.active?'ONLINE':ent.busy?'WORKING '+secondsLeft+'S':ent.cleared?'START CLEANER':'CLEAR DEBRIS',crate:ent.opened?'OPENED':ent.extracting?'EXTRACTING '+secondsLeft+'S':ent.extracted?'OPEN CONTAINER':'EXTRACT CONTAINER',assembler:ent.standby?'STANDBY':ent.unpacked?'SET STANDBY':'UNPACK ASSEMBLER',capsule:'INSPECT CAPSULE',fire:'INSPECT ENGINE FIRE',engine_wreck:'INSPECT ENGINE WRECK',broken:'OPEN CONTAINER'};
       btn.textContent=labels[ent.kind]||'ACT';btn.disabled=!!(ent.busy||ent.cleaning||ent.extracting);
     }
     function structureGlyph(ent,x,y){
@@ -346,6 +351,10 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         if (!isAdjacentToEntity(posX,posY,ent)) continue;
 
         if (ent.kind === 'solar' && !ent.connected) return ent;
+        if (ent.kind === 'transporter' && !ent.linked) return ent;
+        if (ent.kind === 'capsule_wreck' && !ent.resolved) return ent;
+        if (ent.kind === 'fire' && !ent.inspected) return ent;
+        if (ent.kind === 'engine_wreck' && !ent.inspected) return ent;
         if (ent.kind === 'cleaner' && !ent.active) return ent;
         if (ent.kind === 'crate' && !ent.opened) return ent;
         if (ent.kind === 'assembler' && !ent.standby) return ent;
@@ -379,25 +388,31 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 
     function updateBaseCharging() {
       const baseEnt = entities.find((e) => e.kind === 'base');
+      const solarEnt = entities.find((e) => e.kind === 'solar' && e.cleaned);
       const nearBase = baseEnt && isAdjacentToEntity(posX,posY,baseEnt);
+      const nearSolar = solarEnt && isAdjacentToEntity(posX,posY,solarEnt);
+      const source = nearBase ? baseEnt : nearSolar ? solarEnt : null;
 
-      if (nearBase && batteryVoltage < MAX_BATTERY_VOLTAGE) {
+      if (source && batteryVoltage < MAX_BATTERY_VOLTAGE) {
         if (chargeTimer === null) {
+          source.charging=true;source.actionEndsAt=Date.now()+Math.ceil((MAX_BATTERY_VOLTAGE-batteryVoltage)/0.6)*2000;
           chargeTimer = setInterval(() => {
-            const b = entities.find((e) => e.kind === 'base');
+            const b = source.kind==='base'?entities.find((e) => e.kind === 'base'):entities.find((e) => e.kind === 'solar' && e.cleaned);
             if (!b || !isAdjacentToEntity(posX,posY,b) || batteryVoltage >= MAX_BATTERY_VOLTAGE) {
               clearInterval(chargeTimer);
               chargeTimer = null;
+              source.charging=false;source.actionEndsAt=null;
               renderVitals();
               if (moveTimer === null) setMoveStateLabel('IDLE');
               return;
             }
             batteryVoltage=Math.min(MAX_BATTERY_VOLTAGE,batteryVoltage+0.6);
-
+            updateActButton();
             renderVitals();
             if (batteryVoltage >= MAX_BATTERY_VOLTAGE) {batteryVoltage=MAX_BATTERY_VOLTAGE;
               clearInterval(chargeTimer);
               chargeTimer = null;
+              source.charging=false;source.actionEndsAt=null;
               renderVitals();
               if (moveTimer === null) setMoveStateLabel('IDLE');
               writeLog('BATTERY RECHARGED');
@@ -430,7 +445,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const distance=distanceFromBaseMeters();
       const distanceNode=document.getElementById('distance-visible');
       const signalNode=document.getElementById('signal-visible');
-      if(distanceNode)distanceNode.textContent=distance.toFixed(1)+' M';
+      if(distanceNode)distanceNode.textContent=distance.toFixed(1)+' M · '+directionToEntity(entities.find(e=>e.kind==='base'));
       let nextState=distance>=TX_LOW_METERS?'LOW TX':'STABLE';
       if(signalState!=='LOST'&&nextState!==signalState){
         signalState=nextState;
@@ -446,10 +461,10 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       parts.push('<defs><clipPath id="lidarClip"><circle cx="750" cy="750" r="730"/></clipPath><pattern id="fireHatch" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M 0 12 L 12 0" stroke="#fff" stroke-opacity=".45" stroke-width="2"/></pattern></defs>');
       // 48 short protractor graduations with clear gaps around the eight direction controls.
       const compass=['N','NE','E','SE','S','SW','W','NW'];
-      for(let d=0;d<8;d++){const a=d*45-90,rad=a*Math.PI/180,cx=750+Math.cos(rad)*670,cy=750+Math.sin(rad)*670;parts.push('<text x="'+cx.toFixed(1)+'" y="'+(cy+9).toFixed(1)+'" fill="rgba(255,255,255,.82)" font-size="17" font-family="monospace" text-anchor="middle">'+compass[d]+'</text>');}
+      for(let d=0;d<8;d++){const a=d*45-90,rad=a*Math.PI/180,cx=750+Math.cos(rad)*670,cy=750+Math.sin(rad)*670;parts.push('<text x="'+cx.toFixed(1)+'" y="'+(cy+9).toFixed(1)+'" fill="rgba(255,255,255,.82)" font-size="34" font-family="monospace" text-anchor="middle">'+compass[d]+'</text>');}
       for(let i=0;i<48;i++){
         const a=i*7.5-90;
-        const rad=a*Math.PI/180,major=i%4===0,r1=700,r2=760;
+        const rad=a*Math.PI/180,major=i%4===0,r1=major?700:730,r2=major?760:745;
         parts.push('<line class="tick '+(major?'major':'')+'" x1="'+(750+Math.cos(rad)*r1).toFixed(1)+'" y1="'+(750+Math.sin(rad)*r1).toFixed(1)+'" x2="'+(750+Math.cos(rad)*r2).toFixed(1)+'" y2="'+(750+Math.sin(rad)*r2).toFixed(1)+'"/>');
       }
       parts.push('<g clip-path="url(#lidarClip)">');
@@ -474,18 +489,21 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
           }
         }else if(ent.kind==='fire'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+150)+' '+(ey+150)+')"><path d="M '+(ex+10)+' '+(ey+35)+' l 30 -25 l 40 18 l 35 -22 l 55 36 v 130 l -40 20 l -40 -18 l -45 22 l -35 -35 Z" fill="url(#fireHatch)" stroke="#fff" stroke-width="2"/><path class="object-line" d="M '+(ex+105)+' '+(ey+115)+' C '+(ex+65)+' '+(ey+75)+' '+(ex+125)+' '+(ey+55)+' '+(ex+110)+' '+(ey+25)+' C '+(ex+170)+' '+(ey+70)+' '+(ex+145)+' '+(ey+90)+' '+(ex+105)+' '+(ey+115)+' Z"/><text x="'+(ex+105)+'" y="'+(ey+145)+'" fill="#fff" font-size="24" text-anchor="middle">!</text></g>');
         }else if(['capsule_wreck','engine_wreck'].includes(ent.kind)&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;const shape=ent.kind==='capsule_wreck'?'<path class="station-shell" d="M '+(ex+12)+' '+(ey+52)+' L '+(ex+45)+' '+(ey+12)+' L '+(ex+158)+' '+(ey+20)+' L '+(ex+188)+' '+(ey+92)+' L '+(ex+145)+' '+(ey+184)+' L '+(ex+38)+' '+(ey+168)+' Z"/><path class="station-detail" d="M '+(ex+48)+' '+(ey+55)+' L '+(ex+145)+' '+(ey+62)+' L '+(ex+155)+' '+(ey+125)+' L '+(ex+65)+' '+(ey+145)+' Z"/>':'<path class="station-shell" d="M '+(ex+8)+' '+(ey+35)+' L '+(ex+65)+' '+(ey+12)+' L '+(ex+112)+' '+(ey+42)+' L '+(ex+188)+' '+(ey+18)+' L '+(ex+178)+' '+(ey+162)+' L '+(ex+108)+' '+(ey+188)+' L '+(ex+18)+' '+(ey+145)+' Z"/><path class="station-detail" d="M '+(ex+38)+' '+(ey+55)+' L '+(ex+145)+' '+(ey+130)+' M '+(ex+78)+' '+(ey+30)+' L '+(ex+110)+' '+(ey+168)+'"/>';parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')">'+shape+'</g>');
-        }else if(ent.kind==='cleaner'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="station-shell" d="M '+(ex+25)+' '+(ey+35)+' H '+(ex+175)+' L '+(ex+185)+' '+(ey+135)+' H '+(ex+15)+' Z"/><path class="station-detail" d="M '+(ex+55)+' '+(ey+48)+' H '+(ex+145)+' V '+(ey+118)+' H '+(ex+55)+' Z"/><circle class="station-shell" cx="'+(ex+35)+'" cy="'+(ey+42)+'" r="14"/><circle class="station-shell" cx="'+(ex+165)+'" cy="'+(ey+42)+'" r="14"/><circle class="station-shell" cx="'+(ex+35)+'" cy="'+(ey+132)+'" r="14"/><circle class="station-shell" cx="'+(ex+165)+'" cy="'+(ey+132)+'" r="14"/><path class="object-line" d="M '+(ex+50)+' '+(ey+137)+' H '+(ex+150)+' M '+(ex+75)+' '+(ey+150)+' V '+(ey+165)+' M '+(ex+125)+' '+(ey+150)+' V '+(ey+165)+'"/>'+(ent.cleared?'':'<path d="M '+(ex+5)+' '+(ey+90)+' l 35 -35 l 35 28 l 45 -30 l 65 42 l -30 70 l -110 0 Z" fill="rgba(245,248,250,.3)" stroke="#fff" stroke-width="2"/>')+'</g>');
+        }else if(ent.kind==='cleaner'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="station-shell" d="M '+(ex+25)+' '+(ey+25)+' H '+(ex+175)+' L '+(ex+185)+' '+(ey+175)+' H '+(ex+15)+' Z"/><path class="station-detail" d="M '+(ex+55)+' '+(ey+55)+' H '+(ex+145)+' V '+(ey+145)+' H '+(ex+55)+' Z"/><circle class="station-shell" cx="'+(ex+35)+'" cy="'+(ey+35)+'" r="14"/><circle class="station-shell" cx="'+(ex+165)+'" cy="'+(ey+35)+'" r="14"/><circle class="station-shell" cx="'+(ex+35)+'" cy="'+(ey+165)+'" r="14"/><circle class="station-shell" cx="'+(ex+165)+'" cy="'+(ey+165)+'" r="14"/><path class="object-line" d="M '+(ex+50)+' '+(ey+100)+' H '+(ex+150)+' M '+(ex+100)+' '+(ey+50)+' V '+(ey+150)+'"/>'+(ent.cleared?'':'<path d="M '+(ex+5)+' '+(ey+80)+' l 35 -35 l 35 28 l 45 -30 l 65 42 l -30 70 l -110 0 Z" fill="rgba(245,248,250,.3)" stroke="#fff" stroke-width="2"/>')+'</g>');
         }else if(ent.kind==='transporter'&&lx===0&&ly===0){const ex=750+(ent.x-viewX-7)*100,ey=750+(ent.y-viewY-7)*100;parts.push('<g transform="rotate('+ent.rotation+' '+(ex+100)+' '+(ey+100)+')"><path class="station-shell" d="M '+(ex+12)+' '+(ey+48)+' L '+(ex+42)+' '+(ey+22)+' H '+(ex+150)+' L '+(ex+188)+' '+(ey+52)+' V '+(ey+132)+' L '+(ex+145)+' '+(ey+158)+' H '+(ex+48)+' L '+(ex+12)+' '+(ey+130)+' Z"/><path class="station-detail" d="M '+(ex+45)+' '+(ey+50)+' H '+(ex+150)+' V '+(ey+145)+' H '+(ex+45)+' Z"/><circle class="station-core" cx="'+(ex+96)+'" cy="'+(ey+96)+'" r="15"/><circle class="station-shell" cx="'+(ex+35)+'" cy="'+(ey+40)+'" r="13"/><circle class="station-shell" cx="'+(ex+165)+'" cy="'+(ey+40)+'" r="13"/><circle class="station-shell" cx="'+(ex+35)+'" cy="'+(ey+140)+'" r="13"/><circle class="station-shell" cx="'+(ex+165)+'" cy="'+(ey+140)+'" r="13"/>'+(ent.found?'':'<path d="M '+(ex-10)+' '+(ey+65)+' l 65 -35 l 45 55 l 90 -10 l 25 70 l -65 35 l -110 -10 Z" fill="rgba(245,248,250,.3)" stroke="#fff" stroke-width="2"/><path d="M '+(ex+5)+' '+(ey+165)+' l 40 -35 l 55 25 l 60 -30 l 55 40" fill="none" stroke="#fff" stroke-width="3"/>')+'</g>');
         }else if(ent.kind==='rock'){
           const z=ent.w>1?30:19;
           parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-fill" d="M '+(px-z)+' '+(py+z*.55)+' L '+(px-z*.65)+' '+(py-z*.25)+' L '+(px-z*.1)+' '+(py-z)+' L '+(px+z*.55)+' '+(py-z*.5)+' L '+(px+z)+' '+(py+z*.4)+' L '+(px+z*.45)+' '+(py+z*.7)+' Z"/>');
-        }else if(['rubble','shard','debris','crater','hull','tank','nozzle','capsule'].includes(ent.kind)){
+        }else if(['rubble','shard','debris','crater','hull','tank','nozzle','capsule','gravel','scrap','wire','stone'].includes(ent.kind)){
           if(ent.kind==='crater')parts.push('<ellipse transform="rotate('+ent.rotation+' '+px+' '+py+')" class="terrain-shadow" cx="'+px+'" cy="'+py+'" rx="25" ry="13"/><ellipse class="terrain-ridge" cx="'+px+'" cy="'+py+'" rx="25" ry="13"/>');
           else if(ent.kind==='shard')parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-line" d="M '+(px-16)+' '+(py+10)+' L '+(px-3)+' '+(py-15)+' L '+(px+13)+' '+(py+5)+' Z"/>');
           else if(ent.kind==='hull')parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-fill" d="M '+(px-24)+' '+(py-8)+' L '+(px-5)+' '+(py-20)+' L '+(px+22)+' '+(py-9)+' L '+(px+13)+' '+(py+16)+' L '+(px-18)+' '+(py+20)+' Z"/>');
           else if(ent.kind==='tank')parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-fill" d="M '+(px-10)+' '+(py-22)+' Q '+(px-22)+' '+py+' '+(px-10)+' '+(py+22)+' H '+(px+10)+' Q '+(px+22)+' '+py+' '+(px+10)+' '+(py-22)+' Z"/>');
           else if(ent.kind==='nozzle')parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-line" d="M '+(px-22)+' '+(py-8)+' H '+(px-5)+' L '+(px+5)+' '+(py-18)+' L '+(px+22)+' '+(py-18)+' M '+(px-5)+' '+(py+8)+' L '+(px+5)+' '+(py+18)+' H '+(px+22)+'"/>');
           else if(ent.kind==='capsule')parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-fill" d="M '+(px-18)+' '+(py-18)+' L '+(px+18)+' '+(py-18)+' L '+(px+23)+' '+(py+10)+' L '+px+' '+(py+23)+' L '+(px-23)+' '+(py+10)+' Z"/>');
+          else if(ent.kind==='gravel'||ent.kind==='stone')parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-fill" d="M '+(px-15)+' '+(py+7)+' l 5 -17 l 13 -5 l 12 13 l -8 13 Z"/>');
+          else if(ent.kind==='scrap')parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-line" d="M '+(px-18)+' '+(py-9)+' l 12 3 l -4 17 l 17 -5 l 8 -17"/>');
+          else if(ent.kind==='wire')parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-line" d="M '+(px-18)+' '+py+' q 9 -17 18 0 t 18 0"/>');
           else parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-line" d="M '+(px-14)+' '+(py-6)+' l 10 -8 l 7 13 l 12 -4 M '+(px-8)+' '+(py+10)+' l 17 -5"/>');
         }else if(ent.kind==='quest'){
           parts.push('<path transform="rotate('+ent.rotation+' '+px+' '+py+')" class="object-line" d="M '+px+' '+(py-15)+' L '+(px+15)+' '+py+' L '+px+' '+(py+15)+' L '+(px-15)+' '+py+' Z"/>');
@@ -590,7 +608,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       setMoveStateLabel('IDLE');
       const rough = entities.some(e=>['debris','rubble','shard','crater'].includes(e.kind)&&isAdjacentOrSame(nextX,nextY,e.x,e.y));
       recordEnergy(rough?95:80,STEP_MS);
-      batteryVoltage=Math.max(8.8,batteryVoltage-(rough?0.16:0.12));
+      consumeBattery(rough);
 
       keepUnitInView();
       renderVitals();
@@ -663,16 +681,23 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         return;
       }
 
+      if(ent.kind==='transporter'){
+        if(!ent.cleared&&!ent.busy){ent.busy=true;runTimedAction(ent,5000,()=>{ent.cleared=true;ent.busy=false;writeLog('CARGO TRANSPORTER // DEBRIS CLEARED. PRESS ACT TO START');});return;}
+        if(ent.cleared&&!ent.active&&!ent.busy){ent.busy=true;runTimedAction(ent,1200,()=>{ent.active=true;ent.busy=false;writeLog('CARGO TRANSPORTER ONLINE // RETURN TO CONTROL MODULE TO LINK');});return;}
+      }
+      if(ent.kind==='capsule_wreck'&&!ent.resolved){ent.resolved=true;writeLog('LANDING CAPSULE // CRITICAL STRUCTURAL FAILURE. CREW MEMBER DID NOT SURVIVE.');renderMap();return;}
+      if(ent.kind==='fire'&&!ent.inspected){ent.inspected=true;writeLog('ENGINE FIRE // FUEL LINE RUPTURED. NO RECOVERABLE COMPONENTS.');renderMap();return;}
+      if(ent.kind==='engine_wreck'&&!ent.inspected){ent.inspected=true;writeLog('ENGINE WRECK // THRUSTER CASING DESTROYED. NO RECOVERABLE COMPONENTS.');renderMap();return;}
       if(ent.kind==='cleaner'){
-        if(!ent.cleared&&!ent.busy){ent.busy=true;writeLog('CLEANER ROVER // REMOVING SMALL DEBRIS — 5 S');renderMap();setTimeout(()=>{ent.busy=false;ent.cleared=true;renderMap();writeLog('CLEANER ROVER // PREPARED. PRESS ACT TO START');},5000);return;}
-        if(ent.cleared&&!ent.active&&!ent.busy){ent.busy=true;writeLog('CLEANER ROVER // STARTUP SEQUENCE — 1 S');renderMap();setTimeout(()=>{ent.busy=false;ent.active=true;renderMap();writeLog('CLEANER ROVER ONLINE // AUTONOMOUS UNIT READY');},1000);return;}
+        if(!ent.cleared&&!ent.busy){ent.busy=true;runTimedAction(ent,5000,()=>{ent.busy=false;ent.cleared=true;writeLog('CLEANER ROVER // PREPARED. PRESS ACT TO START');});return;}
+        if(ent.cleared&&!ent.active&&!ent.busy){ent.busy=true;runTimedAction(ent,1000,()=>{ent.busy=false;ent.active=true;writeLog('CLEANER ROVER ONLINE // AUTONOMOUS UNIT READY');});return;}
       }
       if(ent.kind==='solar'){
-        if(!ent.cleaned&&!ent.cleaning){ent.cleaning=true;writeLog('SOLAR ARRAY // CLEARING DEBRIS AND CLEANING — 5 S');setTimeout(()=>{ent.cleaning=false;ent.cleaned=true;renderMap();writeLog('SOLAR ARRAY CLEANED // CABLE CONNECTION REQUIRED');},5000);return;}
+        if(!ent.cleaned&&!ent.cleaning){ent.cleaning=true;runTimedAction(ent,5000,()=>{ent.cleaning=false;ent.cleaned=true;writeLog('SOLAR ARRAY CLEANED // CABLE CONNECTION REQUIRED');});return;}
         if(ent.cleaned&&!ent.connected){if(!inventory.has('cable')){writeLog('SOLAR ARRAY READY // CABLE REQUIRED — SEARCH SUPPLY CONTAINER');return;}writeLog('SOLAR ARRAY CLEANED // CABLE SECURED. RETURN TO STATION TO CONNECT');return;}
       }
 
-      if(ent.kind==='crate'&&!ent.extracted&&!ent.extracting){ent.extracting=true;writeLog('SUPPLY CONTAINER // EXTRACTING FROM DEBRIS — 5 S');renderMap();setTimeout(()=>{ent.extracting=false;ent.extracted=true;renderMap();writeLog('SUPPLY CONTAINER // EXTRACTED. PRESS ACT TO OPEN');},5000);return;}
+      if(ent.kind==='crate'&&!ent.extracted&&!ent.extracting){ent.extracting=true;runTimedAction(ent,5000,()=>{ent.extracting=false;ent.extracted=true;writeLog('SUPPLY CONTAINER // EXTRACTED. PRESS ACT TO OPEN');});return;}
       if(ent.kind==='crate'&&ent.extracted&&!ent.opened){ent.opened=true;inventory.add('cable');inventory.add('spare_parts');renderVitals();renderMap();writeLog('SUPPLY CONTAINER OPENED // SOLAR CABLE AND SPARE COMPONENTS RECOVERED');return;}
 
       if(ent.kind==='assembler'&&!ent.unpacked){ent.unpacked=true;ent.cleared=true;renderMap();writeLog('FIELD ASSEMBLER // UNIT UNPACKED FROM TRANSPORT CASING');return;}
