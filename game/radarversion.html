@@ -10,7 +10,7 @@
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"DejaVu Sans Mono","Liberation Mono",Consolas,monospace;touch-action:manipulation}
 body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
 .app{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:clamp(5px,1vh,10px)}
-.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(155px,1fr) minmax(300px,min(58vh,560px)) minmax(155px,1fr);gap:clamp(30px,3.2vw,48px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(11px,.92vw,13px);line-height:1.48}.panel-heading{color:#fff;font-size:clamp(11px,.95vw,13px);letter-spacing:.1em;margin:0 0 6px}.telemetry{display:flex;flex-direction:column;gap:5px}.telemetry strong{display:block;color:#fff;font-size:clamp(16px,1.5vw,21px);font-weight:500}.metric{padding-bottom:2px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:4px}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(10px,.8vw,11px)}.task-item b{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px;color:#fff;font-weight:500}.task-status{color:var(--mid);font-size:.82em;font-weight:400;letter-spacing:.04em;white-space:nowrap}.control-help{margin-top:8px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
+.radar-stage{position:relative;min-height:0;display:grid;grid-template-columns:minmax(155px,1fr) minmax(300px,min(58vh,560px)) minmax(155px,1fr);gap:clamp(48px,5vw,76px);align-items:center;overflow:visible}.side-panel{min-width:0;align-self:center;color:var(--mid);font-size:clamp(11px,.92vw,13px);line-height:1.48}.panel-heading{color:#fff;font-size:clamp(11px,.95vw,13px);letter-spacing:.1em;margin:0 0 6px}.telemetry{display:flex;flex-direction:column;gap:5px}.telemetry strong{display:block;color:#fff;font-size:clamp(16px,1.5vw,21px);font-weight:500}.metric{padding-bottom:2px}.status-list,.outgoing-list,.task-list{display:flex;flex-direction:column;gap:4px}.status-item,.task-item{color:var(--mid)}.status-item{color:#fff}.outgoing-list{margin-top:4px;color:var(--dim);font-size:clamp(10px,.8vw,11px)}.task-item b{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px;color:#fff;font-weight:500}.task-status{color:var(--mid);font-size:.82em;font-weight:400;letter-spacing:.04em;white-space:nowrap}.control-help{margin-top:8px;color:var(--mid)}.control-help b{color:#fff;font-weight:500}.scope{grid-column:2;grid-row:1}
 .scope{position:relative;width:min(min(58vh,58vw),560px);height:auto;aspect-ratio:1;border-radius:50%;overflow:visible;background:radial-gradient(circle,rgba(255,255,255,.035),rgba(255,255,255,.012) 68%,transparent 69%)}
 .map-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:1}
 .map-svg .scan-boundary{fill:none;stroke:transparent;stroke-width:0}
@@ -51,12 +51,13 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     <aside class="side-panel left-panel">
       <div class="panel-heading">ROVER TELEMETRY</div>
       <div class="telemetry">
-        <div class="metric">BATTERY VOLTAGE<strong id="battery-visible">12.8 V</strong></div>
-        <div class="metric">DISTANCE FROM BASE<strong id="distance-visible">0.0 M</strong></div>
+        <div class="metric">BATTERY VOLTAGE<strong><span id="battery-visible">14.0 V</span><span class="battery-state" id="battery-status">FULL CHARGED</span></strong></div>
+        <div class="metric">ANTENNA DISTANCE<strong id="distance-visible">0.0 M</strong></div>
         <div class="metric">SIGNAL<strong id="signal-visible">TX: STABLE</strong></div>
-        <button class="action-button" id="btn-act">SCAN</button>
       </div>
-      <div class="control-help"><b>CONTROL</b><br>Use eight arrows to move. Approach an object and press the action button. Keep battery above 9 V. Return to base to recharge and unload recovered equipment.</div>
+      <div class="panel-heading" style="margin-top:14px">ACTIVITY / EVENT LOG</div>
+      <div class="status-list" id="status-messages"></div>
+      <div class="outgoing-list" id="log-history"><div class="log-entry">&gt; SEARCHING // LOCAL TERRAIN SCAN ACTIVE</div></div>
     </aside>
     <div class="scope" aria-label="360 degree rover lidar radar">
       <svg class="map-svg" id="map-svg" viewBox="0 0 1500 1500" role="img" aria-label="LIDAR terrain map"></svg>
@@ -72,14 +73,14 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     <aside class="side-panel right-panel">
       <div class="panel-heading">MISSION OBJECTIVES</div>
       <div class="task-list">
-        <div class="task-item"><b>01 / SOLAR ARRAY <span class="task-status" id="task-status-panel">SEARCHING</span></b>Locate one solar panel</div>
-        <div class="task-item"><b>02 / TRANSPORT ROVER <span class="task-status" id="task-status-transporter">SEARCHING</span></b>Find the cargo transporter</div>
-        <div class="task-item"><b>03 / ASSEMBLER STATION <span class="task-status" id="task-status-assembler">SEARCHING</span></b>Locate the field assembler</div>
-        <div class="task-item"><b>04 / UPGRADE CACHE <span class="task-status" id="task-status-upgrade">SEARCHING</span></b>Recover parts and schematics for base and rovers</div>
+        <div class="task-item"><b>01 / SOLAR ARRAY <span class="task-status" id="task-status-panel">SEARCHING</span></b>Clear debris, clean the panel and connect its cable to the station</div>
+        <div class="task-item"><b>02 / TRANSPORT ROVER <span class="task-status" id="task-status-transporter">SEARCHING</span></b>Clear debris, start the transporter and link it to the station</div>
+        <div class="task-item"><b>03 / ASSEMBLER STATION <span class="task-status" id="task-status-assembler">SEARCHING</span></b>Clear surrounding rubble; wait for the loader rover to remove heavy debris</div>
+        <div class="task-item"><b>04 / SUPPLY CONTAINER <span class="task-status" id="task-status-upgrade">SEARCHING</span></b>Find the container holding the solar cable and spare components</div>
       </div>
-      <div class="panel-heading" style="margin-top:14px">ACTIVITY / EVENT LOG</div>
-      <div class="status-list" id="status-messages"></div>
-      <div class="outgoing-list" id="log-history"><div class="log-entry">> SEARCHING // LOCAL TERRAIN SCAN ACTIVE</div></div>
+      <div class="panel-heading" style="margin-top:14px">ROVER ACTIVITY</div>
+      <button class="action-button" id="btn-act">SCAN</button>
+      <div class="control-help"><b>CONTROL</b><br>Use the eight arrows to move. Approach an object and press ACT. Return to the station to recharge and connect recovered equipment.</div>
     </aside>
     <div class="hidden-support">
       <div id="task-detail-title"></div><div id="task-detail-text"></div>
@@ -100,6 +101,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     let viewY = 0;
     const STEP_MS = 750;
     const CHARGE_MS = 2000;
+    const MAX_BATTERY_VOLTAGE = 14.0;
 
     const MARKER_CHAR = '\u25CF'; // Solid rover marker
     const TARGET_CHAR = '\u25CB'; // Selected point
@@ -125,10 +127,10 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     let tmp = 24;
     const maxTmp = 100;
 
-    let batteryVoltage = 12.8;
+    let batteryVoltage = 14.0;
     let signalState = 'STABLE';
-    const TX_RANGE_METERS = 9;
-    const TX_LOW_METERS = 7.5;
+    const TX_RANGE_METERS = 24;
+    const TX_LOW_METERS = 21;
 
     const explored = new Set();
     const inventory = new Set(); // recovered panel, supplies, assembler and upgrade cache
@@ -138,11 +140,11 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     // base: ⬟, rock: ▲, crate: ▣ (полный) / □ (пустой), solar: ▤, assembler: ⌘, broken: ⧅ -> ░, quest: ◇
     const entities = [
       {id:'base',x:25,y:25,w:2,h:1,kind:'base',label:'CONTROL MODULE / BASE // 2.0 × 0.5 M',rotation:0},
-      {id:'panel_1',kind:'solar',w:2,h:2,label:'SOLAR ARRAY',taskItem:'panel',taken:false},
-      {id:'crate_1',kind:'crate',w:2,h:2,label:'SUPPLY POD',taskItem:'crate',opened:false},
-      {id:'transporter_1',kind:'transporter',w:2,h:2,label:'CARGO TRANSPORT ROVER // 2.0 × 1.5 M',rotation:0,found:false},
-      {id:'asm_1',kind:'assembler',w:3,h:2,label:'FIELD ASSEMBLER STATION',taskItem:'assembler',salvaged:false},
-      {id:'broken_2',kind:'broken',w:2,h:2,label:'UPGRADE CACHE / PARTS & SCHEMATICS',taskItem:'upgrade',salvaged:false},
+      {id:'panel_1',kind:'solar',w:2,h:2,label:'SOLAR ARRAY',cleaned:false,connected:false,cleaning:false},
+      {id:'crate_1',kind:'crate',w:2,h:2,label:'SEALED SUPPLY CONTAINER',taskItem:'container',opened:false},
+      {id:'transporter_1',kind:'transporter',w:2,h:2,label:'CARGO TRANSPORT ROVER // 2.0 × 1.5 M',rotation:0,found:false,cleared:false,active:false,busy:false,linked:false},
+      {id:'asm_1',kind:'assembler',w:3,h:2,label:'FIELD ASSEMBLER STATION',cleared:false,heavyDebris:true},
+      {id:'broken_2',kind:'broken',w:2,h:2,label:'SUPPLY CONTAINER / CABLE & COMPONENTS',taskItem:'container',salvaged:false},
       {id:'fire_zone',kind:'fire',w:3,h:3,label:'BURN ZONE / ENGINE FIRE',rotation:0},
       {id:'capsule_wreck',kind:'capsule_wreck',w:2,h:2,label:'LANDING CAPSULE HULL SECTION'},
       {id:'engine_wreck',kind:'engine_wreck',w:2,h:2,label:'CRUSHED ENGINE / THRUSTER SECTION'},
@@ -155,7 +157,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       for(const e of entities){
         if(e.kind==='base'){occupied.push(e);continue;}
         const important=['solar','crate','assembler','broken','quest','transporter','fire','capsule_wreck','engine_wreck'].includes(e.kind);
-        const minR=important?3:4,maxR=important?6:10;
+        const minR=important?11:4,maxR=important?17:10;
         let placed=false;
         for(let attempt=0;attempt<180&&!placed;attempt++){
           const angle=worldRandom()*Math.PI*2,dist=minR+worldRandom()*(maxR-minR);
@@ -243,6 +245,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const volts=batteryVoltage;
       const readout=document.getElementById('battery-visible');
       if(readout)readout.textContent=volts.toFixed(1)+' V';
+      const state=document.getElementById('battery-status');if(state)state.textContent=volts>=13.8?'FULL CHARGED':volts>=12.5?'CHARGED':volts>=11?'LOW':volts>=9.5?'MINIMUM':'CRITICAL';
       const hidden=document.getElementById('rover-voltage');
       if(hidden)hidden.textContent=volts.toFixed(1)+'/14.0 V';
       updateEnergyReadout(); updateTaskStatus();
@@ -276,7 +279,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     function setActionLabel(){
       const btn=document.getElementById('btn-act'); if(!btn)return;
       const ent=findNearbyInteractive();
-      const labels={base:inventory.size?'UPLOAD':'CHARGE',solar:'RECOVER PANEL',transporter:'LOCATE ROVER',crate:'OPEN CACHE',assembler:'SALVAGE',broken:'RECOVER CACHE'};
+      const labels={base:inventory.size?'CONNECT / UPLOAD':'CHARGE',solar:ent.connected?'CONNECTED':ent.cleaned?'CONNECT CABLE':ent.cleaning?'CLEANING...':'CLEAR & CLEAN PANEL',transporter:ent.linked?'LINKED':ent.active?'AWAIT LINK':ent.busy?'CLEARING...':ent.cleared?'START ROVER':'CLEAR DEBRIS',crate:'OPEN CONTAINER',assembler:ent.cleared?'WAIT FOR LOADER':'CLEAR DEBRIS',broken:'OPEN CONTAINER'};
       btn.textContent=ent?(labels[ent.kind]||'ACT'):'SCAN'; btn.disabled=false;
     }
     function structureGlyph(ent,x,y){
@@ -310,7 +313,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     function findNearbyInteractive() {
       const baseEnt = entities.find((e) => e.kind === 'base');
       if (baseEnt && isAdjacentToEntity(posX,posY,baseEnt)) {
-        if (inventory.size > 0 || batteryVoltage < 12.8) {
+        if (inventory.size > 0 || batteryVoltage < MAX_BATTERY_VOLTAGE) {
           return baseEnt;
         }
       }
@@ -319,10 +322,10 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         if (['rock','base','quest','rubble','shard','debris','crater'].includes(ent.kind)) continue;
         if (!isAdjacentToEntity(posX,posY,ent)) continue;
 
-        if (ent.kind === 'solar' && !ent.taken) return ent;
-        if (ent.kind === 'transporter' && !ent.found) return ent;
+        if (ent.kind === 'solar' && !ent.connected) return ent;
+        if (ent.kind === 'transporter' && !ent.linked) return ent;
         if (ent.kind === 'crate' && !ent.opened) return ent;
-        if (ent.kind === 'assembler' && !ent.salvaged) return ent;
+        if (ent.kind === 'assembler' && !ent.cleared) return ent;
         if (ent.kind === 'broken' && !ent.salvaged) return ent;
       }
 
@@ -359,17 +362,17 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         if (chargeTimer === null) {
           chargeTimer = setInterval(() => {
             const b = entities.find((e) => e.kind === 'base');
-            if (!b || !isAdjacentToEntity(posX,posY,b) || batteryVoltage >= 12.8) {
+            if (!b || !isAdjacentToEntity(posX,posY,b) || batteryVoltage >= MAX_BATTERY_VOLTAGE) {
               clearInterval(chargeTimer);
               chargeTimer = null;
               renderVitals();
               if (moveTimer === null) setMoveStateLabel('IDLE');
               return;
             }
-            batteryVoltage=Math.min(12.8,batteryVoltage+0.6);
+            batteryVoltage=Math.min(MAX_BATTERY_VOLTAGE,batteryVoltage+0.6);
 
             renderVitals();
-            if (batteryVoltage >= 12.8) {batteryVoltage=12.8;
+            if (batteryVoltage >= MAX_BATTERY_VOLTAGE) {batteryVoltage=MAX_BATTERY_VOLTAGE;
               clearInterval(chargeTimer);
               chargeTimer = null;
               renderVitals();
@@ -395,9 +398,10 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     function distanceFromBaseMeters(){
       const base=entities.find(e=>e.kind==='base');
       if(!base)return 0;
-      const dx=(posX+.5)-(base.x+(base.w||2)/2);
-      const dy=((posY+.5)-(base.y+(base.h||1)/2))*.5;
-      return Math.hypot(dx,dy);
+      const roverX=posX+.5,roverY=posY+.5;
+      const nearestX=Math.max(base.x,Math.min(roverX,base.x+(base.w||2)));
+      const nearestY=Math.max(base.y,Math.min(roverY,base.y+(base.h||1)));
+      return Math.hypot(roverX-nearestX,(roverY-nearestY)*.5);
     }
     function updateReadout(){
       const distance=distanceFromBaseMeters();
@@ -538,9 +542,10 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       const nextY = posY + dy;
       const base=entities.find(e=>e.kind==='base');
       if(base){
-        const dx=(nextX+.5)-(base.x+(base.w||2)/2);
-        const dy=((nextY+.5)-(base.y+(base.h||1)/2))*.5;
-        if(Math.hypot(dx,dy)>TX_RANGE_METERS){signalState='LOST';const signalNode=document.getElementById('signal-visible');if(signalNode)signalNode.textContent='TX LOST';stopMovement('TX LOST // ROVER OUT OF BASE COMMUNICATION RANGE');return;}
+        const roverX=nextX+.5,roverY=nextY+.5;
+        const nearestX=Math.max(base.x,Math.min(roverX,base.x+(base.w||2)));
+        const nearestY=Math.max(base.y,Math.min(roverY,base.y+(base.h||1)));
+        if(Math.hypot(roverX-nearestX,(roverY-nearestY)*.5)>TX_RANGE_METERS){signalState='LOST';const signalNode=document.getElementById('signal-visible');if(signalNode)signalNode.textContent='TX LOST';stopMovement('TX LOST // ROVER OUT OF BASE COMMUNICATION RANGE');return;}
       }
       if (nextX < 0 || nextY < 0 || nextX >= MAP_W || nextY >= MAP_H) {
         stopMovement('MAP LIMIT REACHED');
@@ -566,7 +571,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       renderMap();
       const nearby=entities.find(e=>e.kind!=='debris'&&isAdjacentToEntity(posX,posY,e));
       if(nearby){
-        const names={base:'CONTROL MODULE',solar:'SOLAR PANEL',crate:'SUPPLY CRATE',assembler:'ASSEMBLER',broken:'DAMAGED MODULE',rock:'ROCK FORMATION',quest:'UNKNOWN OBJECT'};
+        const names={base:'CONTROL MODULE',solar:'BURIED SOLAR ARRAY',crate:'SUPPLY CONTAINER',assembler:'BURIED FIELD ASSEMBLER',broken:'SUPPLY CONTAINER',transporter:'BURIED CARGO TRANSPORTER',rock:'ROCK FORMATION',quest:'UNKNOWN OBJECT'};
         writeLog('OBJECT DETECTED // '+(names[nearby.kind]||'UNKNOWN EQUIPMENT')+' — APPROACH AND USE ACT');
       }else{
         writeLog('SEARCHING // NO OBJECT DETECTED. CONTINUE SURVEY.');
@@ -604,6 +609,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
       recordManipulatorEnergy();
 
       if (ent.kind === 'base') {
+        const solar=entities.find(e=>e.kind==='solar');if(solar&&solar.cleaned&&inventory.has('cable')){solar.connected=true;inventory.delete('cable');writeLog('SOLAR ARRAY CONNECTED // POWER LINE LINKED TO STATION');}
+        const transporter=entities.find(e=>e.kind==='transporter');if(transporter&&transporter.active&&!transporter.linked){transporter.linked=true;writeLog('CARGO TRANSPORTER LINKED TO CONTROL STATION');}
+        const assembler=entities.find(e=>e.kind==='assembler');if(transporter&&transporter.active&&assembler&&assembler.cleared&&assembler.heavyDebris){assembler.heavyDebris=false;writeLog('LOADER ROVER // HEAVY DEBRIS CLEARED FROM ASSEMBLER');}
         if (inventory.size > 0) {
           const added = [];
           for (const item of inventory) {
@@ -619,7 +627,7 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
           } else {
             writeLog('DELIVERED: ' + added.join(', ') + ' (' + delivered.size + '/3)');
           }
-        } else if (batteryVoltage < 12.8) {
+        } else if (batteryVoltage < MAX_BATTERY_VOLTAGE) {
           writeLog('CHARGING AT BASE: +20% EVERY 2S');
         } else {
           writeLog('BASE READY // NO ITEMS TO DROP');
@@ -628,41 +636,27 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
         return;
       }
 
-      if(ent.kind==='transporter'&&!ent.found){ent.found=true;renderMap();writeLog('TRANSPORT ROVER LOCATED // CARGO UNIT IDENTIFIED');return;}
-      if (ent.kind === 'solar' && !ent.taken) {
-        ent.taken = true;
-        inventory.add('panel');
-        renderVitals();
-        renderMap();
-        writeLog('PICKED UP SOLAR PANEL [▤] -> BRING TO BASE');
-        return;
+      if(ent.kind==='transporter'){
+        if(!ent.found){ent.found=true;renderMap();writeLog('CARGO TRANSPORTER DETECTED // BURIED UNDER DEBRIS');return;}
+        if(!ent.cleared&&!ent.busy){ent.busy=true;writeLog('TRANSPORTER // CLEARING DEBRIS — 5 S');setTimeout(()=>{ent.busy=false;ent.cleared=true;renderMap();writeLog('TRANSPORTER // DEBRIS CLEARED. PRESS ACT TO START');},5000);return;}
+        if(ent.cleared&&!ent.active&&!ent.busy){ent.busy=true;writeLog('TRANSPORTER // STARTUP SEQUENCE — 1 S');setTimeout(()=>{ent.busy=false;ent.active=true;renderMap();writeLog('TRANSPORTER ONLINE // STANDBY — AWAITING STATION LINK');},1000);return;}
+        if(ent.active&&!ent.linked){writeLog('TRANSPORTER IN STANDBY // RETURN TO STATION TO LINK');return;}
+      }
+      if(ent.kind==='solar'){
+        if(!ent.cleaned&&!ent.cleaning){ent.cleaning=true;writeLog('SOLAR ARRAY // CLEARING DEBRIS AND CLEANING — 5 S');setTimeout(()=>{ent.cleaning=false;ent.cleaned=true;renderMap();writeLog('SOLAR ARRAY CLEANED // CABLE CONNECTION REQUIRED');},5000);return;}
+        if(ent.cleaned&&!ent.connected){if(!inventory.has('cable')){writeLog('SOLAR ARRAY READY // CABLE REQUIRED — SEARCH SUPPLY CONTAINER');return;}ent.connected=true;inventory.delete('cable');renderMap();renderVitals();writeLog('SOLAR ARRAY CONNECTED TO CONTROL STATION // COMPLETE');return;}
       }
 
       if (ent.kind === 'crate' && !ent.opened) {
-        ent.opened = true;
-        if (ent.taskItem) inventory.add(ent.taskItem);
-        renderVitals();
-        renderMap();
-        writeLog('OPENED CRATE [▣->□]: LOOTED WIRING/PARTS/COMP');
-        return;
+        ent.opened=true;inventory.add('cable');inventory.add('spare_parts');renderVitals();renderMap();writeLog('SUPPLY CONTAINER OPENED // SOLAR CABLE AND SPARE COMPONENTS RECOVERED');return;
       }
 
-      if (ent.kind === 'assembler' && !ent.salvaged) {
-        ent.salvaged = true;
-        if (ent.taskItem) inventory.add(ent.taskItem);
-        renderVitals();
-        renderMap();
-        writeLog('SALVAGED ASSEMBLER [⚙] -> BRING TO BASE');
-        return;
+      if (ent.kind === 'assembler' && !ent.cleared) {
+        writeLog('ASSEMBLER // CLEARING SURROUNDING RUBBLE — 5 S');setTimeout(()=>{ent.cleared=true;ent.heavyDebris=true;renderMap();writeLog('ASSEMBLER EXPOSED // LARGE DEBRIS REMAINS — WAIT FOR LOADER ROVER');},5000);return;
       }
 
       if (ent.kind === 'broken' && !ent.salvaged) {
-        ent.salvaged = true;
-        if(ent.taskItem)inventory.add(ent.taskItem);
-        tmp = Math.min(maxTmp, tmp + 4);
-        renderVitals();
-        renderMap();
-        writeLog('UPGRADE CACHE RECOVERED // PARTS & SCHEMATICS SECURED');
+        ent.salvaged=true;inventory.add('cable');inventory.add('spare_parts');renderVitals();renderMap();writeLog('SUPPLY CONTAINER OPENED // SOLAR CABLE AND COMPONENTS SECURED');
       }
     }
 
