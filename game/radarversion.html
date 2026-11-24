@@ -5,46 +5,52 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ROVER // 360° LIDAR</title>
 <style>
-:root{--bg:#080b0c;--ink:#f0eee7;--mid:#a9a69b;--dim:#625f56;--faint:rgba(220,190,130,.10);--accent:#d6ad65;--warn:#e45a42}
+:root{--bg:#080a0c;--ink:#f4f5f6;--mid:#aeb4ba;--dim:#70777e;--line:rgba(235,240,245,.28)}
 *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"DejaVu Sans Mono","Liberation Mono",Consolas,monospace;touch-action:manipulation}
-body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
-.app{height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:clamp(8px,1.6vh,16px)}
-.top-readout{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;min-height:58px;color:var(--mid);font-size:clamp(10px,1.15vw,13px);letter-spacing:.08em}.top-readout .consumption{padding-top:7px}.top-readout strong{display:block;color:var(--ink);font-size:clamp(16px,2vw,22px);letter-spacing:.02em;margin-top:3px}.top-readout .battery{text-align:right}.top-readout .battery strong{font-size:clamp(23px,3vw,34px);color:var(--accent)}
-.telemetry{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;white-space:nowrap;font-size:clamp(9px,1.15vw,13px);letter-spacing:.06em;color:var(--mid)}
-.telemetry-group{display:flex;gap:clamp(8px,2vw,24px);align-items:center}
-.telemetry strong{color:var(--ink);font-weight:600}
-.telemetry .right{color:var(--ink);text-align:right}
+body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
+.app{height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:clamp(5px,1vh,10px)}
+.top-readout{display:grid;grid-template-columns:1fr auto;align-items:center;gap:18px;min-height:48px;padding:4px 2px 8px;border-bottom:1px solid var(--line);color:var(--mid);font-size:clamp(9px,1vw,12px);letter-spacing:.12em}
+.top-readout .consumption{display:grid;grid-template-columns:auto 1fr;align-items:baseline;column-gap:12px;row-gap:2px}
+.top-readout .consumption strong{font-size:clamp(14px,1.6vw,19px);letter-spacing:.02em}
+.top-readout .consumption span{grid-column:1/-1;color:var(--dim);font-size:9px;letter-spacing:.08em}
+.top-readout strong{display:block;color:var(--ink);font-weight:500}
+.top-readout .battery{text-align:right;white-space:nowrap}
+.top-readout .battery strong{font-size:clamp(20px,2.5vw,29px);color:#fff;letter-spacing:.02em;margin-top:2px}
 .radar-stage{position:relative;min-height:0;display:grid;place-items:center;overflow:visible}
-.scope{position:relative;width:min( min(70vh, 70vw), 760px);height:auto;aspect-ratio:1;border:1px solid rgba(169,229,197,.75);border-radius:50%;overflow:visible;background:radial-gradient(circle,rgba(28,63,49,.22) 0%,rgba(7,18,15,.52) 68%,rgba(5,10,10,.95) 100%);box-shadow:0 0 28px rgba(80,180,130,.08),inset 0 0 40px rgba(80,180,130,.07)}
-.scope:before{content:"";position:absolute;inset:0;border-radius:50%;z-index:3;pointer-events:none;background:radial-gradient(circle,transparent 16.35%,rgba(214,173,101,.18) 16.55%,rgba(214,173,101,.18) 16.8%,transparent 17%),radial-gradient(circle,transparent 32.9%,rgba(214,173,101,.34) 33.1%,rgba(214,173,101,.34) 33.35%,transparent 33.55%),radial-gradient(circle,transparent 49.5%,rgba(214,173,101,.82) 49.75%,rgba(214,173,101,.82) 50%,transparent 50.25%)}
-.scope:after{content:none}
-.map-grid{position:absolute;inset:0;z-index:1;display:grid;grid-template-columns:repeat(15,minmax(0,1fr));grid-template-rows:repeat(15,minmax(0,1fr));border-radius:50%;overflow:hidden}
-.map-cell{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;color:var(--mid);font-size:clamp(10px,2.2vmin,19px);line-height:1;overflow:visible}
-.map-cell.unexplored,.map-cell.outside{background:rgba(0,0,0,.45);color:transparent}
-.map-cell.sector{display:none}
-.map-cell.marker{color:#fff;font-size:clamp(17px,3.1vmin,27px);text-shadow:0 0 10px #a9e5c5;z-index:4}
-.map-cell.structure{font-weight:800;color:var(--ink);text-shadow:0 0 5px rgba(200,255,220,.35);z-index:2}
-.map-cell.obj-hazard{color:#c4c7b9}.map-cell.obj-item{color:#dce5e4}.map-cell.core{color:#fff}
-.map-cell.structure.edge-top{border-top:1px solid var(--mid)}.map-cell.structure.edge-bottom{border-bottom:1px solid var(--mid)}.map-cell.structure.edge-left{border-left:1px solid var(--mid)}.map-cell.structure.edge-right{border-right:1px solid var(--mid)}
-.bearing{display:none}
-.bearing.n{top:8px;left:50%;transform:translateX(-50%)}.bearing.e{right:9px;top:50%;transform:translateY(-50%)}.bearing.s{bottom:8px;left:50%;transform:translateX(-50%)}.bearing.w{left:9px;top:50%;transform:translateY(-50%)}
-.center-mark{position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border:1px solid var(--accent);border-radius:50%;background:var(--bg);box-shadow:0 0 9px rgba(169,229,197,.7);pointer-events:none}
-.center-mark:before,.center-mark:after{content:"";position:absolute;background:var(--accent);opacity:.85}.center-mark:before{width:24px;height:1px;left:50%;top:50%;transform:translate(-50%,-50%)}.center-mark:after{height:24px;width:1px;left:50%;top:50%;transform:translate(-50%,-50%)}
-.dir-btn{position:absolute;z-index:7;width:clamp(34px,5.4vmin,48px);height:clamp(34px,5.4vmin,48px);border:1px solid rgba(190,220,205,.65);border-radius:2px;background:rgba(5,12,10,.88);color:var(--ink);font:600 clamp(16px,2.3vmin,22px) monospace;display:grid;place-items:center;cursor:pointer;touch-action:manipulation}
-.dir-btn:active,.dir-btn.is-active{background:rgba(169,229,197,.25);border-color:var(--accent);color:#fff}
+.scope{position:relative;width:min(min(58vh,58vw),560px);height:auto;aspect-ratio:1;border-radius:50%;overflow:visible;background:radial-gradient(circle,rgba(255,255,255,.035),rgba(255,255,255,.012) 68%,transparent 69%)}
+.map-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:1}
+.map-svg .scan-boundary{fill:none;stroke:rgba(245,248,250,.7);stroke-width:1.3}
+.map-svg .tick{stroke:rgba(245,248,250,.48);stroke-width:1.5}
+.map-svg .tick.major{stroke:rgba(255,255,255,.9);stroke-width:2.4}
+.map-svg .terrain-point{fill:rgba(245,248,250,.48)}
+.map-svg .object-line{fill:none;stroke:rgba(245,248,250,.86);stroke-width:2.4}
+.map-svg .object-fill{fill:rgba(245,248,250,.12);stroke:rgba(245,248,250,.9);stroke-width:2}
+.map-svg .object-dot{fill:#fff}
+.map-svg .rover{fill:#fff;stroke:#080a0c;stroke-width:3}
+.dir-btn{position:absolute;z-index:7;width:clamp(22px,3.2vmin,30px);height:clamp(22px,3.2vmin,30px);border:0;border-radius:0;background:transparent;color:#fff;font:400 clamp(22px,3.1vmin,30px)/1 monospace;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;padding:0}
+.dir-btn:active,.dir-btn.is-active{color:#aeb4ba;text-shadow:0 0 8px #fff}
 .dir-btn:disabled{opacity:.28}
-.dir-btn.north{left:50%;top:-52px;transform:translate(-50%,-100%)}.dir-btn.south{left:50%;bottom:-52px;transform:translate(-50%,100%)}
-.dir-btn.west{left:-52px;top:50%;transform:translate(-100%,-50%)}.dir-btn.east{right:-52px;top:50%;transform:translate(100%,-50%)}
-.dir-btn.northwest{left:-42px;top:-42px;transform:translate(-100%,-100%)}.dir-btn.northeast{right:-42px;top:-42px;transform:translate(100%,-100%)}.dir-btn.southwest{left:-42px;bottom:-42px;transform:translate(-100%,100%)}.dir-btn.southeast{right:-42px;bottom:-42px;transform:translate(100%,100%)}
-.dir-btn.act-center{display:none}
-.scope-caption{display:none}
-.log-area{min-height:66px;display:grid;grid-template-columns:minmax(0,1fr);gap:5px;align-items:start;padding-top:5px;color:var(--mid);font-size:clamp(9px,1.1vw,12px);line-height:1.45}
-.log-left{min-width:0;text-align:left;overflow:hidden}.log-label{color:var(--dim);letter-spacing:.1em;margin-bottom:3px}.mission-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.mission-message{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;flex:1}.log-history{color:var(--dim);display:flex;flex-direction:column;gap:1px}.log-entry{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.action-button{flex:none;border:1px solid var(--accent);background:transparent;color:var(--accent);font:700 11px monospace;letter-spacing:.08em;padding:7px 13px;cursor:pointer}.action-button:disabled{opacity:.28}
-.rover-battery{display:none}
-.hidden-support{display:none}
-@media(max-width:600px){body{padding:10px}.top-readout{min-height:48px}.top-readout .consumption{font-size:9px}.top-readout strong{font-size:17px}.top-readout .battery strong{font-size:23px}.scope{width:min(70vw,58vh)}.dir-btn{width:30px;height:30px;font-size:19px}.dir-btn.north{top:-34px}.dir-btn.south{bottom:-34px}.dir-btn.west{left:-34px}.dir-btn.east{right:-34px}.dir-btn.northwest{left:-28px;top:-28px}.dir-btn.northeast{right:-28px;top:-28px}.dir-btn.southwest{left:-28px;bottom:-28px}.dir-btn.southeast{right:-28px;bottom:-28px}.log-area{gap:6px}}
+.dir-btn.north{left:50%;top:-3px;transform:translate(-50%,-100%) rotate(-90deg)}
+.dir-btn.south{left:50%;bottom:-3px;transform:translate(-50%,100%) rotate(90deg)}
+.dir-btn.west{left:-3px;top:50%;transform:translate(-100%,-50%) rotate(180deg)}
+.dir-btn.east{right:-3px;top:50%;transform:translate(100%,-50%)}
+.dir-btn.northwest{left:14%;top:14%;transform:translate(-100%,-100%) rotate(-135deg)}
+.dir-btn.northeast{right:14%;top:14%;transform:translate(100%,-100%) rotate(-45deg)}
+.dir-btn.southwest{left:14%;bottom:14%;transform:translate(-100%,100%) rotate(135deg)}
+.dir-btn.southeast{right:14%;bottom:14%;transform:translate(100%,100%) rotate(45deg)}
+.dir-btn.act-center,.scope-caption,.rover-battery,.hidden-support{display:none}
+.log-area{min-height:56px;display:grid;grid-template-columns:minmax(0,1fr);gap:4px;align-items:start;padding-top:6px;border-top:1px solid var(--line);color:var(--mid);font-size:clamp(9px,1vw,11px);line-height:1.4}
+.log-left{min-width:0;text-align:left;overflow:hidden}
+.log-label{color:var(--dim);letter-spacing:.14em;margin-bottom:4px}
+.mission-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mission-message{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;flex:1}
+.log-history{color:var(--dim);display:flex;flex-direction:column;gap:1px}
+.log-entry{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.action-button{flex:none;border:1px solid rgba(245,248,250,.65);background:transparent;color:#fff;font:600 10px monospace;letter-spacing:.1em;padding:6px 11px;cursor:pointer}
+.action-button:disabled{opacity:.28}
+@media(max-width:600px){body{padding:9px}.app{gap:5px}.top-readout{min-height:43px}.top-readout .consumption{column-gap:7px}.top-readout .battery strong{font-size:21px}.scope{width:min(66vw,53vh)}.dir-btn{width:22px;height:22px;font-size:22px}.dir-btn.northwest{left:13%;top:13%}.dir-btn.northeast{right:13%;top:13%}.dir-btn.southwest{left:13%;bottom:13%}.dir-btn.southeast{right:13%;bottom:13%}.log-area{min-height:52px}}
+@media(max-height:560px){.scope{width:min(50vh,50vw)}.top-readout{min-height:38px}.log-area{min-height:45px}}
 </style>
 </head>
 <body>
@@ -55,17 +61,16 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
   </header>
   <main class="radar-stage">
     <div class="scope" aria-label="360 degree rover lidar radar">
-      <div class="map-grid" id="map-grid"></div>
-      <span class="center-mark"></span>
-      <button class="dir-btn northwest" data-direction="NW" aria-label="Northwest">↖</button>
-      <button class="dir-btn north" data-direction="N" aria-label="North">⌃</button>
-      <button class="dir-btn northeast" data-direction="NE" aria-label="Northeast">↗</button>
-      <button class="dir-btn west" data-direction="W" aria-label="West">‹</button>
+      <svg class="map-svg" id="map-svg" viewBox="0 0 1500 1500" role="img" aria-label="LIDAR terrain map"></svg>
+      <button class="dir-btn northwest" data-direction="NW" aria-label="Northwest">></button>
+      <button class="dir-btn north" data-direction="N" aria-label="North">></button>
+      <button class="dir-btn northeast" data-direction="NE" aria-label="Northeast">></button>
+      <button class="dir-btn west" data-direction="W" aria-label="West"><</button>
       
-      <button class="dir-btn east" data-direction="E" aria-label="East">›</button>
-      <button class="dir-btn southwest" data-direction="SW" aria-label="Southwest">↙</button>
-      <button class="dir-btn south" data-direction="S" aria-label="South">⌄</button>
-      <button class="dir-btn southeast" data-direction="SE" aria-label="Southeast">↘</button>
+      <button class="dir-btn east" data-direction="E" aria-label="East">></button>
+      <button class="dir-btn southwest" data-direction="SW" aria-label="Southwest">></button>
+      <button class="dir-btn south" data-direction="S" aria-label="South">></button>
+      <button class="dir-btn southeast" data-direction="SE" aria-label="Southeast">></button>
     </div>
     <div class="hidden-support">
       <div id="task-detail-title"></div><div id="task-detail-text"></div>
@@ -97,7 +102,7 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
     const MARKER_CHAR = '\u25CF'; // Solid rover marker
     const TARGET_CHAR = '\u25CB'; // Selected point
     // LIDAR reveals only the central detection circle.
-    const LIDAR_RADIUS = 2;
+    const LIDAR_RADIUS = 7;
     const BATTERY_CAPACITY_WH = 160;
     let energyUsedWh = 0;
     let currentConsumptionW = 30;
@@ -377,54 +382,45 @@ body{padding:clamp(12px,2.4vw,28px);display:flex;flex-direction:column}
     }
 
     function renderMap() {
-      const gridEl = document.getElementById('map-grid');
-      updateReadout();
-      updateActButton();
-      updateBaseCharging();
-
-      updateMapNav();
-      revealAroundUnit();
-      const frag = document.createDocumentFragment();
-
-      for (let sy = 0; sy < VIEW_H; sy++) {
-        for (let sx = 0; sx < VIEW_W; sx++) {
-          const x = viewX + sx;
-          const y = viewY + sy;
-          const cell = document.createElement('div');
-          cell.className = 'map-cell';
-          if(x<0||y<0||x>=MAP_W||y>=MAP_H){
-            cell.classList.add('outside');
-            frag.appendChild(cell);
-            continue;
-          }
-          cell.addEventListener('click',()=>onCellClick(x,y));
-
-          const known=explored.has(x+','+y),ent=known?getEntityAt(x,y):null;
-          if(!known){
-            cell.classList.add('unexplored');
-          }
-          else if(x===posX&&y===posY){cell.classList.add('marker');cell.textContent='●';}
-          else if(ent){
-            cell.classList.add('structure');
-            if(ent.kind==='base')cell.classList.add('obj-base');
-            else if(ent.kind==='rock')cell.classList.add('obj-hazard');
-            else if(!['debris','quest'].includes(ent.kind))cell.classList.add('obj-item');
-            const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y;
-            if(w>1&&h>1){
-              if(ly===0)cell.classList.add('edge-top');
-              if(ly===h-1)cell.classList.add('edge-bottom');
-              if(lx===0)cell.classList.add('edge-left');
-              if(lx===w-1)cell.classList.add('edge-right');
-            }
-            const glyph=structureGlyph(ent,x,y);if(glyph)cell.textContent=glyph;
-            if(x===ent.x+Math.floor((ent.w||1)/2)&&y===ent.y+Math.floor((ent.h||1)/2))cell.classList.add('core');
-          }
-
-          frag.appendChild(cell);
+      const svg=document.getElementById('map-svg');
+      updateReadout(); updateActButton(); updateBaseCharging(); updateMapNav(); revealAroundUnit();
+      const parts=[];
+      parts.push('<defs><clipPath id="lidarClip"><circle cx="750" cy="750" r="730"/></clipPath></defs>');
+      for(let i=0;i<24;i++){
+        const a=i*15-90,nearest=Math.round(a/45)*45;
+        const delta=Math.abs(((a-nearest+180)%360+360)%360-180);
+        if(delta<9)continue;
+        const rad=a*Math.PI/180,major=i%2===0,r1=major?714:720,r2=730;
+        parts.push('<line class="tick '+(major?'major':'')+'" x1="'+(750+Math.cos(rad)*r1).toFixed(1)+'" y1="'+(750+Math.sin(rad)*r1).toFixed(1)+'" x2="'+(750+Math.cos(rad)*r2).toFixed(1)+'" y2="'+(750+Math.sin(rad)*r2).toFixed(1)+'"/>');
+      }
+      parts.push('<circle class="scan-boundary" cx="750" cy="750" r="730"/><g clip-path="url(#lidarClip)">');
+      for(let sy=0;sy<VIEW_H;sy++)for(let sx=0;sx<VIEW_W;sx++){
+        const x=viewX+sx,y=viewY+sy,dx=sx-7,dy=sy-7;
+        if(dx*dx+dy*dy>LIDAR_RADIUS*LIDAR_RADIUS||!explored.has(x+','+y))continue;
+        const px=750+dx*100,py=750+dy*100,seed=(x*37+y*61)%11;
+        if(seed<7){
+          const ox=((x*17+y*13)%43)-21,oy=((x*29+y*7)%39)-19;
+          parts.push('<circle class="terrain-point" cx="'+(px+ox)+'" cy="'+(py+oy)+'" r="'+(seed%3+2)+'"/>');
+        }
+        const ent=getEntityAt(x,y); if(!ent)continue;
+        const w=ent.w||1,h=ent.h||1,lx=x-ent.x,ly=y-ent.y;
+        if(w>1&&h>1){
+          const ex=750+(ent.x-viewX-7)*100-42,ey=750+(ent.y-viewY-7)*100-42;
+          if(lx===0&&ly===0)parts.push('<rect class="object-fill" x="'+ex+'" y="'+ey+'" width="'+(w*100-16)+'" height="'+(h*100-16)+'"/>');
+          if(lx===Math.floor(w/2)&&ly===Math.floor(h/2))parts.push('<circle class="object-dot" cx="'+px+'" cy="'+py+'" r="7"/>');
+        }else if(ent.kind==='rock'){
+          parts.push('<path class="object-line" d="M '+(px-19)+' '+(py+17)+' L '+px+' '+(py-21)+' L '+(px+19)+' '+(py+17)+' Z"/>');
+        }else if(ent.kind==='quest'){
+          parts.push('<path class="object-line" d="M '+px+' '+(py-15)+' L '+(px+15)+' '+py+' L '+px+' '+(py+15)+' L '+(px-15)+' '+py+' Z"/>');
+        }else if(ent.kind==='debris'){
+          parts.push('<path class="object-line" d="M '+(px-9)+' '+(py-3)+' l 18 6 M '+(px-4)+' '+(py-10)+' l 8 20"/>');
+        }else{
+          parts.push('<rect class="object-line" x="'+(px-17)+'" y="'+(py-17)+'" width="34" height="34"/><circle class="object-dot" cx="'+px+'" cy="'+py+'" r="4"/>');
         }
       }
-
-      gridEl.replaceChildren(frag);
+      const rx=750+(posX-viewX-7)*100,ry=750+(posY-viewY-7)*100;
+      parts.push('<circle class="rover" cx="'+rx+'" cy="'+ry+'" r="8"/></g>');
+      svg.innerHTML=parts.join('');
     }
 
     function describeCell(x, y) {
