@@ -301,7 +301,9 @@ body{padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}
     function findNearbyInteractive() {
       const baseEnt = entities.find((e) => e.kind === 'base');
       if (baseEnt && isAdjacentToEntity(posX,posY,baseEnt)) {
-        const awaitingLink=entities.some(e=>e.kind==='transporter'&&e.active&&!e.linked);\n        const loaderNeeded=entities.some(e=>e.kind==='assembler'&&e.cleared&&e.heavyDebris);\n        if (inventory.size > 0 || batteryVoltage < MAX_BATTERY_VOLTAGE || awaitingLink || loaderNeeded) {
+        const awaitingLink=entities.some(e=>e.kind==='transporter'&&e.active&&!e.linked);
+        const loaderNeeded=entities.some(e=>e.kind==='assembler'&&e.cleared&&e.heavyDebris);
+        if (inventory.size > 0 || batteryVoltage < MAX_BATTERY_VOLTAGE || awaitingLink || loaderNeeded) {
           return baseEnt;
         }
       }
