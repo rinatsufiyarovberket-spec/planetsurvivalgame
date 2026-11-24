@@ -9,7 +9,7 @@
 *{box-sizing:border-box}body{margin:0;padding:22px;background:var(--bg);color:var(--bright);font:13px 'DejaVu Sans Mono',Consolas,monospace}
 h1{font-size:16px;letter-spacing:2px;font-weight:500;margin:0 0 8px}p{color:var(--line);line-height:1.5;margin:0 0 20px}
 .samples{display:grid;grid-template-columns:1fr 1fr;gap:18px}.sample{border:1px solid var(--line);padding:12px;min-width:0}.sample h2{font-size:13px;font-weight:500;margin:0 0 8px}.sample small{display:block;color:var(--dim);margin-top:8px;line-height:1.45}
-svg{width:100%;height:auto;display:block;background:#111416;border:1px solid #30383a}
+svg,canvas{width:100%;height:auto;display:block;background:#08090a;border:1px solid #30383a}.topo-canvas{aspect-ratio:600/360}
 .contour{fill:none;stroke:#9ba3a5;stroke-width:1.15;opacity:.72}.index{stroke:#d5dbdc;stroke-width:1.8;opacity:.9}.minor{stroke:#697477;stroke-width:.8;opacity:.65}
 @media(max-width:760px){.samples{grid-template-columns:1fr}body{padding:12px}}
 </style>
@@ -20,7 +20,7 @@ svg{width:100%;height:auto;display:block;background:#111416;border:1px solid #30
 <div class="samples">
 <section class="sample">
 <h2>01 // CLASSIC CONTOUR LINES</h2>
-<svg viewBox="0 0 600 360" role="img" aria-label="Классические горизонтали топографической карты">
+<canvas class="topo-canvas" id="topo-map" width="900" height="540" role="img" aria-label="Процедурная топографическая карта с горизонталями"></canvas><svg style="display:none" viewBox="0 0 600 360" aria-hidden="true">
 <g class="minor">
 <path d="M-20 70 C70 15 150 20 205 70 S330 125 410 65 S550 10 630 55"/>
 <path d="M-20 95 C65 40 150 45 195 95 S330 150 420 90 S550 35 630 80"/>
@@ -67,4 +67,48 @@ svg{width:100%;height:auto;display:block;background:#111416;border:1px solid #30
 <small>Те же горизонтали, но с мягкой теневой подложкой и более выраженными формами склонов. Выразительнее, однако чуть дороже по отрисовке и визуально плотнее.</small>
 </section>
 </div>
+<script>
+(()=>{
+const canvas=document.getElementById('topo-map');if(!canvas)return;
+const ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height;
+ctx.fillStyle='#08090a';ctx.fillRect(0,0,W,H);
+function hash(x,y){let n=Math.imul(x,374761393)+Math.imul(y,668265263);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967295;}
+function smooth(t){return t*t*(3-2*t);}
+function noise(x,y,scale){
+ const gx=x/scale,gy=y/scale,ix=Math.floor(gx),iy=Math.floor(gy),fx=smooth(gx-ix),fy=smooth(gy-iy);
+ const a=hash(ix,iy),b=hash(ix+1,iy),c=hash(ix,iy+1),d=hash(ix+1,iy+1);
+ return (a+(b-a)*fx)*(1-fy)+(c+(d-c)*fx)*fy;
+}
+const field=new Float32Array(W*H);
+let lo=1e9,hi=-1e9;
+for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+ let v=noise(x,y,170)*.42+noise(x,y,82)*.27+noise(x,y,39)*.17+noise(x,y,17)*.09+noise(x,y,7)*.05;
+ v+=.055*Math.sin(x/130+y/85)+.035*Math.cos(x/74-y/112);
+ field[y*W+x]=v;lo=Math.min(lo,v);hi=Math.max(hi,v);
+}
+for(let y=0;y<H;y++)for(let x=0;x<W;x++)field[y*W+x]=(field[y*W+x]-lo)/(hi-lo);
+const step=2;
+for(let level=0.12;level<0.9;level+=0.022){
+ ctx.beginPath();
+ for(let y=0;y<H-step;y+=step)for(let x=0;x<W-step;x+=step){
+  const a=field[y*W+x],b=field[y*W+x+step],c=field[(y+step)*W+x+step],d=field[(y+step)*W+x];
+  const pts=[];
+  const edge=(v1,v2,x1,y1,x2,y2)=>{if((v1<level&&v2>=level)||(v2<level&&v1>=level)){const q=(level-v1)/(v2-v1);pts.push([x1+(x2-x1)*q,y1+(y2-y1)*q]);}};
+  edge(a,b,x,y,x+step,y);edge(b,c,x+step,y,x+step,y+step);edge(c,d,x+step,y+step,x,y+step);edge(d,a,x,y+step,x,y);
+  if(pts.length===2){ctx.moveTo(...pts[0]);ctx.lineTo(...pts[1]);}
+  else if(pts.length===4){ctx.moveTo(...pts[0]);ctx.lineTo(...pts[1]);ctx.moveTo(...pts[2]);ctx.lineTo(...pts[3]);}
+ }
+ const major=Math.round(level*100)%10===0;
+ ctx.strokeStyle=major?'rgba(220,225,226,.58)':'rgba(150,158,160,.32)';
+ ctx.lineWidth=major?1.35:.7;ctx.stroke();
+}
+ctx.strokeStyle='rgba(180,188,190,.22)';ctx.lineWidth=1;
+for(let x=0;x<=W;x+=90){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+for(let y=0;y<=H;y+=90){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+ctx.fillStyle='rgba(225,230,230,.78)';ctx.font='12px monospace';
+[['NORTH RIDGE // 248 m',34,32],['BASALT CANYON',470,104],['LOWLAND // 112 m',48,495],['SURVEY GRID 04-17',690,510]].forEach(([s,x,y])=>ctx.fillText(s,x,y));
+ctx.fillStyle='rgba(225,230,230,.45)';ctx.font='10px monospace';
+for(let i=0;i<28;i++){const x=hash(i,19)*W,y=hash(i,47)*H;ctx.fillRect(x,y,2,2);}
+})();
+</script>
 </body></html>
